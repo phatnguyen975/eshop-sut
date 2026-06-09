@@ -102,7 +102,7 @@ Frontend Mobile cung cấp giao diện App trên điện thoại. (Lưu ý: Back
    ```
    *Terminal sẽ cung cấp đường link `http://localhost:5174/`. Để đăng nhập, hãy sử dụng tài khoản Admin mặc định:*
    - **Email**: `admin@eshop.com`
-   - **Mật khẩu**: `admin123`
+   - **Mật khẩu**: `Admin123!`
 
 ---
 
