@@ -32,7 +32,7 @@ HW02 Section 9 requires the AI Audit Report as a **mandatory appendix** containi
 
 One entry per skill invocation (or closely related group of interactions):
 
-```markdown
+````markdown
 ## Interaction [{n}] — {Skill Name}
 
 | Field             | Value                                    |
@@ -44,15 +44,15 @@ One entry per skill invocation (or closely related group of interactions):
 | **Task**          | {One-line description of what was asked} |
 
 ### Prompt Given
+
 ```
-
 {Full prompt or accurate close paraphrase of what the student typed}
-
 ```
 
 ### AI Output Summary
 
 {Summary of what Antigravity generated — 2–5 bullet points}
+
 - Generated {n} EP classes for {n} variables
 - Applied G1 to `password` length: 1 valid + 2 invalid classes
 - Applied G3 to `email` format: 1 valid + 3 invalid classes
@@ -61,6 +61,7 @@ One entry per skill invocation (or closely related group of interactions):
 ### Student Review Notes
 
 {What the student verified, corrected, or added manually}
+
 - Accepted as-is: {items accepted without change}
 - Modified: {items changed and why}
 - Added manually: {items student added that AI missed}
@@ -68,13 +69,13 @@ One entry per skill invocation (or closely related group of interactions):
 
 ### Interaction Quality Assessment
 
-| Criterion | Rating (1–5) | Notes |
-|-----------|-------------|-------|
-| Completeness | {n} | Did AI cover all required classes? |
-| Accuracy | {n} | Were generated items correct per SRS? |
-| Guideline adherence | {n} | Did AI follow EP/BVA rules correctly? |
-| Items missed | {n} count | Number of classes AI did not generate |
-```
+| Criterion           | Rating (1–5) | Notes                                 |
+| ------------------- | ------------ | ------------------------------------- |
+| Completeness        | {n}          | Did AI cover all required classes?    |
+| Accuracy            | {n}          | Were generated items correct per SRS? |
+| Guideline adherence | {n}          | Did AI follow EP/BVA rules correctly? |
+| Items missed        | {n} count    | Number of classes AI did not generate |
+````
 
 ## 4. Step-by-Step Instructions
 
@@ -179,7 +180,7 @@ _Word count: {n} words_
 # AI Audit Log — FR-{nn}: {Feature Name}
 
 **Feature:** FR-{nn}
-**Tool:** Antigravity CLI
+**Tool:** Antigravity CLI (Gemini/Claude/Codex {model} backend)
 **Total interactions logged:** {n}
 
 {Interaction [1] — requirement-analyzer}
