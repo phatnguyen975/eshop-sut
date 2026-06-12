@@ -83,13 +83,14 @@
 
 ### Variable: `name` (I1) — Guideline 3 (Must-Be: non-empty) + B1 (empty/null)
 
-| Class ID | Type    | Description                                      | Representative Value          |
-| -------- | ------- | ------------------------------------------------ | ----------------------------- |
-| EC01     | Valid   | Non-empty string name                            | `"Nguyen Van A"`              |
-| EC02     | Invalid | Empty string (B1: required field left blank)     | `""`                          |
-| EC03     | Invalid | Null / field omitted from API body (B1: missing) | _(omit `name` key from JSON)_ |
+| Class ID | Type    | Description                                                                                                   | Representative Value          |
+| -------- | ------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| EC01     | Valid   | Non-empty string name                                                                                         | `"Nguyen Van A"`              |
+| EC02     | Invalid | Empty string (B1: required field left blank)                                                                  | `""`                          |
+| EC03     | Invalid | Null / field omitted from API body (B1: missing)                                                              | _(omit `name` key from JSON)_ |
+| EC24     | Valid   | Name containing HTML/XSS injection payload — tests escaped rendering on UI, not rejection (G4 split — SEC-04) | `"<script>alert(1)</script>"` |
 
-> **Guideline applied:** G3 — binary must-be condition: name must be non-empty. Two classes: satisfies vs. violates. B1 extension adds the null/missing API variant as a separate invalid class.
+> **Guideline applied:** G3 — binary must-be condition: name must be non-empty. B1 extension adds empty and null cases. G4 split adds EC24: a valid name containing HTML/script tags verifies the system accepts the input but renders it safely on UI (per SEC-04, O14). Rejection is NOT expected — safe display is the pass criterion.
 
 ---
 
@@ -153,20 +154,20 @@
 
 ### EP Class Summary
 
-| Variable               | Guideline(s)        | Valid ECs | Invalid ECs | Total ECs |
-| ---------------------- | ------------------- | --------- | ----------- | --------- |
-| `name` (I1)            | G3 + B1             | EC01      | EC02, EC03  | 3         |
-| `email` (I2)           | G3 × 2 + B1         | EC04      | EC05–EC10   | 7         |
-| `password` (I3)        | G1 + G3×4 + G4 + B1 | EC11      | EC12–EC19   | 9         |
-| `confirmPassword` (I4) | G3 + B1             | EC20      | EC21, EC22  | 3         |
-| `auth_token` (I7)      | G3                  | EC23      | —           | 1         |
-| **TOTAL**              |                     | **5**     | **18**      | **23**    |
+| Variable               | Guideline(s)          | Valid ECs  | Invalid ECs | Total ECs |
+| ---------------------- | --------------------- | ---------- | ----------- | --------- |
+| `name` (I1)            | G3 + B1 + G4 (SEC-04) | EC01, EC24 | EC02, EC03  | 4         |
+| `email` (I2)           | G3 × 2 + B1           | EC04       | EC05–EC10   | 7         |
+| `password` (I3)        | G1 + G3×4 + G4 + B1   | EC11       | EC12–EC19   | 9         |
+| `confirmPassword` (I4) | G3 + B1               | EC20       | EC21, EC22  | 3         |
+| `auth_token` (I7)      | G3                    | EC23       | —           | 1         |
+| **TOTAL**              |                       | **6**      | **18**      | **24**    |
 
 ## Step 3: Test Case Optimization
 
 ### 3.1 Valid Classes Coverage (Combination Rule)
 
-All 5 valid classes (EC01, EC04, EC11, EC20, EC23) combined into one single happy-path TC:
+Core valid classes (EC01, EC04, EC11, EC20, EC23) combined into one single happy-path TC. EC24 (XSS security) is tested separately as FR01-EP-020 due to its distinct output verification requirement.
 
 | TC ID       | Valid ECs Combined               | Test Data Summary                                                                                                      | Channel  |
 | ----------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------- |
@@ -220,8 +221,176 @@ Each TC isolates **exactly ONE** invalid class. All other inputs are drawn from 
 
 ---
 
+**`name` security class (EC24 — UI + DOM channel):**
+
+| TC ID       | EC Tested                                                      | Other Inputs (all valid)                                           | Channel  |
+| ----------- | -------------------------------------------------------------- | ------------------------------------------------------------------ | -------- |
+| FR01-EP-020 | EC24 — `name` with XSS payload (`"<script>alert(1)</script>"`) | email=valid, password=`"Test@123"`, confirm=`"Test@123"`, no token | UI + DOM |
+
+> **Expected result for FR01-EP-020:** HTTP 200 — system accepts registration. On UI, the name is displayed as escaped text; no script executes in the browser. Verify via DevTools DOM inspection: confirm name rendered as `&lt;script&gt;alert(1)&lt;/script&gt;` (per SEC-04, O14).
+
+---
+
 ### 3.3 EC Coverage Summary
 
-| Total ECs | Valid ECs | Invalid ECs | TCs for Valid | TCs for Invalid | Total TCs |
-| --------- | --------- | ----------- | ------------- | --------------- | --------- |
-| 23        | 5         | 18          | 1             | 18              | **19**    |
+| Total ECs | Valid ECs | Invalid ECs | TCs for Valid | TCs for Invalid | Security TCs | Total TCs |
+| --------- | --------- | ----------- | ------------- | --------------- | ------------ | --------- |
+| 24        | 6         | 18          | 1             | 18              | 1            | **20**    |
+
+## Step 5: Domain Coverage Review & AI Gap Analysis
+
+### 5.1 EP Guidelines Compliance
+
+| Variable               | Guideline(s) Applied         | Valid ECs      | Invalid ECs | Verdict |
+| ---------------------- | ---------------------------- | -------------- | ----------- | ------- |
+| `name` (I1)            | G3 + B1 + G4 (SEC-04)        | 2 (EC01, EC24) | 2 (EC02–03) | ✅ PASS |
+| `email` (I2)           | G3 × 2 + G4 (sub-split) + B1 | 1 (EC04)       | 6 (EC05–10) | ✅ PASS |
+| `password` (I3)        | G1 + G3 × 4 + G4 + B1        | 1 (EC11)       | 8 (EC12–19) | ✅ PASS |
+| `confirmPassword` (I4) | G3 + B1 (UI only)            | 1 (EC20)       | 2 (EC21–22) | ✅ PASS |
+| `auth_token` (I7)      | G3 (SEC-02)                  | 1 (EC23)       | 0           | ✅ PASS |
+
+---
+
+### 5.2 Missing Classes Detection
+
+#### B1 — Empty / Null Classes
+
+| Variable          | Empty String EC | Null/Missing EC  | Status |
+| ----------------- | --------------- | ---------------- | ------ |
+| `name`            | EC02 ✅         | EC03 ✅          | PASS   |
+| `email`           | EC09 ✅         | EC10 ✅          | PASS   |
+| `password`        | EC18 ✅         | EC19 ✅          | PASS   |
+| `confirmPassword` | EC22 ✅         | N/A (UI-only) ✅ | PASS   |
+
+#### B2 — Cross-field Classes
+
+| Cross-field Dependency       | EC Present | Status |
+| ---------------------------- | ---------- | ------ |
+| `confirmPassword ≠ password` | EC21 ✅    | PASS   |
+
+#### B3 — DB-State Classes
+
+| DB-State Dependency          | EC Present | Status |
+| ---------------------------- | ---------- | ------ |
+| `email` already exists in DB | EC08 ✅    | PASS   |
+
+#### B4 — Security-Specific Classes
+
+| Security Class                                             | EC Present                   | Status          |
+| ---------------------------------------------------------- | ---------------------------- | --------------- |
+| Public endpoint: no JWT required (SEC-02)                  | EC23 ✅                      | PASS            |
+| XSS payload in `name` field (SEC-04: name displayed on UI) | EC24 ✅ (added after review) | PASS (resolved) |
+
+#### B5 — Boundary Edge Cases
+
+| Edge Case                                         | EC Present | Status |
+| ------------------------------------------------- | ---------- | ------ |
+| Password: special char in allowed set (`@$!%*?&`) | EC11 ✅    | PASS   |
+| Password: special char OUTSIDE allowed set        | EC17 ✅    | PASS   |
+
+#### B6 — State-Transition Classes
+
+FR-01 is a single-step form — no multi-step workflow. **N/A ✅**
+
+#### B7 — Implicit / Architectural Classes
+
+| Architectural Boundary              | BVA TC Present                     | Status |
+| ----------------------------------- | ---------------------------------- | ------ |
+| `password` length DB VARCHAR (~255) | +α FR01-BVA-006 ✅                 | PASS   |
+| `name` length DB VARCHAR (~255)     | UB/UB+1/+α FR01-BVA-012/013/014 ✅ | PASS   |
+| `email` length DB VARCHAR (~255)    | UB/UB+1/+α FR01-BVA-016/017/018 ✅ | PASS   |
+
+---
+
+### 5.3 Rule Violations Found
+
+#### Isolation Rule Scan (all 18 invalid TCs + FR01-EP-020)
+
+All 18 invalid TCs verified: each contains exactly 1 invalid input; all other inputs drawn from valid classes.
+
+- FR01-EP-010 to 016: `confirmPassword` mirrors invalid password value — correctly remains in EC20 ("matches password") since EC20's condition is "matches `password` field", not "is a strong password". ✅
+- FR01-EP-020: EC24 is a **valid** class (security payload accepted by system) — no isolation concern. ✅
+
+**No Isolation Rule violations found.** ✅
+
+#### Combination Rule Scan
+
+| TC ID       | Valid ECs Combined       | All Valid ECs Covered? | Verdict |
+| ----------- | ------------------------ | ---------------------- | ------- |
+| FR01-EP-001 | EC01+EC04+EC11+EC20+EC23 | Covers 5 of 6 ✅       | ✅ PASS |
+| FR01-EP-020 | EC24 (security split)    | Covers EC24 separately | ✅ PASS |
+
+> EC24 is tested separately (FR01-EP-020) because its output verification (DOM/XSS check) differs from the standard success path (FR01-EP-001). This is a justified exception to the combination rule.
+
+---
+
+### 5.4 BVA Completeness
+
+| Variable          | BVA Table | Points Generated        | −α  | +α  | Missing           | Verdict |
+| ----------------- | --------- | ----------------------- | --- | --- | ----------------- | ------- |
+| `password` length | ✅ Yes    | 6 (FR01-BVA-001 to 006) | ✅  | ✅  | None              | ✅ PASS |
+| `name` length     | ✅ Yes    | 8 (FR01-BVA-007 to 014) | ✅  | ✅  | None              | ✅ PASS |
+| `email` length    | ✅ Yes    | 4 (FR01-BVA-015 to 018) | N/A | ✅  | LB N/A (implicit) | ✅ PASS |
+| Date fields       | N/A       | —                       | —   | —   | —                 | ✅ N/A  |
+| Numeric fields    | N/A       | —                       | —   | —   | —                 | ✅ N/A  |
+
+---
+
+### 5.5 AI Gap Analysis
+
+#### What AI Generated Correctly
+
+1. Identified `confirmPassword` as **UI-only** (not in API body) — prevents incorrect API test design
+2. Applied **G4 split** to `password` special chars — EC16 (missing) vs EC17 (out-of-set) — flagged as commonly missed in skill Section 7
+3. Applied **B1** (empty + null) to all required fields without omission
+4. Applied **B2** (cross-field) with EC21 — confirmPassword mismatch class
+5. Applied **B3** (DB-state) with EC08 — duplicate email class
+6. Implemented the **"mirror" approach** for password invalid TCs to prevent defect masking in confirmPassword
+7. Applied **BVA to string length fields** — `name`, `email`, `password` all covered
+8. Made **architectural assumption** of DB VARCHAR=255 for implicit UB boundaries
+9. Constructed **valid-format boundary emails** precisely using `"a"×(n−9) + "@test.com"` formula
+
+#### What AI Missed
+
+| #   | Missing Item                                      | Description                                                                                                                                                                      | Root Cause                                                                                                                                                                       |
+| --- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **EC24 — XSS payload in `name`**                  | No EC for `name = "<script>alert(1)</script>"`. Output variable O14 (XSS safety) was correctly identified but did not translate into a G4 input split.                           | **Feature complexity** — XSS is an output-side security requirement. AI correctly mapped O14 as an output but did not auto-generate the corresponding input EC via G4 splitting. |
+| 2   | **Self-generated EC17 (out-of-set special char)** | EC17 was generated correctly, but only after explicit human prompting referencing the allowed set `@$!%*?&`. Without the prompt hint, this class would likely have been omitted. | **AI limitation** — the skill itself flags EC17 as a "commonly missed" class (Section 7). Human compensated via targeted prompt.                                                 |
+
+#### Root Cause Summary
+
+| Category           | Count | Description                                                                      |
+| ------------------ | ----- | -------------------------------------------------------------------------------- |
+| Feature complexity | 1     | EC24 (XSS): output-side SEC-04 requirement not auto-translated to input EC       |
+| AI limitation      | 1     | EC17 (out-of-set special char) required explicit human prompting to be generated |
+| Prompt quality     | 0     | No gaps attributable purely to insufficient context                              |
+
+#### Lesson Learned
+
+> _(Placeholder — Human writes the final version in `qa-artifacts/ai-audit/ai-critique.md` after completing all 4 FRs)_
+
+---
+
+### 5.6 Final EC Count After Review
+
+| Category      | Before Review | Added            | After Review |
+| ------------- | ------------- | ---------------- | ------------ |
+| Valid ECs     | 5             | +1 (EC24)        | **6**        |
+| Invalid ECs   | 18            | 0                | **18**       |
+| BVA Points    | 18            | 0                | **18**       |
+| EP TCs        | 19            | +1 (FR01-EP-020) | **20**       |
+| BVA TCs       | 18            | 0                | **18**       |
+| **Total TCs** | **37**        | **+1**           | **38**       |
+
+---
+
+### 5.7 Overall Coverage Verdict
+
+| Check                           | Result                                           |
+| ------------------------------- | ------------------------------------------------ |
+| EP Guidelines (G1/G2/G3/G4)     | ✅ ALL PASS                                      |
+| Missing Classes (B1–B7)         | ✅ ALL RESOLVED (EC24 added)                     |
+| Isolation Rule (18 invalid TCs) | ✅ ALL PASS — no defect masking                  |
+| Combination Rule                | ✅ PASS                                          |
+| BVA Completeness (3 variables)  | ✅ ALL PASS                                      |
+| **Overall verdict**             | ✅ **APPROVED — proceed to test-case-generator** |

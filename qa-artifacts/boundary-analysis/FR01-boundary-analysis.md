@@ -84,6 +84,6 @@
 
 > **Combined TC count for FR-01:**
 >
-> - EP test cases: 19 (FR01-EP-001 to FR01-EP-019)
+> - EP test cases: 20 (FR01-EP-001 to FR01-EP-020)
 > - BVA test cases: 18 (FR01-BVA-001 to FR01-BVA-018)
-> - **Grand total: 37 test cases**
+> - **Grand total: 38 test cases**
