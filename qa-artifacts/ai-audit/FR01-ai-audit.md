@@ -362,3 +362,77 @@ Append the output as Step 5 to: qa-artifacts/domain-analysis/FR01-domain-analysi
 | Items added manually by student | 1 (EC24/FR01-EP-020 via approval)                                                    |
 | Items rejected                  | 0                                                                                    |
 | Most common AI gap              | Feature complexity (failing to translate output security constraints into input ECs) |
+
+## Interaction [6] — test-case-generator
+
+| Field             | Value                                                                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Claude Sonnet 4.6 Thinking backend)                                                                                                      |
+| **Date/Time**     | 2026-06-12 17:02                                                                                                                                          |
+| **Feature**       | FR-01 — Account Registration                                                                                                                              |
+| **Skill Invoked** | test-case-generator                                                                                                                                       |
+| **Task**          | Compile all approved EP classes (20 TCs) and BVA points (18 TCs) into a final 38-TC test case table saved to `qa-artifacts/test-cases/FR01-test-cases.md` |
+
+### Prompt Given
+
+```
+/test-case-generator Use the test-case-generator skill.
+
+Feature: FR-01 — Account Registration
+
+Read the complete domain analysis (including the gap analysis) at:
+qa-artifacts/domain-analysis/FR01-domain-analysis.md
+
+And the boundary analysis at:
+qa-artifacts/boundary-analysis/FR01-boundary-analysis.md
+
+Generate the full test case table with both EP TCs (FR01-EP-001, 002, ...)
+and BVA TCs (FR01-BVA-001, 002, ...).
+
+For every TC:
+- Use the "Action + Function + Operating Condition" objective syntax
+- Include all 9 mandatory columns including Test Channel and EC/BVA Ref
+- Write specific concrete Expected Results citing the FR number (e.g., per FR-01)
+- Add a Teardown step for any TC that creates persistent data
+- Assign the correct Test Channel (UI / API / Role-Auth / DOM / State)
+
+Save the output to: qa-artifacts/test-cases/FR01-test-cases.md
+```
+
+### AI Output Summary
+
+- Generated **38 complete TC cards** (20 EP + 18 BVA) in the mandatory field-value table format, each containing all 9 required columns: TC ID, Objective, EC/BVA Ref, Pre-condition, Test Data, Steps, Expected Result, Test Channel, Observed Result, Status
+- Applied **Combination Rule** correctly in FR01-EP-001 (EC01+EC04+EC11+EC20+EC23 combined); applied **Isolation Rule** correctly across all 18 invalid EP TCs; FR01-EP-020 (EC24/XSS) correctly separated due to its distinct DOM output verification requirement
+- Used **correct concrete test data** throughout: specific email addresses per TC (e.g., `ep001@test.com`, `bva003@test.com`) to prevent duplicate-email conflicts, representative passwords that isolate each single violation (e.g., `"Te@1"` for length, `"test@123"` for uppercase), and precise BVA email construction formula (`"a"×n + "@test.com"`)
+- Assigned **Teardown steps** to all 12 success-path TCs that create persistent user data; correctly assigned mixed channels (UI+API+State for happy path, UI for confirmPassword tests, DOM for XSS test, API-only for null/missing field tests)
+- Produced a **full TC Summary Table** (38 rows) and a **Coverage section** confirming 6/6 valid ECs, 18/18 invalid ECs, and 18/18 BVA points are covered; file written: 724 lines, 46,444 characters
+
+### Student Review Notes
+
+- **Accepted as-is:** All 38 generated Test Cases (20 EP + 18 BVA) and the Summary Table. The objective syntax (Action + Function + Condition), separation of UI/API channels, self-cleaning teardown steps using the Admin API, and strict isolation rule adherence are all perfectly executed.
+- **Modified:** None
+- **Added manually:** None
+- **Rejected:** None
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                        |
+| ------------------- | ------------ | ------------------------------------------------------------ |
+| Completeness        | 5            | All 38 TCs generated with all 9 mandatory fields             |
+| Accuracy            | 5            | Objectives, test data, and expected results correct per SRS  |
+| Guideline adherence | 5            | Combination/Isolation/BVA rules correctly applied throughout |
+| Items missed        | 0            | No TCs or fields were missing                                |
+
+---
+
+## FR-01 Session Summary (Updated)
+
+| Metric                          | Value            |
+| ------------------------------- | ---------------- |
+| Total skill sessions logged     | 6                |
+| Total AI outputs reviewed       | 6                |
+| Items accepted as-is            | All (cumulative) |
+| Items modified by student       | 0                |
+| Items added manually by student | 0                |
+| Items rejected                  | 0                |
+| Most common AI gap              | None so far      |
