@@ -2,7 +2,7 @@
 
 **Feature:** FR-01  
 **Tool:** Antigravity CLI (Claude Sonnet 4.6 Thinking backend)  
-**Total interactions logged:** 2
+**Total interactions logged:** 3
 
 ---
 
@@ -141,3 +141,80 @@ Append the output as Step 1 to: qa-artifacts/domain-analysis/FR01-domain-analysi
 | Items added manually by student | 0                             |
 | Items rejected                  | 0                             |
 | Most common AI gap              | None so far (perfect outputs) |
+
+---
+
+## Interaction [3] — equivalence-partitioning
+
+| Field             | Value                                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Claude Sonnet 4.6 Thinking backend)                                                                         |
+| **Date/Time**     | 2026-06-12 11:00                                                                                                             |
+| **Feature**       | FR-01 — Account Registration                                                                                                 |
+| **Skill Invoked** | equivalence-partitioning                                                                                                     |
+| **Task**          | Apply all 4 EP guidelines to every input variable and optimize into TC set using Combination and Isolation Rules (Steps 2+3) |
+
+### Prompt Given
+
+```
+/equivalence-partitioning Use the equivalence-partitioning skill.
+
+Feature: FR-01 — Account Registration
+
+The variable list is ready at:
+qa-artifacts/domain-analysis/FR01-domain-analysis.md (Step 1 section)
+
+Apply all 4 EP Guidelines to EVERY input variable identified.
+Then apply the Combination Rule for valid classes and the Isolation Rule
+for invalid classes.
+
+Important — do NOT miss the relevant rows from the "EShop-Specific EP Patterns"
+section of the skill for FR-01
+
+For FR-01 add:
+- Special character outside allowed set @$!%*?& (e.g., Test#123) as a separate
+  invalid class
+- confirmPassword mismatch as a separate invalid class
+- Email already exists in DB as a separate invalid class
+
+Append the output as Step 2 and Step 3 to:
+qa-artifacts/domain-analysis/FR01-domain-analysis.md
+```
+
+### AI Output Summary
+
+- Generated **23 EP classes** across 5 input variables (I1–I4, I7): 5 valid ECs (EC01, EC04, EC11, EC20, EC23) and 18 invalid ECs (EC02–EC03, EC05–EC10, EC12–EC19, EC21–EC22)
+- Correctly applied **G1** to `password` length (≥ 8): 1 valid class + invalid class for length < 8; **G3 × 4** for each mandatory character category; **G4 split** separating EC16 (no special char) from EC17 (special char outside allowed set `@$!%*?&`)
+- Correctly applied **B1** to all required fields: every variable received an empty-string class AND a null/missing-field API class
+- Correctly applied **Combination Rule**: all 5 valid ECs combined into 1 happy-path TC (FR01-EP-001); correctly applied **Isolation Rule**: 18 invalid TCs each containing exactly 1 invalid input with all others drawn from valid classes
+- Correctly handled password TCs (FR01-EP-010 to 016) by mirroring the invalid password in `confirmPassword` to prevent defect masking; correctly marked EC21/EC22 (`confirmPassword`) as **UI-only** channel
+
+### Student Review Notes
+
+- **Accepted as-is:** All EP classes across 5 variables, valid classes combination (FR01-EP-001), and invalid classes isolation (FR01-EP-002 to FR01-EP-019). The logic to mirror invalid passwords in the confirmPassword field to prevent defect masking is excellent.
+- **Modified:** None
+- **Added manually:** None
+- **Rejected:** None
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                             |
+| ------------------- | ------------ | ----------------------------------------------------------------- |
+| Completeness        | 5            | All 23 ECs and 19 TCs correctly generated across all variables    |
+| Accuracy            | 5            | EC descriptions and representatives correct per SRS               |
+| Guideline adherence | 5            | G1/G3/G4 + B1 + Combination/Isolation rules all correctly applied |
+| Items missed        | 0            | No equivalence classes were missed                                |
+
+---
+
+## FR-01 Session Summary (Updated)
+
+| Metric                          | Value            |
+| ------------------------------- | ---------------- |
+| Total skill sessions logged     | 3                |
+| Total AI outputs reviewed       | 3                |
+| Items accepted as-is            | All (cumulative) |
+| Items modified by student       | 0                |
+| Items added manually by student | 0                |
+| Items rejected                  | 0                |
+| Most common AI gap              | None so far      |
