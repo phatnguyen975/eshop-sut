@@ -2,7 +2,7 @@
 
 **Feature:** FR-01  
 **Tool:** Antigravity CLI (Claude Sonnet 4.6 Thinking backend)  
-**Total interactions logged:** 3
+**Total interactions logged:** 4
 
 ---
 
@@ -213,6 +213,81 @@ qa-artifacts/domain-analysis/FR01-domain-analysis.md
 | ------------------------------- | ---------------- |
 | Total skill sessions logged     | 3                |
 | Total AI outputs reviewed       | 3                |
+| Items accepted as-is            | All (cumulative) |
+| Items modified by student       | 0                |
+| Items added manually by student | 0                |
+| Items rejected                  | 0                |
+| Most common AI gap              | None so far      |
+
+---
+
+## Interaction [4] — boundary-value-analysis
+
+| Field             | Value                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------ |
+| **Tool**          | Antigravity CLI (Claude Sonnet 4.6 Thinking backend)                                                   |
+| **Date/Time**     | 2026-06-12 12:44                                                                                       |
+| **Feature**       | FR-01 — Account Registration                                                                           |
+| **Skill Invoked** | boundary-value-analysis                                                                                |
+| **Task**          | Apply 9-point BVA strategy to all ordered/string-length variables identified in the EP output (Step 4) |
+
+### Prompt Given
+
+```
+/boundary-value-analysis Use the boundary-value-analysis skill.
+
+Feature: FR-01 — Account Registration
+
+The EP classes are ready at:
+qa-artifacts/domain-analysis/FR01-domain-analysis.md (Step 2+3 section)
+
+From that output, identify all variables with ordered/numeric constraints
+and apply the 9-point BVA strategy to each one.
+
+Remember to apply BVA to:
+- Numeric fields (quantity, discount_value, min_order_amount, max_uses_per_user)
+- String LENGTH fields (password length, name length, coupon code length)
+- Date fields (expired_at)
+- NOT just numbers — string length is a boundary variable too
+
+For any UB that is not specified in the SRS, note it as "unspecified" and include
+a +alpha test case with a very large value.
+
+Save the output to: qa-artifacts/boundary-analysis/FR01-boundary-analysis.md
+```
+
+### AI Output Summary
+
+- Identified **3 boundary variables**: `password` length (explicit LB=8, UB unspecified), `name` length (implicit LB=1, UB assumed ~255 DB VARCHAR), `email` length (implicit LB and UB, both assumed ~255 DB VARCHAR)
+- Generated **18 BVA TCs** (FR01-BVA-001 to FR01-BVA-018): 6 for `password`, 8 for `name`, 4 for `email`; valid/invalid points correctly labeled; all other inputs set to valid values per the Isolation Rule
+- Correctly handled the **LB−1 = −α merge** for `name` (since LB=1, LB−1=0 chars = empty string, same as −α) and noted this explicitly
+- Correctly noted that **email length BVA is architectural only** (SRS specifies format, not length), tested UB/UB+1/+α against assumed DB VARCHAR=255; provided the email construction formula `"a"×(n−9) + "@test.com"`
+- Added **self-cleaning guidance** for success-path BVA TCs noting each must use a unique email and clean up after execution; grand total combined with EP = **37 test cases for FR-01**
+
+### Student Review Notes
+
+- **Accepted as-is:** All 3 BVA tables (password, name, email). The application of 9-point BVA to string lengths and the intelligent assumption of DB architectural limits (UB=255) to catch backend truncation errors are perfectly executed. The mathematical construction of boundary emails is accurate.
+- **Modified:** None
+- **Added manually:** None
+- **Rejected:** None
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                 |
+| ------------------- | ------------ | --------------------------------------------------------------------- |
+| Completeness        | 5            | All 3 boundary variables found; all 18 BVA TCs generated correctly    |
+| Accuracy            | 5            | Boundary points and expected results correct per SRS and architecture |
+| Guideline adherence | 5            | 9-point strategy correctly applied; N/A points noted where applicable |
+| Items missed        | 0            | No boundary variables or BVA points were missed                       |
+
+---
+
+## FR-01 Session Summary (Updated)
+
+| Metric                          | Value            |
+| ------------------------------- | ---------------- |
+| Total skill sessions logged     | 4                |
+| Total AI outputs reviewed       | 4                |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 0                |
 | Items added manually by student | 0                |
