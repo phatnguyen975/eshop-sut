@@ -1,637 +1,840 @@
 ---
 name: test-execution-assistant
 description: >
-  Generate a complete execution package for each FR: ready-to-run cURL scripts,
-  UI step-by-step checklists, DOM check scripts, and State verification scripts.
-  The human runs all scripts and checks manually, then feeds the results back to
-  the agent to record Pass/Fail in the execution results file. Only run after 
-  test-case-reviewer has returned APPROVED.
+  Generate a complete, ready-to-run execution package for each FR. Produces a
+  single bash script covering all scriptable TCs (API, Role-Auth, State, DB
+  verification via sqlite3, Teardown) with automatic PASS/FAIL detection and a
+  final summary table, plus a single JS file for all DOM checks. The human runs
+  the scripts, records UI-only results manually, then feeds terminal output back
+  for Phase B — which updates BOTH the execution-results file AND the test-cases
+  file (Observed Result and Status rows). Only run after test-case-reviewer
+  has returned APPROVED.
 trigger:
-  - "execute test cases"
   - "generate execution scripts"
+  - "execute test cases"
+  - "start execution"
   - "help me test"
   - "run TC"
-  - "execute FR"
-  - "start execution"
 output:
-  - scripts/curl/FR{nn}-curl-tests.sh
-  - scripts/devtools/FR{nn}-dom-checks.md
-  - qa-artifacts/execution-results/FR{nn}-execution-results.md (blank template)
+  - scripts/curl/FR{nn}-api-tests.sh
+  - scripts/curl/FR{nn}-dom-checks.js
+  - qa-artifacts/execution-results/FR{nn}-execution-results.md
+  - qa-artifacts/test-cases/FR{nn}-test-cases.md  ← Observed Result + Status updated (Phase B)
 ---
 
 # Skill: test-execution-assistant
 
 ## 1. Purpose
 
-This skill operates in **two distinct phases**:
+This skill operates in two phases:
 
-- **Phase A — Generate:** Produce all execution scripts and UI checklists for the human to run. The agent writes files; the human runs them.
-- **Phase B — Record:** After the human runs scripts and reports results, the agent records Observed Results and Pass/Fail verdicts into the execution results file.
+- **Phase A — Generate:** Produce all execution artifacts. The agent writes scripts; the human executes them.
+- **Phase B — Record:** The human feeds back terminal output and manual UI notes. The agent updates **two files simultaneously**:
+  1. `qa-artifacts/execution-results/FR{nn}-execution-results.md` — full execution log
+  2. `qa-artifacts/test-cases/FR{nn}-test-cases.md` — Observed Result and Status rows for each TC
 
-The agent does NOT execute commands directly. It generates ready-to-run artifacts.
+**Design principles:**
 
-## 2. Input Required
+- **Maximize automation:** Use scripts for everything scriptable (API, DB checks, teardown).
+- Use `sqlite3` CLI directly for DB state verification and teardown — faster and more reliable than going through the Admin API.
+- Screenshots are NOT required per TC. One screen recording per FR uploaded to YouTube is sufficient execution evidence. JSON files saved by the script are API evidence.
+- **DOM screenshots:** one per FR (entire console output panel).
 
-- File `qa-artifacts/test-cases/FR{nn}-test-cases.md` — APPROVED status
-- SUT running: backend `:3000`, frontend `:5173`, admin `:5174`, mobile (Expo)
+---
 
-## 3. Phase A — Script & Checklist Generation
+## 2. SUT Database Information
 
-For each FR, generate the following deliverables:
+The EShop SUT uses **SQLite**. The database file is located at:
 
-### Deliverable 1: `scripts/curl/FR{nn}-curl-tests.sh`
+```
+eshop-sut/backend/database.sqlite
+```
 
-A single executable bash script covering ALL API, Role-Auth, and State channel TCs for this FR. Structure the script as follows:
+Always use this path when running `sqlite3` commands. Confirm the path exists:
 
-**Script structure:**
+```bash
+ls backend/database.sqlite # relative to eshop-sut/ root
+```
+
+**Key tables (from SUT source analysis):**
+
+| Table      | Key columns                                         | Used for            |
+| ---------- | --------------------------------------------------- | ------------------- |
+| `users`    | `id`, `email`, `password`, `name`, `role`           | FR-01, FR-03, FR-19 |
+| `products` | `id`, `name`, `price`, `category_id`                | FR-05, FR-06, FR-15 |
+| `orders`   | `id`, `user_id`, `status`, `total_amount`           | FR-08, FR-10, FR-11 |
+| `coupons`  | `id`, `code`, `type`, `discount_value`, `is_active` | FR-09, FR-17        |
+
+**SQLite helper commands for scripts:**
+
+You must check the `backend/database.js` for more information to generate all exact scripts. Below are some helper scripts that may be need.
+
+```bash
+# Set DB path as variable at top of every script
+DB="backend/database.sqlite"
+
+# Check a user row exists
+sqlite3 "$DB" "SELECT id, email, name FROM users WHERE email='test@example.com';"
+
+# Check password is hashed (must NOT be plaintext)
+sqlite3 "$DB" "SELECT password FROM users WHERE email='test@example.com';" | grep -q '^\$2' \
+  && echo "HASHED (bcrypt)" || echo "POSSIBLE PLAINTEXT — FAIL"
+
+# Check a coupon exists
+sqlite3 "$DB" "SELECT id, code, type, discount_value, is_active FROM coupons WHERE code='SAVE10';"
+
+# Delete a test user (teardown)
+sqlite3 "$DB" "DELETE FROM users WHERE email='ep001@test.com';"
+
+# Delete a test coupon (teardown)
+sqlite3 "$DB" "DELETE FROM coupons WHERE code='TESTCODE';"
+```
+
+---
+
+## 3. TC Classification (Do This First)
+
+Before generating any script, read ALL TCs from the test-cases `qa-artifacts/test-cases/FRxx-test-cases.md` file and classify each:
+
+| Category           | Definition                                 | Script coverage                                |
+| ------------------ | ------------------------------------------ | ---------------------------------------------- |
+| **SCRIPT-FULL**    | Channel: API, Role-Auth, State, or DB only | 100% automated via bash script                 |
+| **SCRIPT-PARTIAL** | Channel: API + UI                          | Script handles API part; human handles UI part |
+| **MANUAL**         | Channel: UI only or Mobile UI only         | Human only — no script                         |
+| **DOM**            | Channel includes DOM                       | JS script run in DevTools; human pastes output |
+
+Generate and show this classification table to the human BEFORE writing any scripts:
+
+```
+TC Classification — FR-{nn}
+─────────────────────────────────────────────────────
+TC ID          | Channel        | Category       | Script covers
+FR{nn}-EP-001  | API + State    | SCRIPT-FULL    | POST + sqlite3 verify + teardown
+FR{nn}-EP-002  | UI + API       | SCRIPT-PARTIAL | POST request; human checks error msg
+FR{nn}-EP-018  | UI             | MANUAL         | Human only
+FR{nn}-EP-020  | UI + DOM + Sta | DOM + PARTIAL  | DOM JS + sqlite3; human checks UI
+FR{nn}-BVA-003 | API            | SCRIPT-FULL    | POST request
+─────────────────────────────────────────────────────
+Total: {n} SCRIPT-FULL, {n} SCRIPT-PARTIAL, {n} MANUAL, {n} DOM
+```
+
+Not wait for human confirmation before generating scripts, start generate scripts after showing above table.
+
+**Classification rules by channel:**
+
+- `API` → SCRIPT-FULL
+- `API + State` → SCRIPT-FULL (API call + sqlite3 verification + teardown)
+- `Role-Auth` → SCRIPT-FULL (3 token states, all automated)
+- `UI + API` → SCRIPT-PARTIAL (API call scripted; UI behavior manual)
+- `UI` → MANUAL
+- `Mobile UI` → MANUAL
+- `DOM` → DOM (JS script only; human pastes console output)
+- `UI + DOM + State` → DOM + SCRIPT-FULL for State/DB; MANUAL for UI visual
+
+---
+
+## 4. Phase A — Script Generation
+
+### Deliverable 1: `scripts/curl/FR{nn}-api-tests.sh`
+
+One executable bash script covering ALL SCRIPT-FULL and SCRIPT-PARTIAL TCs, with DB verification and teardown via `sqlite3`.
+
+#### 4.1 Script Skeleton
 
 ```bash
 #!/usr/bin/env bash
 # =============================================================================
-# FR-{nn}: {Feature Name} — API Test Script
+# FR-{nn}: {Feature Name} — API & DB Test Suite
 # Generated by: test-execution-assistant skill
 # Run from: eshop-sut/ root directory
-# Usage: bash scripts/curl/FR{nn}-curl-tests.sh
+# Usage:    bash scripts/curl/FR{nn}-api-tests.sh
+# Evidence: evidence/api-responses/FR{nn}/
+# Requires: curl, python3, sqlite3
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail
+
 BASE_URL="http://localhost:3000"
-RESPONSE_DIR="evidence/api-responses/FR{nn}"
-mkdir -p "$RESPONSE_DIR"
+DB="backend/database.sqlite"
+RESP_DIR="evidence/api-responses/FR{nn}"
+mkdir -p "$RESP_DIR"
+
+# Counters and result accumulator
+PASS=0; FAIL=0; SKIP=0
+declare -a SUMMARY_ROWS=()
+
+# Color codes
+GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'
+CYAN='\033[0;36m';  BOLD='\033[1m';   NC='\033[0m'
+
+# ── Preflight checks ──────────────────────────────────────────────────────────
+echo -e "${BOLD}>>> Preflight checks...${NC}"
+[[ ! -f "$DB" ]] && echo -e "${RED}ERROR: Database not found at $DB${NC}" && exit 1
+curl -sf "$BASE_URL/api/products" > /dev/null \
+  || { echo -e "${RED}ERROR: Backend not responding at $BASE_URL${NC}"; exit 1; }
+command -v sqlite3 > /dev/null \
+  || { echo -e "${RED}ERROR: sqlite3 not installed${NC}"; exit 1; }
+echo -e "${GREEN}All systems ready.${NC}\n"
 
 # ── Token Setup ───────────────────────────────────────────────────────────────
-echo ">>> Acquiring tokens..."
+echo -e "${BOLD}>>> Acquiring tokens...${NC}"
 
 USER_TOKEN=$(curl -s -X POST "$BASE_URL/api/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"test@eshop.com","password":"Test1234!"}' \
-  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('token','ERROR'))")
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('token','TOKEN_ERROR'))" 2>/dev/null)
 
 ADMIN_TOKEN=$(curl -s -X POST "$BASE_URL/api/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@eshop.com","password":"Admin123!"}' \
-  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('token','ERROR'))")
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('token','TOKEN_ERROR'))" 2>/dev/null)
 
-echo "User  token: ${USER_TOKEN:0:40}..."
-echo "Admin token: ${ADMIN_TOKEN:0:40}..."
-echo ""
+[[ "$USER_TOKEN"  == "TOKEN_ERROR" ]] && echo -e "${RED}ERROR: Cannot get user token${NC}"  && exit 1
+[[ "$ADMIN_TOKEN" == "TOKEN_ERROR" ]] && echo -e "${RED}ERROR: Cannot get admin token${NC}" && exit 1
+echo -e "${GREEN}Tokens acquired.${NC}\n"
 
-# ── Helper function ───────────────────────────────────────────────────────────
-run_tc() {
-  local TC_ID="$1"
-  local METHOD="$2"
-  local ENDPOINT="$3"
-  local TOKEN="$4"       # "none" | "user" | "admin"
-  local BODY="$5"        # use "" for no body
-  local EXPECTED_HTTP="$6"
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
 
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo "TC: $TC_ID"
-  echo "Method: $METHOD $BASE_URL$ENDPOINT"
-  echo "Token:  $TOKEN | Expected HTTP: $EXPECTED_HTTP"
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+# ── run_and_assert ────────────────────────────────────────────────────────────
+# Run an HTTP request, save response JSON, check HTTP status, record PASS/FAIL.
+# Args: TC_ID  EXPECTED_HTTP  METHOD  ENDPOINT  TOKEN(none|user|admin)  BODY(or "")
+run_and_assert() {
+  local TC_ID="$1" EXPECTED="$2" METHOD="$3" ENDPOINT="$4" TOKEN="$5"
+  local BODY="${6:-}"
+  local RESP_FILE="$RESP_DIR/${TC_ID}-response.json"
 
-  AUTH_HEADER=""
-  if [ "$TOKEN" = "user" ];  then AUTH_HEADER="-H \"Authorization: Bearer $USER_TOKEN\""; fi
-  if [ "$TOKEN" = "admin" ]; then AUTH_HEADER="-H \"Authorization: Bearer $ADMIN_TOKEN\""; fi
+  local AUTH=""
+  [[ "$TOKEN" == "user" ]]  && AUTH="-H \"Authorization: Bearer $USER_TOKEN\""
+  [[ "$TOKEN" == "admin" ]] && AUTH="-H \"Authorization: Bearer $ADMIN_TOKEN\""
+  local BODY_FLAG=""
+  [[ -n "$BODY" ]] && BODY_FLAG="-d '$BODY'"
 
-  RESPONSE_FILE="$RESPONSE_DIR/$TC_ID-response.json"
-  HTTP_CODE=$(eval curl -s -o "\"$RESPONSE_FILE\"" -w "\"%{http_code}\"" \
-    -X "$METHOD" "$BASE_URL$ENDPOINT" \
+  local ACTUAL
+  ACTUAL=$(eval curl -s -o "\"$RESP_FILE\"" -w "\"%{http_code}\"" \
+    -X "$METHOD" "\"$BASE_URL$ENDPOINT\"" \
     -H '"Content-Type: application/json"' \
-    $AUTH_HEADER \
-    ${BODY:+-d "\"$BODY\""})
+    $AUTH $BODY_FLAG 2>/dev/null)
 
-  echo "HTTP Status: $HTTP_CODE (expected: $EXPECTED_HTTP)"
-  echo "Response body:"
-  python3 -m json.tool "$RESPONSE_FILE" 2>/dev/null || cat "$RESPONSE_FILE"
+  local STATUS COLOR
+  if [[ "$ACTUAL" == "$EXPECTED" ]]; then STATUS="PASS"; ((PASS++)); COLOR="$GREEN"
+  else                                   STATUS="FAIL"; ((FAIL++)); COLOR="$RED"; fi
+
+  echo -e "${COLOR}[${STATUS}]${NC} ${BOLD}${TC_ID}${NC} — HTTP ${ACTUAL} (expected ${EXPECTED})"
+  [[ "$STATUS" == "FAIL" ]] && \
+    python3 -m json.tool "$RESP_FILE" 2>/dev/null | sed 's/^/        /' || true
   echo ""
+  SUMMARY_ROWS+=("$STATUS|$TC_ID|$METHOD $ENDPOINT|HTTP $EXPECTED|HTTP $ACTUAL")
+}
 
-  if [ "$HTTP_CODE" = "$EXPECTED_HTTP" ]; then
-    echo ">>> STATUS CHECK: HTTP code MATCHES expected"
-  else
-    echo ">>> STATUS CHECK: MISMATCH — got $HTTP_CODE, expected $EXPECTED_HTTP — CHECK FOR BUG"
+# ── assert_json_field ─────────────────────────────────────────────────────────
+# Check a field in a saved response JSON file.
+# Use EXPECTED="EXISTS" to check key presence only; use EXPECTED="POSITIVE_INT" to
+# check the value is an integer > 0.
+# Args: TC_ID  RESP_FILE  FIELD  EXPECTED
+assert_json_field() {
+  local TC_ID="$1" RESP_FILE="$2" FIELD="$3" EXPECTED="$4"
+  local ACTUAL STATUS COLOR
+
+  ACTUAL=$(python3 -c "
+import json, sys
+try:
+    d = json.load(open('$RESP_FILE'))
+    v = d.get('$FIELD', '__MISSING__')
+    print(str(v))
+except Exception as e:
+    print('__ERROR__:' + str(e))
+" 2>/dev/null)
+
+  if   [[ "$EXPECTED" == "EXISTS"       && "$ACTUAL" != "__MISSING__" && "$ACTUAL" != __ERROR__* ]]; then
+       STATUS="PASS"
+  elif [[ "$EXPECTED" == "POSITIVE_INT" ]] && python3 -c "v=int('$ACTUAL'); exit(0 if v>0 else 1)" 2>/dev/null; then
+       STATUS="PASS"
+  elif [[ "$EXPECTED" != "EXISTS" && "$EXPECTED" != "POSITIVE_INT" && "$ACTUAL" == "$EXPECTED" ]]; then
+       STATUS="PASS"
+  else STATUS="FAIL"
   fi
+
+  [[ "$STATUS" == "PASS" ]] && ((PASS++)) && COLOR="$GREEN" || { ((FAIL++)); COLOR="$RED"; }
+  echo -e "${COLOR}[${STATUS}]${NC} ${TC_ID} — field '${FIELD}': expected=${EXPECTED}, actual=${ACTUAL}"
+  SUMMARY_ROWS+=("$STATUS|$TC_ID|json[$FIELD]|$EXPECTED|$ACTUAL")
+}
+
+# ── assert_db ─────────────────────────────────────────────────────────────────
+# Run a sqlite3 query and check the output matches an expected value.
+# For password hash checks, use EXPECTED="BCRYPT" — checks the stored value
+# starts with '$2' (bcrypt hash prefix).
+# Args: TC_ID  DESCRIPTION  SQL_QUERY  EXPECTED(value|"EXISTS"|"EMPTY"|"BCRYPT")
+assert_db() {
+  local TC_ID="$1" DESC="$2" SQL="$3" EXPECTED="$4"
+  local ACTUAL STATUS COLOR
+
+  ACTUAL=$(sqlite3 "$DB" "$SQL" 2>/dev/null)
+
+  case "$EXPECTED" in
+    EXISTS) [[ -n "$ACTUAL" ]]         && STATUS="PASS" || STATUS="FAIL" ;;
+    EMPTY)  [[ -z "$ACTUAL" ]]         && STATUS="PASS" || STATUS="FAIL" ;;
+    BCRYPT) [[ "$ACTUAL" == \$2* ]]    && STATUS="PASS" || STATUS="FAIL" ;;
+    *)      [[ "$ACTUAL" == "$EXPECTED" ]] && STATUS="PASS" || STATUS="FAIL" ;;
+  esac
+
+  [[ "$STATUS" == "PASS" ]] && ((PASS++)) && COLOR="$GREEN" || { ((FAIL++)); COLOR="$RED"; }
+  echo -e "${COLOR}[${STATUS}]${NC} ${TC_ID} — DB: ${DESC}"
+  echo -e "       SQL:      ${SQL}"
+  echo -e "       Expected: ${EXPECTED} | Actual: ${ACTUAL:-<empty>}"
+  echo ""
+  SUMMARY_ROWS+=("$STATUS|$TC_ID|DB: $DESC|$EXPECTED|${ACTUAL:-<empty>}")
+}
+
+# ── teardown_db ───────────────────────────────────────────────────────────────
+# Delete test data directly from SQLite. Always call after any TC that creates data.
+# Args: DESCRIPTION  SQL_DELETE_STATEMENT
+teardown_db() {
+  local DESC="$1" SQL="$2"
+  echo -e "${YELLOW}[TEARDOWN]${NC} $DESC"
+  sqlite3 "$DB" "$SQL" 2>/dev/null \
+    && echo -e "  ${GREEN}Done${NC}" \
+    || echo -e "  ${YELLOW}Nothing to delete (OK if TC was expected to fail)${NC}"
   echo ""
 }
 ```
 
-**Per-TC sections (one block per TC with API/Role-Auth/State channel):**
+#### 4.2 TC Section Patterns
 
-For each TC with channel = API, Role-Auth, or State, generate a section like:
+Use the correct pattern for each TC based on its classification:
+
+**Pattern A — Simple API call, no state check, no teardown (SCRIPT-FULL, invalid input TCs):**
 
 ```bash
-# ── FR{nn}-EP-{nnn}: {Objective} ──────────────────────────────────────────────
-echo "=== FR{nn}-EP-{nnn}: {Objective} ==="
-# Channel: {API | Role-Auth | State}
-# EC Ref: {EC ID}
-# Expected: {Expected Result from TC table}
-
-run_tc "FR{nn}-EP-{nnn}" \
-  "{METHOD}" \
-  "{/api/endpoint}" \
-  "{none|user|admin}" \
-  '{JSON body or ""}' \
-  "{expectedHttpCode}"
-
-# Manual check after running:
-# - Response body must contain: {key fields to verify}
-# - Compare with Expected Result in qa-artifacts/test-cases/FR{nn}-test-cases.md
+# ── FR{nn}-EP-{nnn}: {Objective} ─────────────────────────────────────────────
+# EC Ref: {EC ID} | Expected: HTTP {code} — {reason}
+echo -e "${CYAN}=== FR{nn}-EP-{nnn}: {Objective} ===${NC}"
+run_and_assert \
+  "FR{nn}-EP-{nnn}" "{expectedHttpCode}" "{METHOD}" "{/api/endpoint}" "{none|user|admin}" \
+  '{JSON body, or omit for no body}'
 ```
 
-**Role-Auth TCs (3 states in one block):**
+**Pattern B — API call + JSON field check + sqlite3 DB verification + teardown (SCRIPT-FULL, success TCs):**
+
+Use this for any TC that creates a resource (user, coupon, order, cart item) and needs to verify the DB state afterward.
 
 ```bash
-# ── FR{nn}-EP-{nnn}: Role-Auth — {Endpoint} ───────────────────────────────────
-echo "=== FR{nn}-EP-{nnn} Role-Auth Test: {Endpoint} ==="
-PAYLOAD='{...}'
+# ── FR{nn}-EP-{nnn}: {Objective} ─────────────────────────────────────────────
+# EC Ref: {EC ID} | Expected: HTTP 200 + resource created in DB
+echo -e "${CYAN}=== FR{nn}-EP-{nnn}: {Objective} ===${NC}"
 
-run_tc "FR{nn}-EP-{nnn}-notoken"  "{METHOD}" "{/endpoint}" "none"  "$PAYLOAD" "401"
-run_tc "FR{nn}-EP-{nnn}-usertoken" "{METHOD}" "{/endpoint}" "user" "$PAYLOAD" "403"
-run_tc "FR{nn}-EP-{nnn}-admintoken" "{METHOD}" "{/endpoint}" "admin" "$PAYLOAD" "200"
+# Step 1: API call
+run_and_assert \
+  "FR{nn}-EP-{nnn}" "200" "POST" "/api/register" "none" \
+  '{"name":"Test User","email":"ep001@test.com","password":"Test@123"}'
+
+# Step 2: Verify response body fields
+assert_json_field "FR{nn}-EP-{nnn}-res-msg" \
+  "$RESP_DIR/FR{nn}-EP-{nnn}-response.json" "message" "User registered successfully"
+
+assert_json_field "FR{nn}-EP-{nnn}-res-id" \
+  "$RESP_DIR/FR{nn}-EP-{nnn}-response.json" "id" "POSITIVE_INT"
+
+# Step 3: Verify DB state with sqlite3
+assert_db "FR{nn}-EP-{nnn}-db-exists" \
+  "User row exists in users table" \
+  "SELECT email FROM users WHERE email='ep001@test.com';" \
+  "ep001@test.com"
+
+# Step 4: Verify password is hashed (must start with $2 — bcrypt prefix)
+# SEC-01: Passwords must NOT be stored as plaintext
+assert_db "FR{nn}-EP-{nnn}-db-hash" \
+  "Password is bcrypt-hashed (per SEC-01)" \
+  "SELECT password FROM users WHERE email='ep001@test.com';" \
+  "BCRYPT"
+
+# Step 5: Teardown — delete test user from DB
+teardown_db \
+  "Delete test user ep001@test.com" \
+  "DELETE FROM users WHERE email='ep001@test.com';"
 ```
 
-**State Verification TCs (before/after pattern):**
+**Pattern C — Role-Auth (3 token states, all automated):**
 
 ```bash
-# ── FR{nn}-EP-{nnn}: State — Before/After ─────────────────────────────────────
-echo "=== FR{nn}-EP-{nnn} State Verification: {Description} ==="
-echo "STEP 1: Record BEFORE state"
-run_tc "FR{nn}-EP-{nnn}-before" "GET" "{/api/state-endpoint}" "user" "" "200"
+# ── FR{nn}-EP-{nnn}: Role-Auth — {Method} {Endpoint} ─────────────────────────
+# Expected: no-token→401, user-token→403, admin-token→200
+echo -e "${CYAN}=== FR{nn}-EP-{nnn}: Role-Auth Test ===${NC}"
+RA_BODY='{...valid JSON body...}'
+
+run_and_assert "FR{nn}-EP-{nnn}-notoken"    "401" "{METHOD}" "{/api/endpoint}" "none"  "$RA_BODY"
+run_and_assert "FR{nn}-EP-{nnn}-usertoken"  "403" "{METHOD}" "{/api/endpoint}" "user"  "$RA_BODY"
+run_and_assert "FR{nn}-EP-{nnn}-admintoken" "200" "{METHOD}" "{/api/endpoint}" "admin" "$RA_BODY"
+
+# Teardown if admin call created data:
+teardown_db "Remove Role-Auth test data" "DELETE FROM {table} WHERE {condition};"
+```
+
+**Pattern D — sqlite3-only verification (no HTTP call), for implicit state checks:**
+
+Use when you need to verify something in the DB that was created by a prior TC or by a manual UI action. No API call needed.
+
+```bash
+# ── FR{nn}-EP-{nnn}: DB state check — {Description} ──────────────────────────
+echo -e "${CYAN}=== FR{nn}-EP-{nnn}: DB State Check ===${NC}"
+
+assert_db "FR{nn}-EP-{nnn}-db-otp" \
+  "OTP token stored in password_resets for email" \
+  "SELECT token FROM password_resets WHERE email='test@eshop.com';" \
+  "EXISTS"
+
+# For OTP reuse check — after reset, the token row should be deleted:
+assert_db "FR{nn}-EP-{nnn}-db-otp-cleared" \
+  "OTP row removed after successful password reset (per SEC-07)" \
+  "SELECT COUNT(*) FROM password_resets WHERE email='test@eshop.com';" \
+  "0"
+```
+
+**Pattern E — State verification with manual UI trigger (SCRIPT-PARTIAL with before/after):**
+
+Use when the state change must be triggered by a UI action (cannot be scripted), but the state itself can be verified via API or sqlite3.
+
+```bash
+# ── FR{nn}-EP-{nnn}: State — Before/After {Description} ──────────────────────
+echo -e "${CYAN}=== FR{nn}-EP-{nnn}: State Verification — {Description} ===${NC}"
+
+# Before state
+echo -e "${YELLOW}STEP 1: Recording BEFORE state...${NC}"
+BEFORE=$(sqlite3 "$DB" "{SQL to capture current state}")
+echo "Before: $BEFORE"
 
 echo ""
-echo ">>> PAUSE: Perform the following action manually:"
-echo "    {Exact UI action to perform, e.g., 'Add product ID 1 to cart via http://localhost:5173'}"
-echo ">>> Press Enter when done..."
-read -r
+echo -e "${YELLOW}>>> MANUAL ACTION REQUIRED:${NC}"
+echo -e "    {Exact instruction — e.g., 'Open http://localhost:5173/products/1 and click Add to Cart'}"
+echo -e "    Press Enter when done..." && read -r
 
-echo "STEP 2: Record AFTER state"
-run_tc "FR{nn}-EP-{nnn}-after" "GET" "{/api/state-endpoint}" "user" "" "200"
+# After state
+echo -e "${YELLOW}STEP 2: Recording AFTER state...${NC}"
+AFTER=$(sqlite3 "$DB" "{SQL to capture state after action}")
+echo "After:  $AFTER"
 
+# Automated comparison
+if [[ "$AFTER" == "{expectedValue}" ]]; then
+  echo -e "${GREEN}[PASS]${NC} FR{nn}-EP-{nnn}-state — {description}: expected=$expectedValue, actual=$AFTER"
+  ((PASS++))
+  SUMMARY_ROWS+=("PASS|FR{nn}-EP-{nnn}-state|DB state|{expectedValue}|$AFTER")
+else
+  echo -e "${RED}[FAIL]${NC} FR{nn}-EP-{nnn}-state — {description}: expected={expectedValue}, actual=$AFTER"
+  ((FAIL++))
+  SUMMARY_ROWS+=("FAIL|FR{nn}-EP-{nnn}-state|DB state|{expectedValue}|$AFTER")
+fi
 echo ""
-echo ">>> COMPARE: Check that the AFTER response shows:"
-echo "    {Specific change expected, e.g., 'items array contains product ID 1 with quantity 1'}"
 ```
 
-**End of script:**
+---
+
+#### 4.3 Script Closing Block
+
+Always end every script with this block:
 
 ```bash
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "All API tests for FR-{nn} completed."
-echo "Response files saved to: $RESPONSE_DIR/"
-echo "Next steps:"
-echo "  1. Review the output above for any MISMATCH lines"
-echo "  2. Check response files: ls $RESPONSE_DIR/"
-echo "  3. Run UI and DOM tests: see scripts/devtools/FR{nn}-dom-checks.md"
-echo "  4. Feed results back to Antigravity using Phase B prompt"
+# =============================================================================
+# FINAL SUMMARY
+# =============================================================================
+echo ""
+echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BOLD} FR-{nn} TEST RESULTS — AUTOMATED CHECKS${NC}"
+echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+printf "  %-38s %-14s %-14s %s\n" "TC ID / Check" "Expected" "Actual" "Status"
+echo "  ──────────────────────────────────────────────────────────────────"
+for row in "${SUMMARY_ROWS[@]}"; do
+  IFS='|' read -r S ID EP EXP ACT <<< "$row"
+  [[ "$S" == "PASS" ]] && C="$GREEN" || C="$RED"
+  printf "  ${C}%-38s %-14s %-14s %s${NC}\n" \
+    "${ID:0:38}" "${EXP:0:14}" "${ACT:0:14}" "$S"
+done
+echo "  ──────────────────────────────────────────────────────────────────"
+echo -e "  ${BOLD}TOTAL (automated): ${GREEN}${PASS} PASS${NC} | ${RED}${FAIL} FAIL${NC} | ${YELLOW}${SKIP} SKIP${NC}"
+echo ""
+echo -e "${YELLOW}  Still requires manual testing:${NC}"
+echo -e "    UI-only TCs : {list TC IDs} → open http://localhost:{port}"
+echo -e "    DOM checks  : paste scripts/curl/FR{nn}-dom-checks.js into DevTools"
+echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Response JSON files saved to: $RESP_DIR/"
+echo "Paste the summary block above into Phase B prompt."
 ```
 
 ---
 
-### Deliverable 2: `scripts/devtools/FR{nn}-dom-checks.md`
+### Deliverable 2: `scripts/curl/FR{nn}-dom-checks.js`
 
-A Markdown file with:
-
-- UI step-by-step checklists (one section per UI-channel TC)
-- DOM scripts to paste into DevTools console (one section per DOM-channel TC)
-
-**File structure:**
-
-````markdown
-# UI & DOM Execution Guide — FR-{nn}: {Feature Name}
-
-**Generated by:** test-execution-assistant skill
-**Run after:** scripts/curl/FR{nn}-curl-tests.sh
-
----
-
-## Pre-Conditions
-
-Before running UI tests:
-
-1. Backend is running at http://localhost:3000
-2. Frontend is running at http://localhost:5173 (or Admin at :5174 / Mobile via Expo)
-3. You are logged in with the correct account for each TC (noted per TC below)
-
----
-
-## UI Tests
-
-### FR{nn}-EP-{nnn} — {Objective}
-
-**Channel:** UI
-**Pre-condition:** {state required}
-**Account:** {email to use}
-
-**Steps:**
-
-1. Open browser and navigate to: `{URL}`
-2. Fill in **"{Field Label}"** with: `{value}`
-3. Fill in **"{Field Label}"** with: `{value}`
-4. Click the **"{Button Label}"** button.
-5. Observe the result.
-
-**What to check:**
-
-- [ ] {Specific observable item 1 — e.g., "Page redirects to /login"}
-- [ ] {Specific observable item 2 — e.g., "Toast notification appears with text '...'"}
-- [ ] {Specific observable item 3}
-
-**Screenshot to capture:**
-
-- Before: `evidence/screenshots/FR{nn}/TC-EP-{nnn}-before.png`
-- After: `evidence/screenshots/FR{nn}/TC-EP-{nnn}-after.png`
-
-**Record in Phase B:**
-
-- Status: PASS / FAIL / BLOCKED
-- If FAIL: describe exactly what was different from expected
-
----
-
-## DOM Tests
-
-### FR{nn}-EP-{nnn} — {Objective}
-
-**Channel:** DOM
-**Page to open:** `{URL}`
-
-**Instructions:**
-
-1. Open the page above in your browser.
-2. Open DevTools: press **F12** → go to the **Console** tab.
-3. Copy and paste the script below into the console and press Enter.
-4. Screenshot the console output: `evidence/screenshots/FR{nn}/TC-EP-{nnn}-console.png`
-
-**DOM Check Script:**
+A single self-contained JavaScript file for ALL DOM-channel TCs of this FR. The human navigates to the target page, opens DevTools Console (F12), pastes the entire file, presses Enter, screenshots the output, and copies the summary text for Phase B.
 
 ```javascript
-// FR{nn}-EP-{nnn}: {Objective}
-// Expected results documented inline
+// =============================================================================
+// FR-{nn}: {Feature Name} — DOM Check Suite
+// Generated by: test-execution-assistant skill
+//
+// Instructions:
+//   1. Navigate browser to: {URL — e.g., http://localhost:5173/register}
+//   2. Open DevTools: F12 → Console tab
+//   3. Paste this entire script content and press Enter
+//   4. Screenshot the console output (1 screenshot for all DOM checks)
+//   5. Copy the printed summary and paste into Phase B prompt
+// =============================================================================
 
-(function() {
+(function FR{nn}DOMChecks() {
+  "use strict";
+
+  let pass = 0, fail = 0;
   const results = [];
 
-  // Check 1: {description} (per FR-{nn})
-  const check1Value = {JS expression};
-  results.push({
-    check: "{Check description}",
-    expected: "{expected value}",
-    actual: check1Value,
-    pass: {JS boolean condition}
-  });
+  function check(tcId, description, expected, actualFn) {
+    let actual, status;
+    try {
+      actual = actualFn();
+      const ok = (expected === "EXISTS")
+        ? (actual !== null && actual !== undefined && actual !== "NOT_FOUND")
+        : (String(actual) === String(expected));
+      status = ok ? "PASS" : "FAIL";
+    } catch (e) {
+      actual = "ERROR: " + e.message;
+      status = "FAIL";
+    }
+    status === "PASS" ? pass++ : fail++;
+    results.push({ tcId, description, expected, actual, status });
+  }
 
-  // Check 2: {description} (per FR-{nn})
-  const check2Value = {JS expression};
-  results.push({
-    check: "{Check description}",
-    expected: "{expected value}",
-    actual: check2Value,
-    pass: {JS boolean condition}
-  });
+  // ── FR{nn}-specific DOM checks (fill in per TC) ────────────────────────────
 
-  // Print results
-  console.log("=== DOM Check Results: FR{nn}-EP-{nnn} ===");
+  // TC: FR{nn}-EP-{nnn} — {Objective}
+  // Requirement: {GUI-xx per FR-21~24}
+  check(
+    "FR{nn}-EP-{nnn}",
+    "{Human-readable check description}",
+    "{expected value or EXISTS}",
+    () => { /* JS expression returning the actual value */ }
+  );
+
+  // ── Standard library: include the relevant checks for this FR ────────────────
+
+  // DOM-H1: Exactly 1 <h1> tag (per FR-21 — all web pages)
+  check("FR{nn}-DOM-H1", "Page has exactly 1 <h1> tag (per FR-21)",
+    "1", () => String(document.querySelectorAll("h1").length));
+
+  // DOM-EMAIL: Email input type="email" (per FR-22 — forms with email field)
+  check("FR{nn}-DOM-EMAIL", 'Email input has type="email" (per FR-22)',
+    "email",
+    () => {
+      const el = document.querySelector('input[name="email"], input[autocomplete="email"]')
+               || document.querySelector('input[type="email"]');
+      return el ? el.type : "NOT_FOUND";
+    });
+
+  // DOM-PW: Password input type="password" (per FR-22 — forms with password field)
+  check("FR{nn}-DOM-PW", 'Password input has type="password" (per FR-22)',
+    "EXISTS",
+    () => document.querySelector('input[type="password"]'));
+
+  // DOM-STAR: Required fields have * label marker (per FR-22)
+  check("FR{nn}-DOM-STAR", "Required fields have * in label (per FR-22)",
+    "EXISTS",
+    () => {
+      const labels = Array.from(document.querySelectorAll("label"));
+      const stars = labels.filter(l => l.textContent.trim().includes("*"));
+      return stars.length > 0 ? `${stars.length} marked fields` : null;
+    });
+
+  // DOM-ALT: All images have non-empty alt text (per FR-24)
+  check("FR{nn}-DOM-ALT", "All <img> have non-empty alt attribute (per FR-24)",
+    "0",
+    () => String(
+      Array.from(document.querySelectorAll("img"))
+           .filter(img => !img.alt || img.alt.trim() === "").length
+    ));
+
+  // DOM-ERR-POS: Error messages appear above the submit button (per FR-22)
+  // Run AFTER triggering a validation error
+  check("FR{nn}-DOM-ERRPOS", "Error messages are above submit button (per FR-22)",
+    "EXISTS",
+    () => {
+      const btn  = document.querySelector('button[type="submit"]');
+      const errs = document.querySelectorAll('[class*="error"],[class*="alert"],[role="alert"]');
+      if (!btn || errs.length === 0) return null;
+      const btnTop = btn.getBoundingClientRect().top;
+      const allAbove = Array.from(errs).every(e => e.getBoundingClientRect().top < btnTop);
+      return allAbove ? "all above" : null;
+    });
+
+  // DOM-BADGE: Cart badge visible in navbar (per FR-23 — cart pages)
+  check("FR{nn}-DOM-BADGE", "Cart badge visible in navbar (per FR-23)",
+    "EXISTS",
+    () => document.querySelector('[class*="badge"]')
+       || document.querySelector('[data-testid*="cart"]'));
+
+  // DOM-STEP: Step indicator visible (per FR-22 — multi-step forms, FR-03)
+  check("FR{nn}-DOM-STEP", "Step indicator visible for multi-step form (per FR-22)",
+    "EXISTS",
+    () => {
+      const el = document.querySelector('[class*="step"],[class*="progress"],[class*="stepper"]');
+      return el ? el.textContent.trim().slice(0, 40) : null;
+    });
+
+  // DOM-XSS: User input rendered safely — no raw <script> tag in DOM (per SEC-04)
+  // Run AFTER submitting a form with name = <script>alert(1)</script>
+  check("FR{nn}-DOM-XSS", 'No raw <script> tag injected into DOM (per SEC-04)',
+    "SAFE",
+    () => document.body.innerHTML.includes("<script>alert(1)</script>") ? "VULNERABLE" : "SAFE");
+
+  // ── Print results ──────────────────────────────────────────────────────────
+  console.log("\n" + "=".repeat(72));
+  console.log(`FR-{nn} DOM CHECK RESULTS  |  Page: ${location.href}`);
+  console.log("=".repeat(72));
   results.forEach(r => {
-    const icon = r.pass ? "✅ PASS" : "❌ FAIL";
-    console.log(`${icon} | ${r.check}`);
-    console.log(`         Expected: ${r.expected}`);
-    console.log(`         Actual:   ${r.actual}`);
+    const icon = r.status === "PASS" ? "✅ PASS" : "❌ FAIL";
+    console.log(`${icon}  ${r.tcId}`);
+    console.log(`       Check   : ${r.description}`);
+    console.log(`       Expected: ${r.expected}`);
+    console.log(`       Actual  : ${r.actual}`);
+    console.log("");
   });
-  const passed = results.filter(r => r.pass).length;
-  console.log(`\nSummary: ${passed}/${results.length} checks passed`);
+  console.log("-".repeat(72));
+  console.log(`SUMMARY: ${pass} PASS | ${fail} FAIL | Total: ${results.length}`);
+  console.log("=".repeat(72));
+  console.log("→ Screenshot this console panel, then paste this output into Phase B.");
+
   return results;
 })();
 ```
 
-**What to record:**
-
-- Copy the full console output text
-- Take a screenshot of the console panel
-- Note which checks passed and which failed
-
 ---
 
-## Mobile UI Tests (FR-03 only)
+### Deliverable 3: Execution Results Template
 
-### FR03-EP-{nnn} — {Objective}
-
-**Channel:** Mobile UI
-**Pre-condition:** {state required}
-**Device:** Expo Go on emulator or physical device
-
-**Steps:**
-
-1. Open **Expo Go** and load the EShop app.
-2. Navigate to: **"{Screen Name}"** screen.
-3. Tap the **"{Field Label}"** input and type: `{value}`
-4. Tap the **"{Button Label}"** button.
-5. Observe the result.
-
-**What to check:**
-
-- [ ] {Observable item 1}
-- [ ] {Observable item 2}
-
-**Screenshot to capture:**
-
-- `evidence/screenshots/FR03/TC-EP-{nnn}-mobile-after.png`
-````
-
----
-
-### Deliverable 3: Blank execution results template
-
-Create `qa-artifacts/execution-results/FR{nn}-execution-results.md` with:
-
-- One entry per TC, pre-filled with TC ID, Objective, Channel, Test Data, Expected Result
-- **Observed Result** and **Status** columns left BLANK
-- A summary table at the bottom with counters left blank
-
-This file is what the human fills in after running scripts, then hands back to Phase B.
-
-## 4. Phase B — Record Results (After Human Execution)
-
-After the human runs the scripts and reports back, the agent:
-
-1. Reads the Observed Results provided by the human
-2. Compares against Expected Results in the TC table
-3. Determines PASS / FAIL / BLOCKED per the 3 Oracle sources
-4. Fills in the execution results file
-5. Explicitly flags any FAIL for immediate `bug-report-writer` invocation
-
-### Phase B Input Format (human provides this)
-
-The human feeds results back using this format:
-
-```
-FR{nn}-EP-{nnn} result:
-- HTTP Status observed: {code}
-- Response body: {paste JSON or key fields}
-- UI behavior: {describe what happened}
-- DOM console output: {paste or describe}
-- Evidence saved: {file path}
-```
-
-### Phase B Processing Rules
-
-```
-PASS    = ALL expected result points match observed result
-FAIL    = ANY single point does not match → flag for bug-report-writer immediately
-BLOCKED = TC could not be executed (document the blocker)
-SKIPPED = Intentionally bypassed (document the reason)
-```
-
-### Phase B Output: Update execution results file
-
-For each TC result received, fill in:
-
-- Observed Result section
-- Expected vs Observed comparison table
-- Status: PASS / FAIL / BLOCKED / SKIPPED
-- Evidence file reference
-- For FAIL: add `**Bug Required:** Run bug-report-writer with this TC's details`
-
-## 5. Standard DOM Check Scripts (Reusable Library)
-
-These are standard checks applicable across multiple FRs. Include the relevant ones
-in `FR{nn}-dom-checks.md` based on the TC channel requirements.
-
-### DOM-01: H1 count (per FR-21 — applies to all web pages)
-
-```javascript
-const h1Count = document.querySelectorAll("h1").length;
-console.log(
-  `H1 count: ${h1Count} | Expected: 1 | ${h1Count === 1 ? "✅ PASS" : "❌ FAIL"}`,
-);
-```
-
-### DOM-02: Email input type (per FR-22 — applies to forms with email field)
-
-```javascript
-const emailInput = document.querySelector(
-  'input[name="email"], input[type="email"]',
-);
-const emailType = emailInput ? emailInput.type : "NOT FOUND";
-console.log(
-  `Email input type: "${emailType}" | Expected: "email" | ${emailType === "email" ? "✅ PASS" : "❌ FAIL"}`,
-);
-```
-
-### DOM-03: Password input type (per FR-22)
-
-```javascript
-const pwInputs = document.querySelectorAll('input[type="password"]');
-console.log(
-  `Password inputs with type="password": ${pwInputs.length} | Expected: >=1 | ${pwInputs.length >= 1 ? "✅ PASS" : "❌ FAIL"}`,
-);
-```
-
-### DOM-04: Required field labels have \* (per FR-22)
-
-```javascript
-const labels = Array.from(document.querySelectorAll("label"));
-const starLabels = labels.filter((l) => l.textContent.includes("*"));
-const nonStarLabels = labels.filter((l) => !l.textContent.includes("*"));
-console.log(
-  `Labels WITH * (required): ${starLabels.map((l) => l.textContent.trim().replace(/\s+/g, " "))}`,
-);
-console.log(
-  `Labels WITHOUT *: ${nonStarLabels.map((l) => l.textContent.trim().replace(/\s+/g, " "))}`,
-);
-```
-
-### DOM-05: All images have non-empty alt text (per FR-24)
-
-```javascript
-const imgs = Array.from(document.querySelectorAll("img"));
-const missing = imgs.filter((img) => !img.alt || img.alt.trim() === "");
-console.log(
-  `Images with empty/missing alt: ${missing.length} | Expected: 0 | ${missing.length === 0 ? "✅ PASS" : "❌ FAIL"}`,
-);
-if (missing.length > 0)
-  missing.forEach((img) => console.log("  Missing alt:", img.src));
-```
-
-### DOM-06: Cart badge count (per FR-23)
-
-```javascript
-const badge =
-  document.querySelector('[class*="badge"]') ||
-  document.querySelector('[class*="cart"]  span') ||
-  document.querySelector('[data-testid*="cart"]');
-console.log(`Cart badge found: ${badge ? "✅ YES" : "❌ NOT FOUND"}`);
-if (badge) console.log(`Cart badge value: "${badge.textContent.trim()}"`);
-```
-
-### DOM-07: Error message position (per FR-22 — must be ABOVE submit button)
-
-```javascript
-const submitBtn = document.querySelector(
-  'button[type="submit"], button:last-of-type',
-);
-const errorMsgs = document.querySelectorAll(
-  '[class*="error"], [class*="alert"], [role="alert"]',
-);
-console.log(`Error messages found: ${errorMsgs.length}`);
-errorMsgs.forEach((err, i) => {
-  if (submitBtn) {
-    const errPos = err.getBoundingClientRect().top;
-    const btnPos = submitBtn.getBoundingClientRect().top;
-    const above = errPos < btnPos;
-    console.log(
-      `Error ${i + 1} "${err.textContent.trim().slice(0, 50)}": ${above ? "✅ ABOVE" : "❌ BELOW"} submit button`,
-    );
-  }
-});
-```
-
-### DOM-08: Step indicator visible (per FR-22 — for multi-step forms, FR-03)
-
-```javascript
-const stepIndicators = document.querySelectorAll(
-  '[class*="step"], [class*="progress"], [class*="breadcrumb"]',
-);
-console.log(`Step indicator elements found: ${stepIndicators.length}`);
-stepIndicators.forEach((el) =>
-  console.log("  Content:", el.textContent.trim().slice(0, 80)),
-);
-```
-
-### DOM-09: Breadcrumb present (per FR-23 — cart, checkout, product detail pages)
-
-```javascript
-const breadcrumb = document.querySelector(
-  'nav[aria-label*="breadcrumb"], [class*="breadcrumb"], ol.breadcrumb',
-);
-console.log(`Breadcrumb: ${breadcrumb ? "✅ FOUND" : "❌ NOT FOUND"}`);
-if (breadcrumb)
-  console.log("  Content:", breadcrumb.textContent.trim().replace(/\s+/g, " "));
-```
-
-### DOM-10: Input XSS safety check (per SEC-04)
-
-```javascript
-// After injecting <script>alert(1)</script> as input and having it displayed:
-const pageSource = document.body.innerHTML;
-const hasRawScript = pageSource.includes("<script>alert(1)</script>");
-const hasEscaped = pageSource.includes("&lt;script&gt;");
-console.log(
-  `Raw <script> tag in DOM: ${hasRawScript ? "❌ XSS VULNERABLE (FAIL)" : "✅ Not found (safe)"}`,
-);
-console.log(
-  `Escaped &lt;script&gt; in DOM: ${hasEscaped ? "✅ Input properly escaped" : "ℹ️ Not visible in DOM"}`,
-);
-```
-
-## 6. Output Format
-
-### `scripts/curl/FR{nn}-curl-tests.sh`
-
-Fully executable bash script. Set permissions: `chmod +x scripts/curl/FR{nn}-curl-tests.sh`
-
-All response files saved to `evidence/api-responses/FR{nn}/` automatically.
-
-### `scripts/devtools/FR{nn}-dom-checks.md`
-
-Markdown file with:
-
-- One section per UI-channel TC (step-by-step checklist)
-- One section per DOM-channel TC (copy-paste JS script)
-- One section for Mobile UI TCs if FR-03
-
-### `qa-artifacts/execution-results/FR{nn}-execution-results.md` (blank template)
+Create `qa-artifacts/execution-results/FR{nn}-execution-results.md`. Pre-fill TC metadata and Expected Results. Leave Observed Result and Status blank.
 
 ```markdown
 # Execution Results — FR-{nn}: {Feature Name}
 
-**Executed by:** {Student ID}
-**Date:** {YYYY-MM-DD}
-**Environment:** {Browser & OS}, SUT commit: {run `git log -1 --format="%h"` in eshop-sut/}
+**Executed by:** {Student ID}  
+**Date:** {YYYY-MM-DD}  
+**SUT Commit:** `{git log -1 --format="%h"}`  
+**API responses:** `evidence/api-responses/FR{nn}/`  
+**Session recording:** {YouTube link — add after recording by human}
+
+---
+
+## How to complete this file
+
+| Source             | What to do                                                          |
+| ------------------ | ------------------------------------------------------------------- |
+| SCRIPT-FULL TCs    | Paste terminal summary from `bash scripts/curl/FR{nn}-api-tests.sh` |
+| SCRIPT-PARTIAL TCs | Script covers API part; fill UI observation manually                |
+| MANUAL TCs         | Fill in after browser/mobile testing                                |
+| DOM TCs            | Paste console output from `scripts/curl/FR{nn}-dom-checks.js`       |
 
 ---
 
 ## Execution Log
 
-### FR{nn}-EP-001 — {Objective}
+### FR{nn}-EP-{nnn} — {Objective} `[SCRIPT-FULL]`
 
-**Channel:** {channel}
-**Executed:** _(fill in date/time)_
-
-**Test Data:**
-{from TC table}
-
-**Steps Executed:**
-{from UI checklist or curl script reference}
-
-**Observed Result:**
-_(fill in after running scripts)_
-
-**Expected vs Observed:**
-
-| Point     | Expected  | Observed    | Match?      |
-| --------- | --------- | ----------- | ----------- |
-| {point 1} | {from TC} | _(fill in)_ | _(fill in)_ |
-| {point 2} | {from TC} | _(fill in)_ | _(fill in)_ |
-
-**Status:** _(PASS / FAIL / BLOCKED / SKIPPED)_
-**Evidence:** _(fill in file path)_
+| Field               | Value                                                         |
+| ------------------- | ------------------------------------------------------------- |
+| **TC ID**           | FR{nn}-EP-{nnn}                                               |
+| **Channel**         | {channel}                                                     |
+| **Automation**      | SCRIPT-FULL                                                   |
+| **Test Data**       | {from TC table}                                               |
+| **Expected Result** | {pre-filled from TC table, citing FR number}                  |
+| **Observed Result** | _(fill from script output)_                                   |
+| **DB Check**        | _(fill from script output)_                                   |
+| **API Response**    | `evidence/api-responses/FR{nn}/FR{nn}-EP-{nnn}-response.json` |
+| **Status**          | _(PASS / FAIL / BLOCKED / SKIPPED)_                           |
 
 ---
 
-[repeat for each TC]
+### FR{nn}-EP-{nnn} — {Objective} `[MANUAL]`
+
+| Field               | Value                               |
+| ------------------- | ----------------------------------- |
+| **TC ID**           | FR{nn}-EP-{nnn}                     |
+| **Channel**         | UI                                  |
+| **Automation**      | MANUAL                              |
+| **Test Data**       | {from TC table}                     |
+| **Expected Result** | {pre-filled from TC table}          |
+| **Observed Result** | _(fill after browser testing)_      |
+| **Status**          | _(PASS / FAIL / BLOCKED / SKIPPED)_ |
+
+---
+
+[... one entry per TC ...]
 
 ---
 
 ## Execution Summary
 
-| Metric     | Value       |
-| ---------- | ----------- |
-| Total TCs  | {n}         |
-| Executed   | _(fill in)_ |
-| Passed     | _(fill in)_ |
-| Failed     | _(fill in)_ |
-| Blocked    | _(fill in)_ |
-| Skipped    | _(fill in)_ |
-| Pass Rate  | _(fill in)_ |
-| Bugs Found | _(fill in)_ |
+| Metric         | Script-Full | Script-Partial | Manual | DOM | Total |
+| -------------- | ----------- | -------------- | ------ | --- | ----- |
+| Total TCs      | {n}         | {n}            | {n}    | {n} | {n}   |
+| Passed         |             |                |        |     |       |
+| Failed         |             |                |        |     |       |
+| Blocked        |             |                |        |     |       |
+| Skipped        |             |                |        |     |       |
+| **Pass Rate**  |             |                |        |     |       |
+| **Bugs Found** |             |                |        |     |       |
+
+**MANUAL TCs list:** {FR{nn}-EP-{nnn}, ...}
+**DOM page URL:** {http://localhost:.../...}
 ```
 
-## 7. Evidence Naming Convention
+---
+
+## 5. Phase B — Record Results & Sync Both Files
+
+After the human runs all scripts and reports back, the agent performs **two simultaneous file updates** per TC:
+
+### 5.1 Input Format
+
+The human provides:
 
 ```
-evidence/
-├── screenshots/FR{nn}/
-│   ├── TC-EP-001-before.png      <- UI: form filled, before submit
-│   ├── TC-EP-001-after.png       <- UI: result after submit
-│   ├── TC-EP-004-fail.png        <- UI/API: any failure evidence
-│   └── TC-EP-005-console.png     <- DOM: DevTools console screenshot
-│
-└── api-responses/FR{nn}/
-    ├── TC-EP-001-response.json        <- Single API response
-    ├── TC-EP-008-notoken-response.json    <- Role-Auth: no token
-    ├── TC-EP-008-usertoken-response.json  <- Role-Auth: user token
-    ├── TC-EP-008-admintoken-response.json <- Role-Auth: admin token
-    ├── TC-EP-010-before-response.json     <- State: before action
-    └── TC-EP-010-after-response.json      <- State: after action
+Phase B — FR-{nn}
+
+SCRIPT OUTPUT (paste the summary block from terminal):
+[paste here]
+
+DOM OUTPUT (paste the block from DevTools console):
+[paste here]
+
+MANUAL UI RESULTS:
+- FR{nn}-EP-{nnn}: PASS — {brief observation, e.g., "Error shown above button"}
+- FR{nn}-EP-{nnn}: FAIL — {exact description of what went wrong}
 ```
+
+### 5.2 Agent Actions in Phase B
+
+For each TC result received:
+
+**1. Update execution-results file:**
+
+- Fill `Observed Result` with specific details from script output or manual report
+- Fill `DB Check` with sqlite3 assertion result if applicable
+- Set `Status`: PASS / FAIL / BLOCKED / SKIPPED
+- For FAIL: append `**→ Bug Required:** Run bug-report-writer for this TC`
+- Update `Execution Summary` table with final counts
+
+**2. Sync test-cases file (`qa-artifacts/test-cases/FR{nn}-test-cases.md`):**
+
+- For each TC table that has `**Observed Result** | _(to be filled)_` → replace with the actual observed result
+- For each TC that has `**Status** | _(to be filled)_` → replace with PASS / FAIL / BLOCKED / SKIPPED
+
+**3. Print final Phase B report:**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Phase B complete — FR-{nn}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Script-Full TCs : {n} PASS, {n} FAIL
+Script-Partial  : {n} PASS, {n} FAIL
+DOM checks      : {n} PASS, {n} FAIL
+Manual TCs      : {n} PASS, {n} FAIL
+─────────────────────────────────────────────────
+TOTAL           : {n} PASS, {n} FAIL, {n} BLOCKED
+─────────────────────────────────────────────────
+Files updated:
+  ✅ qa-artifacts/execution-results/FR{nn}-execution-results.md
+  ✅ qa-artifacts/test-cases/FR{nn}-test-cases.md
+
+Bugs required for:
+  {FR{nn}-EP-{nnn}} — {brief reason}
+  → Run bug-report-writer for each
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+## 6. Evidence Requirements
+
+| Evidence                          | Required                           | How produced                                               |
+| --------------------------------- | ---------------------------------- | ---------------------------------------------------------- |
+| API response JSON files           | ✅ Per API/Role-Auth TC            | Auto-saved by script to `evidence/api-responses/FR{nn}/`   |
+| DB sqlite3 query results          | Embedded in script terminal output | Printed inline; captured in session recording              |
+| Session recording (1 per FR)      | ✅ Upload to YouTube               | Record screen while running script + UI tests + DOM checks |
+| DOM console screenshot (1 per FR) | ✅ 1 screenshot                    | Screenshot DevTools Console showing DOM check summary      |
+| Per-TC screenshot                 | ❌ Not required                    | Only take screenshots when creating GitHub Issues for bugs |
+
+---
+
+## 7. SQLite Best Practices for Script Generation
+
+When generating sqlite3 checks, follow these rules:
+
+**Rule 1 — Always use double-quotes around SQL string values:**
+
+```bash
+sqlite3 "$DB" "SELECT email FROM users WHERE email='ep001@test.com';"
+```
+
+**Rule 2 — Password hash check pattern (SEC-01):**
+
+```bash
+# bcrypt hashes always start with $2a$, $2b$, or $2y$
+# assert_db with EXPECTED="BCRYPT" handles this automatically
+assert_db "TC-ID" "Password is hashed (per SEC-01)" \
+  "SELECT password FROM users WHERE email='ep001@test.com';" "BCRYPT"
+```
+
+**Rule 3 — Use `COUNT(*)` for existence checks when rows might not exist:**
+
+```bash
+# Returns "0" (safe) or "1" even if row absent, never errors
+assert_db "TC-ID" "OTP cleared after use (per SEC-07)" \
+  "SELECT COUNT(*) FROM password_resets WHERE email='test@eshop.com';" "0"
+```
+
+**Rule 4 — Always teardown after success TCs using sqlite3, not the Admin API:**
+
+```bash
+# Faster and more reliable than API calls
+teardown_db "Remove test user" \
+  "DELETE FROM users WHERE email='ep001@test.com';"
+```
+
+**Rule 5 — For cart/order state checks, use user_id not email:**
+
+```bash
+# Get user_id first, then query related tables
+USER_ID=$(sqlite3 "$DB" "SELECT id FROM users WHERE email='test@eshop.com';")
+assert_db "TC-ID" "Cart item exists after add" \
+  "SELECT COUNT(*) FROM cart_items WHERE user_id=$USER_ID AND product_id=1;" "1"
+```
+
+**Rule 6 — For coupon checks, check both existence and is_active flag:**
+
+```bash
+assert_db "TC-ID" "Coupon exists and is active" \
+  "SELECT is_active FROM coupons WHERE code='TESTCODE';" "1"
+```
+
+---
 
 ## 8. Quality Checklist
 
-**Phase A (generation):**
+**Phase A generation:**
 
-- [ ] `FR{nn}-curl-tests.sh` covers ALL API, Role-Auth, and State channel TCs
-- [ ] Role-Auth TCs run all 3 token states in one block
-- [ ] State TCs include BEFORE + PAUSE + AFTER sequence with pause prompt
-- [ ] `FR{nn}-dom-checks.md` has one section per UI and DOM channel TC
-- [ ] DOM scripts use the reusable library where applicable
-- [ ] Execution results template is created with Expected Results pre-filled
-- [ ] Script is executable: `chmod +x` instruction included
+- [ ] TC classification table shown before generating scripts
+- [ ] `DB` variable set to `backend/database.sqlite` at top of script
+- [ ] Preflight checks present (DB file exists, backend responds, sqlite3 installed)
+- [ ] `assert_db` with `EXPECTED="BCRYPT"` used for all password hash checks (SEC-01)
+- [ ] All success TCs have `teardown_db` via sqlite3 (not API)
+- [ ] Role-Auth TCs test all 3 token states in one block
+- [ ] Pattern E (before/after state) used for UI-triggered state changes
+- [ ] Script closing block prints formatted summary table
+- [ ] DOM checks JS covers all DOM-channel TCs for this FR
+- [ ] Execution results template pre-fills Expected Results from TC table
 
-**Phase B (recording):**
+**Phase B recording:**
 
+- [ ] BOTH files updated: execution-results.md AND test-cases.md
 - [ ] Observed Result is specific (not "looks correct")
-- [ ] Expected vs Observed comparison table filled for each TC
-- [ ] FAIL TCs clearly flagged with `Bug Required:` note
-- [ ] Evidence file paths recorded
-- [ ] Execution Summary table populated
+- [ ] FAIL TCs flagged with `→ Bug Required:`
+- [ ] Execution Summary table fully populated
+- [ ] Session recording link added to execution results file header
+- [ ] Final Phase B report printed to human
