@@ -21,9 +21,19 @@ Write professional bug reports following `theory-test-report.md` standards for e
 
 ## 2. Input Required
 
-- TC ID and execution result of the failed TC
-- Screenshot/recording evidence already captured
-- **Reference:** `.agents/context/theory-test-report.md` (Sections 2, 3)
+The human provides the following after running the execution scripts:
+
+- **TC ID** of the failed TC (e.g., `FR01-EP-004`)
+- **Expected Result** — paste from `qa-artifacts/test-cases/FR{nn}-test-cases.md`
+- **Observed Result** — one of:
+  - For API/Role-Auth: HTTP status code + response body from the `.json` file in `evidence/api-responses/FR{nn}/`
+  - For UI: description of what was seen on screen + screenshot filename
+  - For DOM: console output text from the DevTools check in `scripts/devtools/FR{nn}-dom-checks.md`
+  - For State: BEFORE and AFTER JSON responses from `evidence/api-responses/FR{nn}/`
+- **Environment details**: OS, browser/device, test account email, SUT git commit hash
+- **Screenshot filename(s)**: path(s) under `evidence/screenshots/FR{nn}/` — screenshots only, no recordings required
+- **API response JSON filename(s)**: path(s) under `evidence/api-responses/FR{nn}/` if applicable
+- Reference: `.agents/context/theory-test-report.md` (Sections 2, 3)
 
 ## 3. Core Theory — Bug Report Anatomy
 
@@ -66,7 +76,7 @@ Write professional bug reports following `theory-test-report.md` standards for e
 | **Medium**    | 5–8 days         | Feature works but deviates from SRS           |
 | **Low**       | Later sprint     | Cosmetic; rare edge case; minor inconsistency |
 
-> **Note:** Severity and Priority are independent. A Fatal-severity bug may have Low priority if it is in a rarely-used path. A Cosmetic bug may have High priority if it appears on the main landing page.
+> Note: Severity and Priority are independent. A Fatal-severity bug may have Low priority if it is in a rarely-used path. A Cosmetic bug may have High priority if it appears on the main landing page.
 
 ## 5. Step-by-Step Instructions
 
@@ -112,23 +122,6 @@ Rules:
 4. Observe the HTTP response status code and response body.
 ```
 
-**Web UI bug steps example:**
-
-1. Navigate to http://localhost:5173/register
-2. Fill the "Email" field with: "invalidemail" (no @ symbol)
-3. Fill "Password" with: "Test@123"
-4. Fill "Confirm Password" with: "Test@123"
-5. Click the "Register" button.
-6. Observe: no validation error is displayed.
-
-**Mobile UI bug steps example:**
-
-1. Open EShop App in Expo Go on iOS/Android emulator.
-2. Navigate to the "Forgot Password" screen.
-3. Tap the "Email" input and enter: "invalidemail"
-4. Tap the "Send OTP" button.
-5. Observe: no validation error is displayed and the app proceeds to the next screen.
-
 **UI bug steps example:**
 
 ```
@@ -162,9 +155,17 @@ Rationale: A security vulnerability in the admin coupon management endpoint
 
 ### Step E — Reference Evidence Files
 
-- Name the screenshot file(s)
-- Name the API response JSON file if applicable
-- Reference both in the Evidence section of the report
+For each bug, reference the files that prove it exists. Evidence types:
+
+| Evidence Type        | Source                                                        | Where it comes from              |
+| -------------------- | ------------------------------------------------------------- | -------------------------------- |
+| Screenshot (UI bug)  | `evidence/screenshots/FR{nn}/TC-{id}-fail.png`                | Captured manually during UI test |
+| Screenshot (DOM bug) | `evidence/screenshots/FR{nn}/TC-{id}-console.png`             | DevTools console screenshot      |
+| API response JSON    | `evidence/api-responses/FR{nn}/TC-{id}-response.json`         | Auto-saved by cURL script        |
+| Role-Auth responses  | `evidence/api-responses/FR{nn}/TC-{id}-{state}-response.json` | Auto-saved by cURL script        |
+| State before/after   | `evidence/api-responses/FR{nn}/TC-{id}-before-response.json`  | Auto-saved by cURL script        |
+
+**Note:** Screenshots are sufficient for UI bugs — no screen recordings are required. For API bugs, the response JSON file saved by the cURL script is sufficient evidence.
 
 ## 6. Output Format
 
@@ -232,10 +233,12 @@ Specifically: {HTTP status expected, UI behavior expected, error message expecte
 
 ### Evidence
 
-| File                                                      | Description                    |
-| --------------------------------------------------------- | ------------------------------ |
-| `evidence/screenshots/FR{nn}/TC-EP-{nnn}-fail.png`        | Screenshot showing the failure |
-| `evidence/api-responses/FR{nn}/TC-EP-{nnn}-response.json` | Raw API response               |
+| File                                                      | Type       | Description                       |
+| --------------------------------------------------------- | ---------- | --------------------------------- |
+| `evidence/screenshots/FR{nn}/TC-EP-{nnn}-fail.png`        | Screenshot | UI state showing the failure      |
+| `evidence/api-responses/FR{nn}/TC-EP-{nnn}-response.json` | JSON       | Raw API response from cURL script |
+
+> Note: Screenshots and JSON response files are sufficient. No screen recordings needed.
 ```
 
 ## 7. Anti-Patterns Checklist (Self-Review)
