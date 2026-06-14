@@ -163,6 +163,13 @@ mkdir -p "$RESP_DIR"
 PASS=0; FAIL=0; SKIP=0
 declare -a SUMMARY_ROWS=()
 
+# TC Context Variables
+CURRENT_TC_ID=""
+CURRENT_TC_FAIL=0
+CURRENT_TC_DESC=""
+CURRENT_TC_EXP=""
+CURRENT_TC_ACT=""
+
 # Color codes
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m';  BOLD='\033[1m';   NC='\033[0m'
@@ -197,6 +204,24 @@ echo -e "${GREEN}Tokens acquired.${NC}\n"
 # HELPER FUNCTIONS
 # =============================================================================
 
+start_tc() {
+  CURRENT_TC_ID="$1"
+  CURRENT_TC_FAIL=0
+  CURRENT_TC_DESC=""
+  CURRENT_TC_EXP=""
+  CURRENT_TC_ACT=""
+}
+
+end_tc() {
+  if [[ $CURRENT_TC_FAIL -eq 0 ]]; then
+    ((PASS++))
+    SUMMARY_ROWS+=("PASS|$CURRENT_TC_ID|$CURRENT_TC_DESC|$CURRENT_TC_EXP|$CURRENT_TC_ACT")
+  else
+    ((FAIL++))
+    SUMMARY_ROWS+=("FAIL|$CURRENT_TC_ID|$CURRENT_TC_DESC|$CURRENT_TC_EXP|$CURRENT_TC_ACT")
+  fi
+}
+
 # ── run_and_assert ────────────────────────────────────────────────────────────
 # Run an HTTP request, save response JSON, check HTTP status, record PASS/FAIL.
 # Args: TC_ID  EXPECTED_HTTP  METHOD  ENDPOINT  TOKEN(none|user|admin)  BODY(or "")
@@ -205,27 +230,35 @@ run_and_assert() {
   local BODY="${6:-}"
   local RESP_FILE="$RESP_DIR/${TC_ID}-response.json"
 
-  local AUTH=""
-  [[ "$TOKEN" == "user" ]]  && AUTH="-H \"Authorization: Bearer $USER_TOKEN\""
-  [[ "$TOKEN" == "admin" ]] && AUTH="-H \"Authorization: Bearer $ADMIN_TOKEN\""
-  local BODY_FLAG=""
-  [[ -n "$BODY" ]] && BODY_FLAG="-d '$BODY'"
+  local CURL_CMD=(curl -s -o "$RESP_FILE" -w "%{http_code}" -X "$METHOD" "${BASE_URL}${ENDPOINT}" -H "Content-Type: application/json")
+  if [[ "$TOKEN" == "user" ]]; then CURL_CMD+=(-H "Authorization: Bearer $USER_TOKEN"); fi
+  if [[ "$TOKEN" == "admin" ]]; then CURL_CMD+=(-H "Authorization: Bearer $ADMIN_TOKEN"); fi
+  if [[ -n "$BODY" ]]; then CURL_CMD+=(-d "$BODY"); fi
 
   local ACTUAL
-  ACTUAL=$(eval curl -s -o "\"$RESP_FILE\"" -w "\"%{http_code}\"" \
-    -X "$METHOD" "\"$BASE_URL$ENDPOINT\"" \
-    -H '"Content-Type: application/json"' \
-    $AUTH $BODY_FLAG 2>/dev/null)
+  ACTUAL=$("${CURL_CMD[@]}" 2>/dev/null)
+
+  if [[ $CURRENT_TC_FAIL -eq 0 ]]; then
+    CURRENT_TC_DESC="$METHOD $ENDPOINT"
+    CURRENT_TC_EXP="HTTP $EXPECTED"
+    CURRENT_TC_ACT="HTTP $ACTUAL"
+  fi
 
   local STATUS COLOR
-  if [[ "$ACTUAL" == "$EXPECTED" ]]; then STATUS="PASS"; ((PASS++)); COLOR="$GREEN"
-  else                                   STATUS="FAIL"; ((FAIL++)); COLOR="$RED"; fi
+  if [[ "$ACTUAL" == "$EXPECTED" ]]; then
+    STATUS="PASS"; COLOR="$GREEN"
+  else
+    STATUS="FAIL"; COLOR="$RED"
+    CURRENT_TC_FAIL=1
+    CURRENT_TC_DESC="$METHOD $ENDPOINT"
+    CURRENT_TC_EXP="HTTP $EXPECTED"
+    CURRENT_TC_ACT="HTTP $ACTUAL"
+  fi
 
   echo -e "${COLOR}[${STATUS}]${NC} ${BOLD}${TC_ID}${NC} — HTTP ${ACTUAL} (expected ${EXPECTED})"
   [[ "$STATUS" == "FAIL" ]] && \
     python3 -m json.tool "$RESP_FILE" 2>/dev/null | sed 's/^/        /' || true
   echo ""
-  SUMMARY_ROWS+=("$STATUS|$TC_ID|$METHOD $ENDPOINT|HTTP $EXPECTED|HTTP $ACTUAL")
 }
 
 # ── assert_json_field ─────────────────────────────────────────────────────────
@@ -253,12 +286,21 @@ except Exception as e:
        STATUS="PASS"
   elif [[ "$EXPECTED" != "EXISTS" && "$EXPECTED" != "POSITIVE_INT" && "$ACTUAL" == "$EXPECTED" ]]; then
        STATUS="PASS"
-  else STATUS="FAIL"
+  else
+       STATUS="FAIL"
   fi
 
-  [[ "$STATUS" == "PASS" ]] && ((PASS++)) && COLOR="$GREEN" || { ((FAIL++)); COLOR="$RED"; }
+  if [[ "$STATUS" == "PASS" ]]; then
+    COLOR="$GREEN"
+  else
+    COLOR="$RED"
+    CURRENT_TC_FAIL=1
+    CURRENT_TC_DESC="json[$FIELD]"
+    CURRENT_TC_EXP="$EXPECTED"
+    CURRENT_TC_ACT="${ACTUAL:0:25}"
+  fi
+
   echo -e "${COLOR}[${STATUS}]${NC} ${TC_ID} — field '${FIELD}': expected=${EXPECTED}, actual=${ACTUAL}"
-  SUMMARY_ROWS+=("$STATUS|$TC_ID|json[$FIELD]|$EXPECTED|$ACTUAL")
 }
 
 # ── assert_db ─────────────────────────────────────────────────────────────────
@@ -279,12 +321,20 @@ assert_db() {
     *)      [[ "$ACTUAL" == "$EXPECTED" ]] && STATUS="PASS" || STATUS="FAIL" ;;
   esac
 
-  [[ "$STATUS" == "PASS" ]] && ((PASS++)) && COLOR="$GREEN" || { ((FAIL++)); COLOR="$RED"; }
+  if [[ "$STATUS" == "PASS" ]]; then
+    COLOR="$GREEN"
+  else
+    COLOR="$RED"
+    CURRENT_TC_FAIL=1
+    CURRENT_TC_DESC="DB: $DESC"
+    CURRENT_TC_EXP="$EXPECTED"
+    CURRENT_TC_ACT="${ACTUAL:-<empty>}"
+  fi
+
   echo -e "${COLOR}[${STATUS}]${NC} ${TC_ID} — DB: ${DESC}"
   echo -e "       SQL:      ${SQL}"
   echo -e "       Expected: ${EXPECTED} | Actual: ${ACTUAL:-<empty>}"
   echo ""
-  SUMMARY_ROWS+=("$STATUS|$TC_ID|DB: $DESC|$EXPECTED|${ACTUAL:-<empty>}")
 }
 
 # ── teardown_db ───────────────────────────────────────────────────────────────
@@ -310,9 +360,11 @@ Use the correct pattern for each TC based on its classification:
 # ── FR{nn}-EP-{nnn}: {Objective} ─────────────────────────────────────────────
 # EC Ref: {EC ID} | Expected: HTTP {code} — {reason}
 echo -e "${CYAN}=== FR{nn}-EP-{nnn}: {Objective} ===${NC}"
+start_tc "FR{nn}-EP-{nnn}"
 run_and_assert \
   "FR{nn}-EP-{nnn}" "{expectedHttpCode}" "{METHOD}" "{/api/endpoint}" "{none|user|admin}" \
   '{JSON body, or omit for no body}'
+end_tc
 ```
 
 **Pattern B — API call + JSON field check + sqlite3 DB verification + teardown (SCRIPT-FULL, success TCs):**
@@ -323,6 +375,7 @@ Use this for any TC that creates a resource (user, coupon, order, cart item) and
 # ── FR{nn}-EP-{nnn}: {Objective} ─────────────────────────────────────────────
 # EC Ref: {EC ID} | Expected: HTTP 200 + resource created in DB
 echo -e "${CYAN}=== FR{nn}-EP-{nnn}: {Objective} ===${NC}"
+start_tc "FR{nn}-EP-{nnn}"
 
 # Step 1: API call
 run_and_assert \
@@ -353,6 +406,8 @@ assert_db "FR{nn}-EP-{nnn}-db-hash" \
 teardown_db \
   "Delete test user ep001@test.com" \
   "DELETE FROM users WHERE email='ep001@test.com';"
+
+end_tc
 ```
 
 **Pattern C — Role-Auth (3 token states, all automated):**
@@ -361,6 +416,7 @@ teardown_db \
 # ── FR{nn}-EP-{nnn}: Role-Auth — {Method} {Endpoint} ─────────────────────────
 # Expected: no-token→401, user-token→403, admin-token→200
 echo -e "${CYAN}=== FR{nn}-EP-{nnn}: Role-Auth Test ===${NC}"
+start_tc "FR{nn}-EP-{nnn}"
 RA_BODY='{...valid JSON body...}'
 
 run_and_assert "FR{nn}-EP-{nnn}-notoken"    "401" "{METHOD}" "{/api/endpoint}" "none"  "$RA_BODY"
@@ -369,6 +425,8 @@ run_and_assert "FR{nn}-EP-{nnn}-admintoken" "200" "{METHOD}" "{/api/endpoint}" "
 
 # Teardown if admin call created data:
 teardown_db "Remove Role-Auth test data" "DELETE FROM {table} WHERE {condition};"
+
+end_tc
 ```
 
 **Pattern D — sqlite3-only verification (no HTTP call), for implicit state checks:**
@@ -378,6 +436,7 @@ Use when you need to verify something in the DB that was created by a prior TC o
 ```bash
 # ── FR{nn}-EP-{nnn}: DB state check — {Description} ──────────────────────────
 echo -e "${CYAN}=== FR{nn}-EP-{nnn}: DB State Check ===${NC}"
+start_tc "FR{nn}-EP-{nnn}"
 
 assert_db "FR{nn}-EP-{nnn}-db-otp" \
   "OTP token stored in password_resets for email" \
@@ -389,6 +448,8 @@ assert_db "FR{nn}-EP-{nnn}-db-otp-cleared" \
   "OTP row removed after successful password reset (per SEC-07)" \
   "SELECT COUNT(*) FROM password_resets WHERE email='test@eshop.com';" \
   "0"
+
+end_tc
 ```
 
 **Pattern E — State verification with manual UI trigger (SCRIPT-PARTIAL with before/after):**
@@ -398,6 +459,7 @@ Use when the state change must be triggered by a UI action (cannot be scripted),
 ```bash
 # ── FR{nn}-EP-{nnn}: State — Before/After {Description} ──────────────────────
 echo -e "${CYAN}=== FR{nn}-EP-{nnn}: State Verification — {Description} ===${NC}"
+start_tc "FR{nn}-EP-{nnn}"
 
 # Before state
 echo -e "${YELLOW}STEP 1: Recording BEFORE state...${NC}"
@@ -425,6 +487,8 @@ else
   SUMMARY_ROWS+=("FAIL|FR{nn}-EP-{nnn}-state|DB state|{expectedValue}|$AFTER")
 fi
 echo ""
+
+end_tc
 ```
 
 ---
@@ -441,13 +505,13 @@ echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BOLD} FR-{nn} TEST RESULTS — AUTOMATED CHECKS${NC}"
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-printf "  %-38s %-14s %-14s %s\n" "TC ID / Check" "Expected" "Actual" "Status"
+printf "  %-20s %-35s %-35s %s\n" "TC ID / Check" "Expected" "Actual" "Status"
 echo "  ──────────────────────────────────────────────────────────────────"
 for row in "${SUMMARY_ROWS[@]}"; do
   IFS='|' read -r S ID EP EXP ACT <<< "$row"
   [[ "$S" == "PASS" ]] && C="$GREEN" || C="$RED"
-  printf "  ${C}%-38s %-14s %-14s %s${NC}\n" \
-    "${ID:0:38}" "${EXP:0:14}" "${ACT:0:14}" "$S"
+  printf "  ${C}%-20s %-35s %-35s %s${NC}\n" \
+    "${ID:0:20}" "${EXP:0:35}" "${ACT:0:35}" "$S"
 done
 echo "  ──────────────────────────────────────────────────────────────────"
 echo -e "  ${BOLD}TOTAL (automated): ${GREEN}${PASS} PASS${NC} | ${RED}${FAIL} FAIL${NC} | ${YELLOW}${SKIP} SKIP${NC}"
@@ -811,6 +875,17 @@ assert_db "TC-ID" "Cart item exists after add" \
 ```bash
 assert_db "TC-ID" "Coupon exists and is active" \
   "SELECT is_active FROM coupons WHERE code='TESTCODE';" "1"
+```
+
+**Rule 7 — Handling Large Dynamic BVA Strings:**
+
+When a Test Case requires a very long string (e.g., 255 or 300 characters for boundary testing), do NOT hardcode the string and do NOT inject `$(printf...)` directly into the JSON payload multiple times.
+Instead, generate the string into a local bash variable first, then use that variable in the API payload, `assert_db`, and `teardown_db` queries to ensure consistency and avoid false negatives.
+
+```bash
+LONG_EMAIL="$(printf 'a%.0s' {1..246})@test.com"
+run_and_assert "FR{nn}-BVA-{nnn}" "200" "POST" "/api/register" "none" \
+  '{"name": "Nguyen Van A", "email": "'"$LONG_EMAIL"'", "password": "Test@123"}'
 ```
 
 ---
