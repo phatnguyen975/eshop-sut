@@ -507,3 +507,57 @@ End with a clear verdict: APPROVED or NEEDS REVISION.
 | Items added manually by student | 0                |
 | Items rejected                  | 0                |
 | Most common AI gap              | None so far      |
+
+## Interaction [8] — test-execution-assistant
+
+| Field             | Value                                                               |
+| ----------------- | ------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                            |
+| **Date/Time**     | 2026-06-14 23:07                                                    |
+| **Feature**       | FR-01 — Account Registration                                        |
+| **Skill Invoked** | test-execution-assistant                                            |
+| **Task**          | Generate execution scripts (Phase A) and populate results (Phase B) |
+
+### Prompt Given
+
+```text
+Use the test-execution-assistant skill.
+Feature: FR-01 — Account Registration
+Phase A: Output the TC Classification table. Generate FR01-api-tests.sh, FR01-dom-checks.js, and FR01-execution-results.md directly from the TC table.
+Phase B: Update both FR01-execution-results.md and FR01-test-cases.md using the provided SCRIPT OUTPUT, DOM OUTPUT, and MANUAL UI RESULTS.
+```
+
+### AI Output Summary
+
+- Analyzed 38 TCs and generated the classification table (19 SCRIPT-FULL, 16 SCRIPT-PARTIAL, 2 MANUAL, 1 DOM).
+- Generated `scripts/curl/FR01-api-tests.sh` incorporating API calls, JSON field checks, SQLite state checks, and teardown logic.
+- Generated `scripts/curl/FR01-dom-checks.js` for UI validation via DevTools.
+- Successfully parsed manual and automated outcomes (38 FAILS) and updated the status/observed result columns across both Markdown files.
+
+### Student Review Notes
+
+- **Accepted as-is:** The dual-phase (A/B) execution flow, JSON validation logic, SQLite teardown concept, and the markdown template structure.
+- **Modified:** Refactored cURL commands to use bash arrays to prevent `% {http_code}` escaping errors. Redesigned the PASS/FAIL counting logic by adding `start_tc`/`end_tc` wrappers with "override on failure" capability, so the script counts Test Cases instead of individual assertions. Improved DOM checks to return descriptive failure strings (e.g., "Missing Confirm Password") instead of generic `null` values. Expanded terminal table columns to prevent truncation.
+- **Added manually:** Enforced a new "Rule 7" for BVA generation: required the script to assign long boundary strings (e.g., 255 chars) to local bash variables first, to ensure exact matching between API payloads and SQLite database assertions without syntax errors.
+- **Rejected:** The initial AI's approach of counting every `assert_*` as a separate test case, and the AI's tendency to hardcode or use invalid JSON syntax when generating payloads for extreme boundary value tests (BVA).
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                          |
+| ------------------- | ------------ | ------------------------------------------------------------------------------ |
+| Completeness        | 5            | Covered all scriptable and manual TCs.                                         |
+| Accuracy            | 3            | Required bash refactoring and JSON escaping fixes for extreme BVA inputs.      |
+| Guideline adherence | 4            | Followed framework but initially mismanaged TC-level pass/fail counting logic. |
+| Items missed        | 0 count      | All TCs were executed and logged.                                              |
+
+## FR-01 Session Summary (Updated)
+
+| Metric                          | Value            |
+| ------------------------------- | ---------------- |
+| Total skill sessions logged     | 8                |
+| Total AI outputs reviewed       | 8                |
+| Items accepted as-is            | All (cumulative) |
+| Items modified by student       | 1                |
+| Items added manually by student | 1                |
+| Items rejected                  | 1                |
+| Most common AI gap              | None so far      |

@@ -2,7 +2,7 @@
 
 **Executed by:** 23127449 - Nguyến Tấn Phát  
 **Date:** 2026-06-14  
-**Environment:** Microsoft Edge Web Browser
+**Environment:** Microsoft Edge Web Browser, Windows 11
 
 ## Execution Log
 

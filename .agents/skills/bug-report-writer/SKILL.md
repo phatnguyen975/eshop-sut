@@ -1,15 +1,16 @@
 ---
 name: bug-report-writer
 description: >
-  Write a professional bug report for each FAIL test case following the standard
-  in TestReport.md. Each report must include all 12 mandatory fields, comply with
-  the 7 writing characteristics, remain non-judgmental, and provide sufficient
-  evidence for a developer to reproduce the issue immediately.
+  Batch-generate all bug reports for a completed FR in a single pass. Reads
+  FR{nn}-test-cases.md (for TC definitions and Observed Results), FR{nn}-execution-results.md
+  (for execution context and script output), and eshop-srs.md (for requirement citations).
+  Produces a complete, production-quality FR{nn}-bugs.md covering every FAIL TC without
+  requiring the human to provide per-bug prompts.
 trigger:
-  - "write bug report"
-  - "TC failed"
-  - "found a bug"
-  - "create defect report"
+  - "write bug reports for FR"
+  - "generate bug reports"
+  - "bug report writer"
+  - "create bug reports"
 output: qa-artifacts/bug-reports/FR{nn}-bugs.md
 ---
 
@@ -17,256 +18,306 @@ output: qa-artifacts/bug-reports/FR{nn}-bugs.md
 
 ## 1. Purpose
 
-Write professional bug reports following `theory-test-report.md` standards for every failed test case. A good bug report enables a developer to reproduce and fix the defect without asking any additional questions.
+After `test-execution-assistant` in Phase B has updated both `FR{nn}-test-cases.md` and `FR{nn}-execution-results.md` files with `FAIL` statuses, this skill reads those files and automatically generates a complete `FR{nn}-bugs.md` file.
 
-## 2. Input Required
+**CRITICAL PRINCIPLE: Root Cause Grouping (1 Root Cause = 1 Bug Report)** Do NOT generate one bug report per FAIL TC. You MUST analyze the Observed Results of all FAIL TCs and group them by their underlying root cause. For example, if 5 TCs fail because the backend stores passwords in plaintext, they must be combined into a SINGLE bug report referencing all 5 TCs.
 
-The human provides the following after running the execution scripts:
+The human does not need to provide individual bug details. The skill extracts all necessary information from the existing execution artifacts.
 
-- **TC ID** of the failed TC (e.g., `FR01-EP-004`)
-- **Expected Result** — paste from `qa-artifacts/test-cases/FR{nn}-test-cases.md`
-- **Observed Result** — one of:
-  - For API/Role-Auth: HTTP status code + response body from the `.json` file in `evidence/api-responses/FR{nn}/`
-  - For UI: description of what was seen on screen + screenshot filename
-  - For DOM: console output text from the DevTools check in `scripts/devtools/FR{nn}-dom-checks.md`
-  - For State: BEFORE and AFTER JSON responses from `evidence/api-responses/FR{nn}/`
-- **Environment details**: OS, browser/device, test account email, SUT git commit hash
-- **Screenshot filename(s)**: path(s) under `evidence/screenshots/FR{nn}/` — screenshots only, no recordings required
-- **API response JSON filename(s)**: path(s) under `evidence/api-responses/FR{nn}/` if applicable
-- Reference: `.agents/context/theory-test-report.md` (Sections 2, 3)
+## 2. Input Files (Read All Before Starting)
 
-## 3. Core Theory — Bug Report Anatomy
+| File                                                         | What to extract                                                                                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `qa-artifacts/test-cases/FR{nn}-test-cases.md`               | For each FAIL TC: TC ID, Objective, EC Ref, Pre-condition, Test Data, Steps, Expected Result, Channel  |
+| `qa-artifacts/execution-results/FR{nn}-execution-results.md` | For each FAIL TC: Observed Result, DB Check result, API response file path, execution date/environment |
+| `.agents/context/eshop-srs.md`                               | Exact FR and SEC requirement text to cite in Expected Behavior                                         |
+| `.agents/context/eshop-api-spec.md`                          | API endpoint details for Steps to Reproduce in API bugs                                                |
 
-> **Source:** `theory-test-report.md` Section 2.1
+**How to identify FAIL TCs:**
 
-### 12 Mandatory Fields
+- From `FR{nn}-test-cases.md`: Find all TC entries where `Status` = `FAIL`
+- From `FR{nn}-execution-results.md`: Find all entries where `Status` = `FAIL`
+- Cross-reference both files to ensure consistency
 
-| #   | Field                  | Description                         | Format                               |
-| --- | ---------------------- | ----------------------------------- | ------------------------------------ |
-| 1   | **Bug ID**             | Auto-incremented unique identifier  | `BUG-001`, `BUG-002`, ...            |
-| 2   | **Feature / FR**       | Feature and FR number               | `FR-01 — Account Registration`       |
-| 3   | **Linked TC ID**       | TC that discovered this bug         | `FR01-EP-002`                        |
-| 4   | **Summary**            | One-sentence problem statement      | Contrasts expected vs actual         |
-| 5   | **Environment**        | Browser, OS, SUT URL, account       | Full specifications                  |
-| 6   | **Steps to Reproduce** | Numbered list, fully reproducible   | 1. 2. 3.                             |
-| 7   | **Expected Behavior**  | Cite FR/SEC source                  | "per FR-01: ..."                     |
-| 8   | **Actual Behavior**    | Exact observation                   | Status code, message, screenshot ref |
-| 9   | **Severity**           | Fatal / Serious / Medium / Cosmetic | + rationale                          |
-| 10  | **Priority**           | Immediate / High / Medium / Low     | + rationale                          |
-| 11  | **Status**             | Initial status                      | `New`                                |
-| 12  | **Evidence**           | File references                     | Paths to screenshots / JSON          |
+## 3. Batch Processing Procedure
 
-## 4. Severity & Priority Guide (EShop Context)
+### Step A — Scan and List All FAIL TCs
+
+Read both input files and extract every TC marked as `FAIL`.
+
+### Step B — Analyze and Group by Root Cause (CRITICAL)
+
+Analyze the `Observed Result` and `DB Check` for every `FAIL` TC. Group TCs together if they fail for the exact same underlying reason (e.g., "Missing Confirm Password field", "Native HTML5 validation used instead of custom UI").
+
+Print this grouped list to the human BEFORE generating reports:
+
+```
+Bug Groups found in FR-{nn}:
+  BUG-001: {Brief description of root cause}
+    Affected TCs: FR{nn}-EP-001, FR{nn}-BVA-003
+  BUG-002: {Brief description of root cause}
+    Affected TCs: FR{nn}-EP-002, FR{nn}-EP-008
+  ...
+```
+
+Wait for human confirmation before proceeding.
+
+### Step C — Assign Bug IDs
+
+Check if `qa-artifacts/bug-reports/FR{nn}-bugs.md` already exists to continue numbering (e.g., BUG-001, BUG-002).
+
+### Step D — For Each BUG GROUP, Extract Fields
+
+For each grouped bug, pick the **Primary TC** (usually the first EP test case in the group) to use as the base for the "Steps to Reproduce". Extract data (Test Data, Steps, Expected Result, API response, etc.) primarily from this Primary TC, but list ALL affected TCs in the Linked TCs field.
+
+_Crucial: For UI/DOM bugs, the `Actual Behavior` MUST strictly use the human's manual observation notes recorded in the `FR{nn}-execution-results.md` file. Do not invent UI behavior._
+
+### Step E — Determine Severity and Priority
+
+For each bug, determine Severity and Priority using the rules in Section 4. Do NOT ask the human — determine automatically from the nature of the failure:
+
+**Severity determination logic:**
+
+- If the failure involves a SEC-xx rule (password plaintext, role bypass, OTP cross-email, XSS) → **Serious**
+- If the failure causes complete feature breakage (login broken, crash) → **Fatal**
+- If the failure is a functional deviation from SRS (wrong HTTP code, wrong redirect, wrong label, missing validation) → **Medium**
+- If the failure is a DOM/HTML/CSS issue not affecting functionality → **Cosmetic**
+
+**Priority determination logic:**
+
+- Serious or Fatal → **Immediate** or **High** (Immediate if security or blocks testing)
+- Medium affecting main user flow → **High**
+- Medium on edge case or secondary path → **Medium**
+- Cosmetic → **Low**
+
+### Step F — Write Summary
+
+Follow the Summary format rules in Section 5 precisely. Generate from extracted fields:
+
+- Subject: what endpoint/feature/page
+- Action: what it does wrong
+- Condition: when / under what input
+- Citation: per FR-xx or SEC-xx
+
+### Step G — Write Steps to Reproduce
+
+Reconstruct steps from `FR{nn}-test-cases.md` Steps field + Test Data field:
+
+- For API/Role-Auth bugs: convert to manual cURL-style steps (human-readable, not bash)
+- For UI bugs: use the browser navigation steps from the TC
+- For DOM bugs: include the DevTools console paste instruction
+- Always use the **exact concrete values** from Test Data (no placeholders)
+
+### Step H — Generate All Reports in One Pass
+
+Write the complete `qa-artifacts/bug-reports/FR{nn}-bugs.md` file with all bug reports in sequence (BUG-001, BUG-002, ...).
+
+## 4. Severity & Priority Reference
 
 ### Severity
 
-| Level        | Definition                                     | EShop Examples                                                                                             |
-| ------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Fatal**    | System crash, data loss, total feature failure | Login completely broken; payment crashes                                                                   |
-| **Serious**  | Core feature broken or security compromised    | User JWT accepted by admin endpoint (SEC-03); OTP cross-email succeeds; client can manipulate total_amount |
-| **Medium**   | Feature works but deviates from SRS            | Label "Tong tam tinh" instead of "Tong cong" (FR-07); missing confirm dialog (FR-07); wrong redirect page  |
-| **Cosmetic** | Minor UI issue, no functional impact           | Typo in label; wrong button color; empty alt text                                                          |
+| Level        | When to apply                                                                                                                                         |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fatal**    | Feature completely non-functional; system crash; data corruption                                                                                      |
+| **Serious**  | SEC-xx violation (role bypass, plaintext password, OTP cross-email, XSS); core business rule completely ignored                                       |
+| **Medium**   | Wrong HTTP status; wrong response body; wrong redirect; missing validation that SRS requires; wrong UI label/text; missing UI element required by SRS |
+| **Cosmetic** | Wrong color; typo; tab order; missing `alt` on non-critical image; wrong font                                                                         |
 
 ### Priority
 
-| Level         | Timeframe        | When to use                                   |
-| ------------- | ---------------- | --------------------------------------------- |
-| **Immediate** | Fix within 1 day | Blocks all testing; revenue-stopping          |
-| **High**      | 2–4 days         | Core feature broken; security vulnerability   |
-| **Medium**    | 5–8 days         | Feature works but deviates from SRS           |
-| **Low**       | Later sprint     | Cosmetic; rare edge case; minor inconsistency |
+| Level         | When to apply                                         |
+| ------------- | ----------------------------------------------------- |
+| **Immediate** | Security vulnerability; blocks all downstream testing |
+| **High**      | Core user flow broken; data integrity risk            |
+| **Medium**    | SRS deviation visible to users; workaround exists     |
+| **Low**       | Cosmetic; very rare edge case                         |
 
-> Note: Severity and Priority are independent. A Fatal-severity bug may have Low priority if it is in a rarely-used path. A Cosmetic bug may have High priority if it appears on the main landing page.
+## 5. Summary Format Rules
 
-## 5. Step-by-Step Instructions
+**Template:** `{Feature/endpoint} {wrong behavior} instead of {correct behavior} when {condition} (per {FR/SEC reference})`
 
-### Step A — Draft the Summary
+**By bug type:**
 
-Format: `[System] [does X] instead of [doing Y] when [condition]`
+| Type                | Pattern                                                                                       | Example                                                                                      |
+| ------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Wrong HTTP status   | `{METHOD} {endpoint} returns HTTP {actual} instead of {expected} when {condition}`            | `POST /api/register returns HTTP 200 instead of 400 when email already exists in DB`         |
+| Wrong response body | `{endpoint} {response issue} when {condition}`                                                | `POST /api/register returns success message instead of error for duplicate email`            |
+| Security bypass     | `{endpoint} accepts {forbidden token/input} and {performs forbidden action} when {condition}` | `POST /api/admin/coupons accepts user JWT and creates coupon, bypassing role check`          |
+| DB integrity        | `{action} {DB wrong state} when {condition}`                                                  | `POST /api/register inserts duplicate user row when email already exists`                    |
+| UI wrong behavior   | `{page/form} {wrong behavior} when {condition}`                                               | `Registration form submits without error when confirmPassword field does not match password` |
+| DOM structure       | `{page} has {actual DOM state} instead of {expected} (per FR-{nn})`                           | `Registration page has 3 <h1> tags instead of exactly 1`                                     |
 
-**Good summaries:**
+**Rules:**
 
-```
-POST /api/admin/coupons returns HTTP 200 instead of 403 when called with a regular user JWT
-Registration form submits without error when the email field contains no @ symbol
-Cart total label displays "Tong tam tinh" instead of "Tong cong" per FR-07
-```
+- One sentence only
+- No adjectives: no "broken", "bad", "wrong" as standalone words — always say _what_ is wrong
+- No "the developer forgot to..." — facts only
+- Must contain: subject, behavior, condition, FR/SEC citation
 
-**Bad summaries:**
+## 6. Steps to Reproduce — By Channel
 
-```
-Bug in login                                    <- too vague
-The system is broken when I try to register    <- emotional, no specifics
-Error 500                                       <- symptom only, no context
-```
+**Note for Grouped Bugs:** Write the steps to reproduce based on the Test Data of the **Primary TC**. Add a note at the end of the steps explicitly stating: _"Note: This root cause also causes the following TCs to fail: [List other Linked TCs]"_.
 
-### Step B — Write Steps to Reproduce
+### API / Role-Auth / State / DB bugs
 
-Rules:
-
-- Numbered list ONLY — never a paragraph
-- Include EXACT values used, not "some email" or "a valid password"
-- Include precise UI element labels (button text, field labels)
-- For API bugs: include exact endpoint, method, headers, and full request body
-
-**API bug steps example:**
+Write as manual cURL commands. Do not use bash variables — write the full literal command:
 
 ```
-1. Obtain user JWT: POST /api/login with {"email":"test@eshop.com","password":"Test1234!"}
-2. Copy the token from the response body.
-3. Send request: POST http://localhost:3000/api/admin/coupons
-   Header: Content-Type: application/json
-   Header: Authorization: Bearer {user_token}
-   Body: {"code":"TEST","type":"percent","discount_value":10,
-          "min_order_amount":0,"expired_at":"2099-12-31","max_uses_per_user":1}
-4. Observe the HTTP response status code and response body.
+1. Ensure the EShop backend is running at http://localhost:3000.
+2. [If auth required] Obtain a {user/admin} JWT:
+   curl -s -X POST http://localhost:3000/api/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"{email}","password":"{password}"}'
+   Copy the `token` field from the response.
+3. Send the following request:
+   curl -s -X {METHOD} http://localhost:3000{/api/endpoint} \
+     -H "Content-Type: application/json" \
+     [-H "Authorization: Bearer {token-type}"] \
+     -d '{exact JSON body from Test Data}'
+4. Observe the HTTP response status code.
+5. Observe the response body.
+[6. For DB checks] Query the database:
+   sqlite3 backend/database.sqlite "{SQL query from script}"
 ```
 
-**UI bug steps example:**
+### UI / Mobile UI bugs
 
 ```
-1. Navigate to http://localhost:5173/register
-2. Fill the "Email" field with: "invalidemail" (no @ symbol)
-3. Fill "Password" with: "Test@123"
-4. Fill "Confirm Password" with: "Test@123"
-5. Click the "Register" button.
-6. Observe: no validation error is displayed.
+1. Navigate to: http://localhost:{port}/{path}
+2. [If login required] Log in with email="{email}", password="{password}".
+3. Fill "{Field Label}" with: "{exact value from Test Data}"
+   [repeat for each field]
+4. Click the "{Button Label}" button.
+5. Observe: [exact thing to look at]
 ```
 
-### Step C — Assess Severity
-
-Apply the EShop severity guide. Always write a rationale sentence:
+### DOM bugs
 
 ```
-Severity: Serious
-Rationale: This is a SEC-03 violation. A regular user can create and delete
-           admin-managed coupons, bypassing role-based access control entirely.
+1. Navigate to: http://localhost:{port}/{path}
+2. Open DevTools: F12 → Console tab.
+3. Paste the following and press Enter:
+   {paste the specific check() invocation from FR{nn}-dom-checks.js that failed}
+4. Observe the ❌ FAIL output in the console.
 ```
 
-### Step D — Assess Priority
+## 7. Output Format
 
-Consider: business impact + user visibility + frequency of affected path:
+File: `qa-artifacts/bug-reports/FR{nn}-bugs.md`
 
-```
-Priority: Immediate
-Rationale: A security vulnerability in the admin coupon management endpoint
-           that any logged-in user can exploit to create unlimited discount codes.
-```
-
-### Step E — Reference Evidence Files
-
-For each bug, reference the files that prove it exists. Evidence types:
-
-| Evidence Type        | Source                                                        | Where it comes from              |
-| -------------------- | ------------------------------------------------------------- | -------------------------------- |
-| Screenshot (UI bug)  | `evidence/screenshots/FR{nn}/TC-{id}-fail.png`                | Captured manually during UI test |
-| Screenshot (DOM bug) | `evidence/screenshots/FR{nn}/TC-{id}-console.png`             | DevTools console screenshot      |
-| API response JSON    | `evidence/api-responses/FR{nn}/TC-{id}-response.json`         | Auto-saved by cURL script        |
-| Role-Auth responses  | `evidence/api-responses/FR{nn}/TC-{id}-{state}-response.json` | Auto-saved by cURL script        |
-| State before/after   | `evidence/api-responses/FR{nn}/TC-{id}-before-response.json`  | Auto-saved by cURL script        |
-
-**Note:** Screenshots are sufficient for UI bugs — no screen recordings are required. For API bugs, the response JSON file saved by the cURL script is sufficient evidence.
-
-## 6. Output Format
-
-> **CRITICAL RULE:** All generated content MUST be strictly in English.
-
-Append to `qa-artifacts/bug-reports/FR{nn}-bugs.md`:
-
-```markdown
+````markdown
 # Bug Reports — FR-{nn}: {Feature Name}
+
+**Generated by:** bug-report-writer skill
+**Date:** {YYYY-MM-DD}
+**Source files:**
+
+- `qa-artifacts/test-cases/FR{nn}-test-cases.md`
+- `qa-artifacts/execution-results/FR{nn}-execution-results.md`
+
+**Total bugs:** {n}
+**Session recording:** {YouTube URL from execution-results.md — or "pending upload"}
 
 ## BUG-{nnn}
 
-| Field            | Value                                                |
-| ---------------- | ---------------------------------------------------- |
-| **Bug ID**       | BUG-{nnn}                                            |
-| **Feature**      | FR-{nn} — {Feature Name}                             |
-| **Linked TC**    | FR{nn}-EP-{nnn}                                      |
-| **Summary**      | {One-sentence problem statement}                     |
-| **Status**       | New                                                  |
-| **Severity**     | {Fatal / Serious / Medium / Cosmetic}                |
-| **Priority**     | {Immediate / High / Medium / Low}                    |
-| **Reported by**  | {Student ID}                                         |
-| **Date**         | {YYYY-MM-DD HH:MM}                                   |
-| **GitHub Issue** | #{issue*number} *(assigned by github-issue-writer)\_ |
+| Field            | Value                                         |
+| ---------------- | --------------------------------------------- |
+| **Bug ID**       | BUG-{nnn}                                     |
+| **Feature**      | FR-{nn} — {Feature Name}                      |
+| **Linked TCs**   | FR{nn}-EP-{nnn}, FR{nn}-BVA-{nnn}, ...        |
+| **Channel**      | {API / Role-Auth / UI / DOM / State}          |
+| **Summary**      | {One-sentence summary per Section 5 rules}    |
+| **Status**       | New                                           |
+| **Severity**     | {Fatal / Serious / Medium / Cosmetic}         |
+| **Priority**     | {Immediate / High / Medium / Low}             |
+| **Reported by**  | {Student ID from execution-results.md header} |
+| **Date**         | {Execution date from execution-results.md}    |
+| **GitHub Issue** | _(pending — assigned by github-issue-writer)_ |
 
 ### Environment
 
-| Component      | Value                                                      |
-| -------------- | ---------------------------------------------------------- |
-| OS / Device    | {e.g., macOS 14.5 / Windows 11 OR iPhone 15 Pro / Pixel 7} |
-| Runtime Env    | {e.g., Chrome 125.0 OR Expo Go 2.31.0}                     |
-| Backend        | http://localhost:3000                                      |
-| Frontend/App   | {http://localhost:{port} OR Mobile App}                    |
-| SUT Git Commit | `{commit hash}`                                            |
-| Test Account   | {email used for this TC}                                   |
+| Component    | Value                                                              |
+| ------------ | ------------------------------------------------------------------ |
+| OS / Device  | {e.g., macOS 14.5 / Windows 11 OR iPhone 15 Pro / Pixel 7}         |
+| Runtime Env  | {e.g., Chrome 125.0 OR Expo Go 2.31.0} — or "N/A (cURL test)"      |
+| Backend      | http://localhost:3000                                              |
+| Frontend/App | {http://localhost:{port} OR Mobile App} — or "N/A (API-only test)" |
+| Test Account | {email used in Test Data}                                          |
 
 ### Steps to Reproduce
 
-1. {Exact step 1}
-2. {Exact step 2}
-3. {Exact step 3}
-4. Observe: {what to observe}
+{Steps per Section 6, using exact values from Primary TC Test Data}
 
 ### Expected Behavior
 
-Per **FR-{nn}** / **SEC-{nn}**:
+Per **FR-{nn}** {/ **SEC-{nn}** if applicable}:
 
-> "{Exact quote or close paraphrase from the SRS}"
+> {Close paraphrase of the relevant SRS requirement — do NOT copy verbatim}
 
-Specifically: {HTTP status expected, UI behavior expected, error message expected}
+Specifically (based on Primary TC):
+
+- HTTP {expected status code from Primary TC}
+- Response body: {expected JSON fields from Primary TC}
+  {- DB state: {expected DB state if Primary TC involves State/DB}}
+  {- UI: {expected UI behavior if Primary TC involves UI}}
 
 ### Actual Behavior
 
-- HTTP Status: `{actual status code}`
-- Response Body: `{actual JSON content}`
-- UI: {description of what actually happened}
+- HTTP Status: `{from Observed Result of Primary TC}`
+- Response Body:
+
+```json
+{paste key fields from JSON response file of Primary TC}
+```
+
+{- DB State: {actual result from DB Check field of Primary TC}}
+{- UI: {observed UI behavior of Primary TC}}
 
 ### Severity Rationale
 
-**{Severity level}:** {Explanation referencing the SRS rule or SEC requirement violated}
+**{Severity}:** {One or two sentences. Reference the specific SRS FR number or SEC
+number violated. Explain the impact on users or system security.}
 
 ### Priority Rationale
 
-**{Priority level}:** {Explanation of urgency and business impact}
+**{Priority}:** {One or two sentences on urgency. Reference business impact or whether
+this blocks downstream testing.}
 
-### Evidence
+## BUG-{nnn+1}
 
-| File                                                      | Type       | Description                       |
-| --------------------------------------------------------- | ---------- | --------------------------------- |
-| `evidence/screenshots/FR{nn}/TC-EP-{nnn}-fail.png`        | Screenshot | UI state showing the failure      |
-| `evidence/api-responses/FR{nn}/TC-EP-{nnn}-response.json` | JSON       | Raw API response from cURL script |
+{repeat pattern for next BUG GROUP}
 
-> Note: Screenshots and JSON response files are sufficient. No screen recordings needed.
-```
+## Bug Summary Table
 
-## 7. Anti-Patterns Checklist (Self-Review)
+| Bug ID    | Linked TCs                        | Channel   | Summary (brief)    | Severity | Priority | GitHub Issue |
+| --------- | --------------------------------- | --------- | ------------------ | -------- | -------- | ------------ |
+| BUG-{nnn} | FR{nn}-EP-{nnn}, FR{nn}-BVA-{nnn} | {channel} | {≤60 char summary} | {level}  | {level}  | _(pending)_  |
+| BUG-{nnn} | FR{nn}-EP-{nnn}                   | {channel} | {≤60 char summary} | {level}  | {level}  | _(pending)_  |
+````
 
-From `theory-test-report.md` Section 3.2:
+## 8. Anti-Patterns Checklist (Self-Review Before Presenting to Human)
 
-- [ ] NOT a ghost report — it IS written in the bug file and will be posted to GitHub
-- [ ] NOT symptom-only — steps show exactly what triggers the bug
-- [ ] NOT vague environment — OS, browser version, SUT URL, test account all specified
-- [ ] NOT adjectives over analytics — no "slow", "broken", "stupid"; use measurable data
-- [ ] NOT judgmental — no "the developer forgot to...", "this is obviously wrong"
-- [ ] Steps are a numbered list (not a paragraph)
-- [ ] Language is simple and unambiguous
-- [ ] Bug is reproducible by following the steps exactly
-- [ ] Content is legible (tables, code blocks used appropriately)
-- [ ] Non-judgmental (facts only)
+- [ ] Summary is exactly one sentence — no comma-joined clauses forming two sentences
+- [ ] Summary has no standalone adjectives ("broken", "bad", "wrong") — says what specifically is wrong
+- [ ] Steps use EXACT values from Test Data — no `{placeholder}` or `<value>` remaining
+- [ ] Steps for API bugs are manual cURL commands — not bash script syntax
+- [ ] Expected Behavior cites a specific FR-xx or SEC-xx number
+- [ ] Actual Behavior has the exact HTTP status and response body from execution results
+- [ ] Severity rationale explains the impact with reference to an SRS rule
+- [ ] Priority rationale explains the urgency concretely
+- [ ] GitHub Issue field is `_(pending — assigned by github-issue-writer)_`
+- [ ] No "the developer forgot to...", "obviously wrong", or judgmental language
 
-## 8. Quality Checklist
+## 9. Quality Checklist
 
-- [ ] All generated content is completely in English
-- [ ] Bug ID is unique and auto-incremented
-- [ ] Summary is one sentence, specific, and non-emotional
-- [ ] Steps to Reproduce include exact concrete values and match the platform (Web vs Mobile)
-- [ ] Expected Behavior cites FR/SEC number
-- [ ] Actual Behavior includes exact status code or error message
-- [ ] Severity has a written rationale
-- [ ] Priority has a written rationale
-- [ ] Environment table correctly reflects the platform (Browser for Web, Device/Expo for Mobile)
-- [ ] Evidence files are referenced and confirmed to exist
-- [ ] GitHub Issue field left as placeholder for github-issue-writer
-- [ ] A preview has been shown to the human, and explicit `APPROVE` command was received before saving to disk
+- [ ] Bug Groups list shown to human before generating reports
+- [ ] Every BUG GROUP has exactly one bug report (All FAIL TCs must be covered, but grouped by root cause)
+- [ ] Bug IDs are sequential and unique (no gaps, no duplicates)
+- [ ] Bug Summary Table at end of file covers all bugs
+- [ ] All `_(pending)_` placeholders use exactly that text for `github-issue-writer` to find
+- [ ] Output file is `qa-artifacts/bug-reports/FR{nn}-bugs.md`
+- [ ] All fields in the bug report are filled with extracted data (no placeholders)
+- [ ] Environment section is complete with values from execution results
+- [ ] Steps to Reproduce are complete and use exact Test Data values
+- [ ] Expected and Actual Behavior sections are complete with data from execution results and SRS citations
+- [ ] Severity and Priority rationales are well-explained and justified

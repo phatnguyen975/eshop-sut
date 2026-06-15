@@ -1,10 +1,12 @@
 ---
 name: traceability-matrix-generator
 description: >
-  Build a Traceability Matrix linking FR Business Rules → EP Classes → Test Cases
-  → Execution Status → Bugs → GitHub Issues. Proves test coverage for the grader
-  and ensures no requirement is left untested. Run after all 4 FRs complete
-  execution and bug reporting.
+  Batch-generate a complete traceability matrix for all 4 FRs in a single pass.
+  Links FR Business Rules → Equivalence Classes → Test Cases → Execution Status →
+  Bug IDs → GitHub Issues. Reads all requirement-analysis, domain-analysis,
+  boundary-analysis, test-cases, execution-results, and bug-report files to produce
+  qa-artifacts/traceability/traceability-matrix.md. Run after all 4 FRs have completed
+  bug reporting and GitHub issue posting (all GitHub issue numbers must be final).
 trigger:
   - "traceability matrix"
   - "generate traceability"
@@ -17,149 +19,255 @@ output: qa-artifacts/traceability/traceability-matrix.md
 
 ## 1. Purpose
 
-Build a traceability matrix to:
+Generate a single `traceability-matrix.md` file covering all 4 FRs that:
 
-1. Prove every FR business rule has test case coverage
-2. Link Bug IDs to TC IDs so developers know where each bug was found
-3. Detect coverage gaps (ECs without TCs)
-4. Provide a high-level quality view for the grader
+1. Proves every FR business rule has at least one covering test case
+2. Links every FAIL TC to its Bug ID and GitHub Issue number
+3. Identifies EC coverage gaps (ECs without TCs)
+4. Provides quantitative coverage metrics for the grader
+5. Serves as input for `test-summary-generator` (EC coverage % field)
 
-## 2. Input Required
+**Batch operation:** Read all artifact files in one pass and generate the complete matrix without requiring the human to provide data manually.
 
-- 4 domain-analysis files (EC and BR lists)
-- 4 boundary-analysis files (BVA points)
-- 4 test-cases files (TC list with IDs)
-- 4 execution-results files (Pass/Fail/Blocked/Skipped status)
-- 4 bug-reports files (Bug ID + GitHub Issue number)
+## 2. Input Files (Read All Before Starting)
 
-## 3. Matrix Structure
+| File                                                       | What to extract                                                            |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `qa-artifacts/requirements/FR01-requirement-analysis.md`   | Business Rule IDs (BR-xx) and their descriptions                           |
+| `qa-artifacts/requirements/FR07-requirement-analysis.md`   | Same                                                                       |
+| `qa-artifacts/requirements/FR17-requirement-analysis.md`   | Same                                                                       |
+| `qa-artifacts/requirements/FR03-requirement-analysis.md`   | Same                                                                       |
+| `qa-artifacts/domain-analysis/FR01-domain-analysis.md`     | EC IDs, EC type (Valid/Invalid), EC description, which BR each EC covers   |
+| `qa-artifacts/domain-analysis/FR07-domain-analysis.md`     | Same                                                                       |
+| `qa-artifacts/domain-analysis/FR17-domain-analysis.md`     | Same                                                                       |
+| `qa-artifacts/domain-analysis/FR03-domain-analysis.md`     | Same                                                                       |
+| `qa-artifacts/boundary-analysis/FR01-boundary-analysis.md` | BVA point IDs and which variable/BR each covers                            |
+| `qa-artifacts/boundary-analysis/FR07-boundary-analysis.md` | Same                                                                       |
+| `qa-artifacts/boundary-analysis/FR17-boundary-analysis.md` | Same                                                                       |
+| `qa-artifacts/boundary-analysis/FR03-boundary-analysis.md` | Same                                                                       |
+| `qa-artifacts/test-cases/FR01-test-cases.md`               | TC IDs, EC/BVA Ref, Channel, Automation category, Status, Objective        |
+| `qa-artifacts/test-cases/FR07-test-cases.md`               | Same                                                                       |
+| `qa-artifacts/test-cases/FR17-test-cases.md`               | Same                                                                       |
+| `qa-artifacts/test-cases/FR03-test-cases.md`               | Same                                                                       |
+| `qa-artifacts/execution-results/FR01-execution-results.md` | Final Status per TC (PASS/FAIL/BLOCKED/SKIPPED)                            |
+| `qa-artifacts/execution-results/FR07-execution-results.md` | Same                                                                       |
+| `qa-artifacts/execution-results/FR17-execution-results.md` | Same                                                                       |
+| `qa-artifacts/execution-results/FR03-execution-results.md` | Same                                                                       |
+| `qa-artifacts/bug-reports/FR01-bugs.md`                    | Bug ID, Linked TCs, Severity, Priority, Summary, GitHub Issue link, Status |
+| `qa-artifacts/bug-reports/FR07-bugs.md`                    | Same                                                                       |
+| `qa-artifacts/bug-reports/FR17-bugs.md`                    | Same                                                                       |
+| `qa-artifacts/bug-reports/FR03-bugs.md`                    | Same                                                                       |
 
-Three interconnected tables:
+## 3. Batch Processing Procedure
 
-**Matrix 1:** FR Business Rule → EC → TC → Status (proves requirements coverage)
-**Matrix 2:** Complete TC list → Execution → Bug (operational view)
-**Matrix 3:** Bug Register → FR → TC (defect traceability)
+### Step A — Build the BR → EC → TC → Status Chain per FR
 
-## 4. Step-by-Step Instructions
+For each FR, construct the chain as follows:
 
-### Step A — Collect All IDs
+1. Read all Business Rules (BR-xx) from `FR{nn}-requirement-analysis.md`
+2. For each BR, find which ECs cover it in `FR{nn}-domain-analysis.md`
+   - If a BR has no EC, mark as **coverage gap**
+3. For each EC, find which TC covers it in `FR{nn}-test-cases.md` (via EC Ref column)
+   - If an EC has no TC, mark as **coverage gap**
+4. For each TC, look up Status in `FR{nn}-execution-results.md`
+5. If Status = FAIL, find the Bug ID in `FR{nn}-bugs.md` (by checking if the TC ID is included in the comma-separated `Linked TCs` field) and extract the GitHub Issue link
 
-From each FR artifact, collect:
+Additionally include BVA points:
 
-- Business Rules and Constraints (from requirement-analysis, citing exact FR-xx or SEC-xx sources)
-- Equivalence Class IDs (EC-xx from domain-analysis)
-- BVA point descriptions (from boundary-analysis)
-- TC IDs with execution status (from execution-results)
-- Bug IDs with GitHub issue numbers (from bug-reports)
+- Read all BVA points from `FR{nn}-boundary-analysis.md`
+- For each BVA point, find the TC covering it (ID pattern: `FR{nn}-BVA-*`)
+- Link to the same BR that the variable's EP class links to
 
-### Step B — Build FR to TC to Bug Chain
+### Step B — Build the Complete TC List (Matrix 2)
 
-For each BR → find covering EC → find covering TC → find execution status → find Bug ID if FAIL
+List every TC across all 4 FRs with:
 
-### Step C — Detect Coverage Gaps
+- TC ID, FR, Type (EP/BVA), Objective (brief, ≤55 chars), Channel, Automation category, Status, Bug ID (if FAIL), GitHub Issue (if FAIL)
 
-Any EC without a covering TC = coverage gap. Document and explain.
+This is a full enumeration — list ALL TCs, not just highlights.
 
-### Step D — Calculate Coverage Metrics
+### Step C — Build the Bug Register (Matrix 3)
+
+List every bug across all 4 FRs from the bug report files with:
+
+- Bug ID, FR, Severity, Priority, Linked TC, Summary (brief ≤55 chars), GitHub Issue as clickable Markdown link `[#N](url)`, Status (from bug report)
+
+### Step D — Detect Coverage Gaps
+
+A coverage gap exists when:
+
+- A BR has no EC defined for it, OR
+- An EC exists but has no covering TC in the test-cases files
+
+Document each gap with: EC/BR ID, FR, description, and reason not covered.
+
+### Step E — Calculate Coverage Metrics per FR and Total
+
+For each FR and overall:
 
 ```
-EC Coverage (%)     = (ECs with at least 1 TC) / (Total ECs) * 100
-TC Execution (%)    = (Executed TCs) / (Total Designed TCs) * 100
-Bug Link Rate (%)   = (Failed TCs with Bug ID) / (Total Failed TCs) * 100
+EC Coverage (%)      = ECs with at least 1 covering TC / Total ECs × 100
+BVA Coverage (%)     = BVA points with TC / Total BVA points × 100
+TC Execution (%)     = Executed TCs / Total designed TCs × 100
+TC Pass Rate (%)     = Passed TCs / Executed TCs × 100
+Bug Link Rate (%)    = Failed TCs with Bug ID / Total Failed TCs × 100
+                       (should be 100% after complete flow — flag if not)
 ```
 
-## 5. Output Format
+## 4. Output Format
 
-> **CRITICAL RULE:** All generated content MUST be strictly in English.
+File: `qa-artifacts/traceability/traceability-matrix.md`
 
 ```markdown
 # Traceability Matrix — HW02 Domain Testing on EShop
 
-**Generated:** {YYYY-MM-DD}
-**Overall Coverage:** {EC coverage}% EC | {TC execution}% TC | {n} total bugs
+**Generated by:** traceability-matrix-generator skill
+**Date:** {YYYY-MM-DD}
+**FRs covered:** FR-01, FR-07, FR-17, FR-03
 
-## Matrix 1: FR Business Rule → EC → TC → Status
+**Overall Summary:**
+
+- EC Coverage: {%} ({n}/{n} ECs have covering TCs)
+- BVA Coverage: {%} ({n}/{n} BVA points have TCs)
+- TC Execution: {%} ({n}/{n} TCs executed)
+- TC Pass Rate: {%} ({n}/{n} executed TCs passed)
+- Total Bugs: {n} | Bug Link Rate: {%}
+
+## Matrix 1: FR → Business Rule → EC → TC → Status
+
+> **Purpose:** Proves every SRS requirement has test coverage.
 
 ### FR-01: Account Registration
 
-| BR ID  | Business Rule                                | EC ID  | EC Type | Covering TC  | Channel  | Status | Bug ID  |
-| ------ | -------------------------------------------- | ------ | ------- | ------------ | -------- | ------ | ------- |
-| BR-01  | Email must have valid format (per FR-01)     | EC02   | Invalid | FR01-EP-002  | UI + API | PASS   | —       |
-| BR-02  | Email must be unique in DB (per FR-01)       | EC04   | Invalid | FR01-EP-004  | UI + API | FAIL   | BUG-001 |
-| BR-03  | Password >= 8 chars (per FR-01)              | EC07   | Invalid | FR01-EP-006  | API      | PASS   | —       |
-| BR-03  | Password LB = 8 chars (per FR-01)            | BVA-LB | BVA     | FR01-BVA-002 | API      | PASS   | —       |
-| SEC-04 | Input displayed safely — no XSS (per SEC-04) | EC-XSS | Invalid | FR01-EP-015  | UI       | PASS   | —       |
+| BR ID  | Business Rule (per SRS)                      | EC / BVA Ref | EC Type  | Covering TC  | Automation     | Channel     | Status   | Bug ID              |
+| ------ | -------------------------------------------- | ------------ | -------- | ------------ | -------------- | ----------- | -------- | ------------------- |
+| BR-01  | name field required (per FR-01)              | EC03         | Invalid  | FR01-EP-003  | SCRIPT-FULL    | API         | PASS     | —                   |
+| BR-02  | Email valid format (per FR-01)               | EC02         | Invalid  | FR01-EP-002  | SCRIPT-FULL    | API         | PASS     | —                   |
+| BR-03  | Email unique in DB (per FR-01)               | EC04         | Invalid  | FR01-EP-004  | SCRIPT-FULL    | API + State | FAIL     | [BUG-001](#bug-001) |
+| BR-04  | Password ≥ 8 chars (per FR-01)               | EC07         | Invalid  | FR01-EP-006  | SCRIPT-FULL    | API         | PASS     | —                   |
+| BR-04  | Password LB = 8 chars (BVA)                  | FR01-BVA-002 | BVA LB-1 | FR01-BVA-002 | SCRIPT-FULL    | API         | PASS     | —                   |
+| BR-08  | Special char from `@$!%*?&` only (per FR-01) | EC12         | Invalid  | FR01-EP-012  | SCRIPT-FULL    | API         | PASS     | —                   |
+| BR-09  | confirmPassword must match (per FR-01)       | EC13         | Invalid  | FR01-EP-013  | MANUAL         | UI          | PASS     | —                   |
+| BR-10  | Redirect to Login after success (per FR-01)  | EC01         | Valid    | FR01-EP-001  | SCRIPT-PARTIAL | UI + API    | PASS     | —                   |
+| SEC-01 | Password stored as hash (per SEC-01)         | EC01-hash    | DB State | FR01-EP-001  | SCRIPT-FULL    | API + DB    | {status} | {bug or —}          |
+| SEC-04 | Input escaped on display (per SEC-04)        | EC-XSS       | Invalid  | FR01-EP-020  | DOM + SCRIPT   | UI + DOM    | {status} | {bug or —}          |
+| GUI-01 | Exactly 1 h1 tag (per FR-21)                 | EC-h1        | DOM      | FR01-EP-021  | DOM            | DOM         | {status} | {bug or —}          |
+| GUI-03 | Email input type="email" (per FR-22)         | EC-email     | DOM      | FR01-EP-022  | DOM            | DOM         | {status} | {bug or —}          |
 
 ### FR-07: Shopping Cart
 
-| BR ID | Business Rule                                     | EC ID | EC Type | Covering TC | Channel    | Status | Bug ID  |
-| ----- | ------------------------------------------------- | ----- | ------- | ----------- | ---------- | ------ | ------- |
-| BR-01 | Quantity must be integer >= 1 (per FR-07)         | EC02  | Invalid | FR07-EP-002 | UI + API   | PASS   | —       |
-| BR-02 | Duplicate product add merges quantity (per FR-07) | EC05  | Valid   | FR07-EP-005 | UI + State | FAIL   | BUG-002 |
-| BR-03 | Delete requires confirm dialog (per FR-07)        | EC07  | Valid   | FR07-EP-007 | UI + DOM   | PASS   | —       |
+| BR ID | Business Rule (per SRS) | EC / BVA Ref | EC Type | Covering TC | Automation | Channel | Status | Bug ID |
+| ----- | ----------------------- | ------------ | ------- | ----------- | ---------- | ------- | ------ | ------ |
+
+{— same pattern for all FR-07 BRs and ECs}
 
 ### FR-17: Coupon Management (Admin)
 
-| BR ID | Business Rule                                     | EC ID   | EC Type | Covering TC | Channel   | Status | Bug ID  |
-| ----- | ------------------------------------------------- | ------- | ------- | ----------- | --------- | ------ | ------- |
-| BR-01 | Only admin can create coupons (per FR-17, SEC-03) | EC-user | Invalid | FR17-EP-008 | Role-Auth | FAIL   | BUG-003 |
-| BR-02 | discount_value must be > 0 (per FR-17)            | EC03    | Invalid | FR17-EP-003 | API       | PASS   | —       |
+| BR ID | Business Rule (per SRS) | EC / BVA Ref | EC Type | Covering TC | Automation | Channel | Status | Bug ID |
+| ----- | ----------------------- | ------------ | ------- | ----------- | ---------- | ------- | ------ | ------ |
+
+{— same pattern for all FR-17 BRs and ECs}
 
 ### FR-03: Forgot Password & Reset Password (Mobile)
 
-| BR ID | Business Rule                                            | EC ID     | EC Type | Covering TC | Channel      | Status | Bug ID  |
-| ----- | -------------------------------------------------------- | --------- | ------- | ----------- | ------------ | ------ | ------- |
-| BR-01 | OTP bound to requesting email (per SEC-07)               | EC-xemail | Invalid | FR03-EP-006 | API          | FAIL   | BUG-004 |
-| BR-02 | OTP invalidated after use (per SEC-07)                   | EC-reuse  | Invalid | FR03-EP-007 | API          | PASS   | —       |
-| BR-03 | New password must meet strength requirements (per FR-03) | EC07      | Invalid | FR03-EP-008 | Mobile + API | PASS   | —       |
+| BR ID | Business Rule (per SRS) | EC / BVA Ref | EC Type | Covering TC | Automation | Channel | Status | Bug ID |
+| ----- | ----------------------- | ------------ | ------- | ----------- | ---------- | ------- | ------ | ------ |
+
+{— same pattern for all FR-03 BRs and ECs}
 
 ## Matrix 2: Complete TC List
 
-| TC ID        | FR    | Type | Objective (brief)                   | Channel    | Status | Bug ID  | GitHub |
-| ------------ | ----- | ---- | ----------------------------------- | ---------- | ------ | ------- | ------ |
-| FR01-EP-001  | FR-01 | EP   | Happy path registration             | UI + API   | PASS   | —       | —      |
-| FR01-EP-002  | FR-01 | EP   | Invalid email format                | UI + API   | PASS   | —       | —      |
-| FR01-EP-004  | FR-01 | EP   | Email already exists in DB          | UI + API   | FAIL   | BUG-001 | #12    |
-| FR01-BVA-002 | FR-01 | BVA  | Password 7 chars (LB-1)             | API        | PASS   | —       | —      |
-| FR07-EP-005  | FR-07 | EP   | Duplicate product merges quantity   | UI + State | FAIL   | BUG-002 | #13    |
-| FR17-EP-008  | FR-17 | EP   | User token on admin coupon endpoint | Role-Auth  | FAIL   | BUG-003 | #14    |
-| FR03-EP-006  | FR-03 | EP   | OTP cross-email attack              | API        | FAIL   | BUG-004 | #15    |
-| ...          |       |      |                                     |            |        |         |        |
+> Purpose: full operational view of all test cases across all 4 FRs.
+
+| TC ID       | FR    | Type | Objective (≤55 chars)                 | Automation  | Channel     | Status | Bug ID  | GitHub                  |
+| ----------- | ----- | ---- | ------------------------------------- | ----------- | ----------- | ------ | ------- | ----------------------- |
+| FR01-EP-001 | FR-01 | EP   | Register with all valid inputs        | SCRIPT-FULL | API + State | PASS   | —       | —                       |
+| FR01-EP-002 | FR-01 | EP   | Register rejects invalid email format | SCRIPT-FULL | API         | PASS   | —       | —                       |
+| FR01-EP-003 | FR-01 | EP   | Register rejects empty email          | SCRIPT-FULL | API         | PASS   | —       | —                       |
+| FR01-EP-004 | FR-01 | EP   | Register rejects existing email       | SCRIPT-FULL | API + State | FAIL   | BUG-001 | [#12]({repo}/issues/12) |
+
+{— one row per TC, all TCs for all 4 FRs, no ellipsis}
 
 ## Matrix 3: Bug Register
 
-| Bug ID  | FR    | Severity | Priority  | Linked TC   | Summary                                    | GitHub | Status |
-| ------- | ----- | -------- | --------- | ----------- | ------------------------------------------ | ------ | ------ |
-| BUG-001 | FR-01 | Medium   | Medium    | FR01-EP-004 | Registration allows duplicate email        | #12    | New    |
-| BUG-002 | FR-07 | Medium   | Medium    | FR07-EP-005 | Duplicate product creates new cart row     | #13    | New    |
-| BUG-003 | FR-17 | Serious  | Immediate | FR17-EP-008 | User JWT accepted by admin coupon endpoint | #14    | New    |
-| BUG-004 | FR-03 | Serious  | High      | FR03-EP-006 | OTP from emailA resets password of emailB  | #15    | New    |
+> Purpose: defect traceability — every bug linked to its source TC and GitHub Issue.
+
+| Bug ID  | FR    | Severity | Priority  | Linked TCs                | Summary (≤55 chars)              | GitHub Issue              | Status |
+| ------- | ----- | -------- | --------- | ------------------------- | -------------------------------- | ------------------------- | ------ |
+| BUG-001 | FR-01 | Medium   | Medium    | FR01-EP-004, FR01-BVA-003 | Register accepts duplicate email | [#12]({repo}/issues/12)   | New    |
+| BUG-002 | FR-07 | Medium   | High      | FR07-EP-{n}               | {summary}                        | [#{n}]({repo}/issues/{n}) | New    |
+| BUG-003 | FR-17 | Serious  | Immediate | FR17-EP-{n}, FR17-BVA-{n} | {summary}                        | [#{n}]({repo}/issues/{n}) | New    |
+| BUG-004 | FR-03 | Serious  | High      | FR03-EP-{n}               | {summary}                        | [#{n}]({repo}/issues/{n}) | New    |
+
+{— one row per bug, all bugs across all 4 FRs}
 
 ## Coverage Summary
 
-| FR        | Total ECs | ECs Covered | EC Coverage | Total TCs | Executed | Passed | Failed | Bugs    |
-| --------- | --------- | ----------- | ----------- | --------- | -------- | ------ | ------ | ------- |
-| FR-01     | {n}       | {n}         | {%}         | {n}       | {n}      | {n}    | {n}    | {n}     |
-| FR-07     | {n}       | {n}         | {%}         | {n}       | {n}      | {n}    | {n}    | {n}     |
-| FR-17     | {n}       | {n}         | {%}         | {n}       | {n}      | {n}    | {n}    | {n}     |
-| FR-03     | {n}       | {n}         | {%}         | {n}       | {n}      | {n}    | {n}    | {n}     |
-| **Total** |           |             | **{%}**     |           |          |        |        | **{n}** |
+| FR        | Total BRs | BRs Covered | BR Coverage | Total ECs | ECs w/ TC | EC Coverage | BVA Points | BVA Coverage |
+| --------- | --------- | ----------- | ----------- | --------- | --------- | ----------- | ---------- | ------------ |
+| FR-01     | {n}       | {n}         | {%}         | {n}       | {n}       | {%}         | {n}        | {%}          |
+| FR-07     | {n}       | {n}         | {%}         | {n}       | {n}       | {%}         | {n}        | {%}          |
+| FR-17     | {n}       | {n}         | {%}         | {n}       | {n}       | {%}         | {n}        | {%}          |
+| FR-03     | {n}       | {n}         | {%}         | {n}       | {n}       | {%}         | {n}        | {%}          |
+| **Total** | **{n}**   | **{n}**     | **{%}**     | **{n}**   | **{n}**   | **{%}**     | **{n}**    | **{%}**      |
 
-### Coverage Gaps
+| FR        | Total TCs | Executed | Pass Rate | Failed  | Bug Link Rate |
+| --------- | --------- | -------- | --------- | ------- | ------------- |
+| FR-01     | {n}       | {n}      | {%}       | {n}     | {%}           |
+| FR-07     | {n}       | {n}      | {%}       | {n}     | {%}           |
+| FR-17     | {n}       | {n}      | {%}       | {n}     | {%}           |
+| FR-03     | {n}       | {n}      | {%}       | {n}     | {%}           |
+| **Total** | **{n}**   | **{n}**  | **{%}**   | **{n}** | **{%}**       |
 
-| EC ID | FR  | Description                         | Reason Not Covered |
-| ----- | --- | ----------------------------------- | ------------------ |
-| —     | —   | None — all ECs have at least one TC | —                  |
+## Coverage Gaps
+
+| FR  | EC / BR ID | Description | Reason Not Covered |
+| --- | ---------- | ----------- | ------------------ |
+
+{— one row per gap. If no gaps: single row saying "No coverage gaps identified — all BRs and ECs have at least one covering TC."}
+```
+
+## 5. Special Cases
+
+### Multiple TCs covering one EC
+
+When more than one TC covers the same EC (e.g., one EP TC and one BVA TC both test password length), include one row per TC in Matrix 1, both referencing the same EC:
+
+```
+| BR-04 | Password ≥ 8 chars (per FR-01) | EC07 | Invalid | FR01-EP-006 | SCRIPT-FULL | API | PASS | — |
+| BR-04 | Password ≥ 8 chars (per FR-01) | EC07 | Invalid | FR01-BVA-002 | SCRIPT-FULL | API | PASS | — |
+```
+
+### BVA points with no corresponding EP class
+
+BVA points on variable boundaries (e.g., `password` length = 255 chars, DB limit) may not map to a specific named EC. In Matrix 1, use the BVA point ID as the EC/BVA Ref and reference the parent BR:
+
+```
+| BR-04 | Password length at DB limit (BVA +α) | FR01-BVA-006 | BVA +α | FR01-BVA-006 | SCRIPT-FULL | API | {status} | {bug or —} |
+```
+
+### BLOCKED or SKIPPED TCs
+
+Include in Matrix 2 with Status = BLOCKED or SKIPPED. Leave Bug ID = "—". In Matrix 1, mark Status = BLOCKED or SKIPPED and note the reason in a footnote below the table.
+
+### Bug Link Rate < 100%
+
+If any FAIL TC has no Bug ID (Bug Link Rate < 100%), flag this in the Coverage Summary with a warning note:
+
+```
+⚠️ WARNING: {n} FAIL TC(s) have no linked Bug ID. Run bug-report-writer to complete reporting before submitting.
 ```
 
 ## 6. Quality Checklist
 
-- [ ] All generated content is completely in English
-- [ ] Every EC from all domain-analysis files appears in Matrix 1
-- [ ] Every TC from all test-cases files appears in Matrix 2
-- [ ] Every Bug has a linked TC in Matrix 3
-- [ ] Every FAIL TC has a Bug ID
-- [ ] GitHub issue numbers populated for all bugs
-- [ ] Coverage gaps identified and explained
-- [ ] Coverage metrics calculated correctly
-- [ ] A preview has been shown to the human, and explicit `APPROVE` command was received before saving to disk
+- [ ] All 4 FR requirement-analysis files read for BR IDs
+- [ ] Matrix 1 includes every BR from every FR (no BRs omitted)
+- [ ] Matrix 1 includes BVA points linked to their parent BRs
+- [ ] Matrix 2 lists ALL TCs (no ellipsis `...` rows) across all 4 FRs
+- [ ] Matrix 2 has Automation category column (SCRIPT-FULL / SCRIPT-PARTIAL / MANUAL / DOM)
+- [ ] Matrix 3 uses clickable Markdown links for GitHub Issues `[#N](url)`
+- [ ] All Bug IDs in Matrix 3 have GitHub Issue numbers (no `_(pending)_` remaining)
+- [ ] Coverage Summary has both EC coverage table and TC pass rate table
+- [ ] Bug Link Rate = 100% (all FAIL TCs have Bug IDs); warning printed if not
+- [ ] Coverage Gaps section explicitly states "no gaps" if none found
+- [ ] No `{placeholder}` text remaining in the generated file
