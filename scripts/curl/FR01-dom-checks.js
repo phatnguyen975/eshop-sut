@@ -58,14 +58,14 @@
   // DOM-PW: Password input type="password" (per FR-22)
   check(
     "FR01-DOM-PW",
-    'Form must have Password & Confirm Password inputs (per FR-22)',
+    "Form must have Password & Confirm Password inputs (per FR-22)",
     "2 password fields",
     () => {
       const pws = document.querySelectorAll('input[type="password"]');
       if (pws.length === 0) return "No password fields found";
       if (pws.length === 1) return "Only 1 password field found";
       return `Found ${pws.length} field(s) - Has Password and Confirm Password`;
-    }
+    },
   );
 
   // DOM-STAR: Required fields have * label marker (per FR-22)
@@ -78,7 +78,7 @@
       const stars = labels.filter((l) => l.textContent.trim().includes("*"));
       if (stars.length > 0) return "Has * markers";
       return "0 labels with *";
-    }
+    },
   );
 
   // XSS Escaping Check (FR01-EP-020)

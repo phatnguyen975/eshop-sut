@@ -2,7 +2,8 @@
 
 **Executed by:** 23127449 - Nguyến Tấn Phát  
 **Date:** 2026-06-14  
-**Environment:** Microsoft Edge Web Browser, Windows 11
+**Environment:** Ubuntu (WSL), Edge (Web Browser), Windows 11  
+**Session recording:** [Youtube URL]()
 
 ## Execution Log
 

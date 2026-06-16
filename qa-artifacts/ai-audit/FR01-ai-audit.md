@@ -1,5 +1,14 @@
 # AI Audit Log — FR-01: Account Registration
 
+| Metric                          | Value            |
+| ------------------------------- | ---------------- |
+| Total skill sessions logged     | 10               |
+| Total AI outputs reviewed       | 10               |
+| Items accepted as-is            | All (cumulative) |
+| Items modified by student       | 1                |
+| Items added manually by student | 2                |
+| Items rejected                  | 1                |
+
 ## Interaction [1] — requirement-analyzer
 
 | Field             | Value                                                                                                      |
@@ -51,22 +60,6 @@ Output the result to: qa-artifacts/requirements/FR01-requirement-analysis.md
 | Accuracy            | 5            | All generated items were correct per SRS and API spec                 |
 | Guideline adherence | 5            | AI followed all steps A–G of the requirement-analyzer skill correctly |
 | Items missed        | 0            | No equivalence classes or constraints were missed                     |
-
----
-
-## FR-01 Session Summary
-
-| Metric                          | Value                 |
-| ------------------------------- | --------------------- |
-| Total skill sessions logged     | 1                     |
-| Total AI outputs reviewed       | 1                     |
-| Items accepted as-is            | All                   |
-| Items modified by student       | 0                     |
-| Items added manually by student | 0                     |
-| Items rejected                  | 0                     |
-| Most common AI gap              | None (perfect output) |
-
----
 
 ## Interaction [2] — domain-identifier
 
@@ -121,22 +114,6 @@ Append the output as Step 1 to: qa-artifacts/domain-analysis/FR01-domain-analysi
 | Accuracy            | 5            | All variables correctly described and sourced per SRS      |
 | Guideline adherence | 5            | Steps A–E of domain-identifier skill followed correctly    |
 | Items missed        | 0            | No variables were missed                                   |
-
----
-
-## FR-01 Session Summary (Updated)
-
-| Metric                          | Value                         |
-| ------------------------------- | ----------------------------- |
-| Total skill sessions logged     | 2                             |
-| Total AI outputs reviewed       | 2                             |
-| Items accepted as-is            | All (both interactions)       |
-| Items modified by student       | 0                             |
-| Items added manually by student | 0                             |
-| Items rejected                  | 0                             |
-| Most common AI gap              | None so far (perfect outputs) |
-
----
 
 ## Interaction [3] — equivalence-partitioning
 
@@ -199,22 +176,6 @@ qa-artifacts/domain-analysis/FR01-domain-analysis.md
 | Guideline adherence | 5            | G1/G3/G4 + B1 + Combination/Isolation rules all correctly applied |
 | Items missed        | 0            | No equivalence classes were missed                                |
 
----
-
-## FR-01 Session Summary (Updated)
-
-| Metric                          | Value            |
-| ------------------------------- | ---------------- |
-| Total skill sessions logged     | 3                |
-| Total AI outputs reviewed       | 3                |
-| Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 0                |
-| Items added manually by student | 0                |
-| Items rejected                  | 0                |
-| Most common AI gap              | None so far      |
-
----
-
 ## Interaction [4] — boundary-value-analysis
 
 | Field             | Value                                                                                                  |
@@ -273,20 +234,6 @@ Save the output to: qa-artifacts/boundary-analysis/FR01-boundary-analysis.md
 | Accuracy            | 5            | Boundary points and expected results correct per SRS and architecture |
 | Guideline adherence | 5            | 9-point strategy correctly applied; N/A points noted where applicable |
 | Items missed        | 0            | No boundary variables or BVA points were missed                       |
-
----
-
-## FR-01 Session Summary (Updated)
-
-| Metric                          | Value            |
-| ------------------------------- | ---------------- |
-| Total skill sessions logged     | 4                |
-| Total AI outputs reviewed       | 4                |
-| Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 0                |
-| Items added manually by student | 0                |
-| Items rejected                  | 0                |
-| Most common AI gap              | None so far      |
 
 ## Interaction [5] — domain-coverage-reviewer
 
@@ -349,20 +296,6 @@ Append the output as Step 5 to: qa-artifacts/domain-analysis/FR01-domain-analysi
 | Guideline adherence | 5            | Adhered strictly to the skill instructions and format.                               |
 | Items missed        | 0            | N/A - This was a review step.                                                        |
 
----
-
-## FR-01 Session Summary (Updated)
-
-| Metric                          | Value                                                                                |
-| ------------------------------- | ------------------------------------------------------------------------------------ |
-| Total skill sessions logged     | 5                                                                                    |
-| Total AI outputs reviewed       | 5                                                                                    |
-| Items accepted as-is            | All (cumulative)                                                                     |
-| Items modified by student       | 0                                                                                    |
-| Items added manually by student | 1 (EC24/FR01-EP-020 via approval)                                                    |
-| Items rejected                  | 0                                                                                    |
-| Most common AI gap              | Feature complexity (failing to translate output security constraints into input ECs) |
-
 ## Interaction [6] — test-case-generator
 
 | Field             | Value                                                                                                                                                     |
@@ -423,20 +356,6 @@ Save the output to: qa-artifacts/test-cases/FR01-test-cases.md
 | Guideline adherence | 5            | Combination/Isolation/BVA rules correctly applied throughout |
 | Items missed        | 0            | No TCs or fields were missing                                |
 
----
-
-## FR-01 Session Summary (Updated)
-
-| Metric                          | Value            |
-| ------------------------------- | ---------------- |
-| Total skill sessions logged     | 6                |
-| Total AI outputs reviewed       | 6                |
-| Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 0                |
-| Items added manually by student | 0                |
-| Items rejected                  | 0                |
-| Most common AI gap              | None so far      |
-
 ## Interaction [7] — test-case-reviewer
 
 | Field             | Value                                                                                                                 |
@@ -494,20 +413,6 @@ End with a clear verdict: APPROVED or NEEDS REVISION.
 | Guideline adherence | 5            | The AI followed the 3-tier checklist properly |
 | Items missed        | 0            | Number of issues the AI missed                |
 
----
-
-## FR-01 Session Summary (Updated)
-
-| Metric                          | Value            |
-| ------------------------------- | ---------------- |
-| Total skill sessions logged     | 7                |
-| Total AI outputs reviewed       | 7                |
-| Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 0                |
-| Items added manually by student | 0                |
-| Items rejected                  | 0                |
-| Most common AI gap              | None so far      |
-
 ## Interaction [8] — test-execution-assistant
 
 | Field             | Value                                                               |
@@ -548,16 +453,100 @@ Phase B: Update both FR01-execution-results.md and FR01-test-cases.md using the 
 | Completeness        | 5            | Covered all scriptable and manual TCs.                                         |
 | Accuracy            | 3            | Required bash refactoring and JSON escaping fixes for extreme BVA inputs.      |
 | Guideline adherence | 4            | Followed framework but initially mismanaged TC-level pass/fail counting logic. |
-| Items missed        | 0 count      | All TCs were executed and logged.                                              |
+| Items missed        | 0            | All TCs were executed and logged.                                              |
 
-## FR-01 Session Summary (Updated)
+## Interaction [9] — bug-report-writer
 
-| Metric                          | Value            |
-| ------------------------------- | ---------------- |
-| Total skill sessions logged     | 8                |
-| Total AI outputs reviewed       | 8                |
-| Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 1                |
-| Items added manually by student | 1                |
-| Items rejected                  | 1                |
-| Most common AI gap              | None so far      |
+| Field             | Value                                                                  |
+| ----------------- | ---------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                               |
+| **Date/Time**     | 2026-06-16 14:15                                                       |
+| **Feature**       | FR-01 — Account Registration                                           |
+| **Skill Invoked** | bug-report-writer                                                      |
+| **Task**          | Group 38 FAIL TCs by root cause and generate consolidated bug reports. |
+
+### Prompt Given
+
+```text
+/bug-report-writer Use the bug-report-writer skill.
+
+Feature: FR-01 — Account Registration.
+
+Read all FAIL TCs from test-cases.md and execution-results.md.
+
+First, analyze and group them by root cause. Show me the Bug Groups list.
+Wait for my confirmation, then generate the complete FR01-bugs.md covering every BUG GROUP in one pass.
+
+Ensure all placeholders are filled with real values from the Primary TCs, and DO NOT include any "Script Evidence" section.
+```
+
+### AI Output Summary
+
+- Analyzed all 38 executed FAIL TCs (including automated scripts and manual/DOM checks).
+- Grouped the failures correctly into 10 distinct root-cause bug reports instead of writing 38 individual bugs.
+- Generated `qa-artifacts/bug-reports/FR01-bugs.md` with all placeholders filled using data from Primary TCs.
+- Successfully omitted the "Script Evidence" section as explicitly instructed.
+
+### Student Review Notes
+
+- **Accepted as-is:** The 10 grouped bug reports covering all 42 failed checks, the root cause groupings, and the formatting.
+- **Modified:** None.
+- **Added manually:** None.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                           |
+| ------------------- | ------------ | --------------------------------------------------------------- |
+| Completeness        | 5            | All 38 failures were accounted for.                             |
+| Accuracy            | 5            | Placed actual expected vs observed values without placeholders. |
+| Guideline adherence | 5            | Root-cause grouping principle was perfectly followed.           |
+| Items missed        | 0            | None.                                                           |
+
+## Interaction [10] — github-issue-writer
+
+| Field             | Value                                                                |
+| ----------------- | -------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                             |
+| **Date/Time**     | 2026-06-16 14:15                                                     |
+| **Feature**       | FR-01 — Account Registration                                         |
+| **Skill Invoked** | github-issue-writer                                                  |
+| **Task**          | Generate GitHub Issues guide and perform sync-back of issue numbers. |
+
+### Prompt Given
+
+```text
+/github-issue-writer Use the github-issue-writer skill.
+
+Read all pending bugs from FR01-bugs.md.
+
+Group GitHub repo URL: https://github.com/phatnguyen975/eshop-sut/.
+
+Step 1: Scan and list pending bugs.
+Step 2: STOP AND WAIT.
+Step 3: Generate the guide file.
+
+(After guide generation): Issue numbers for FR-01: BUG-001=#1, BUG-002=#2, BUG-003=#3, BUG-004=#4, BUG-005=#5, BUG-006=#6, BUG-007=#7, BUG-008=#8, BUG-009=#9, BUG-010=#10
+```
+
+### AI Output Summary
+
+- Generated `scripts/github-issues/FR01-github-issues-guide.md` containing 10 copy-paste ready issues.
+- Synchronized the human-provided issue numbers (#1 to #10) back into `qa-artifacts/bug-reports/FR01-bugs.md`.
+- Successfully replaced all `_(pending)_` tags with markdown links pointing to the live GitHub repository.
+
+### Student Review Notes
+
+- **Accepted as-is:** The entire guide file format and the automated sync-back execution via Python.
+- **Modified:** None.
+- **Added manually:** The actual target GitHub repository URL.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                         |
+| ------------------- | ------------ | ------------------------------------------------------------- |
+| Completeness        | 5            | All 10 bugs were processed.                                   |
+| Accuracy            | 5            | Sync-back replaced all pending tags with correct live URLs.   |
+| Guideline adherence | 5            | Followed the multi-step pause-and-confirm process flawlessly. |
+| Items missed        | 0            | None.                                                         |

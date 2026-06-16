@@ -232,12 +232,10 @@ Create the following labels if they do not exist:
    e. Click **Submit new issue**
    f. Note the issue number from the URL (e.g., the URL becomes `.../issues/15` → number is `15`)
 3. After posting ALL issues for this FR, return and type:
-
-```
-Issue numbers for FR-{nn}: BUG-{nnn}=#X, BUG-{nnn}=#Y, ...
-```
-
-The agent will update `qa-artifacts/bug-reports/FR{nn}-bugs.md` with these numbers.
+   ```
+   Issue numbers for FR-{nn}: BUG-{nnn}=#X, BUG-{nnn}=#Y, ...
+   ```
+  The agent will update `qa-artifacts/bug-reports/FR{nn}-bugs.md` with these numbers.
 
 ## Issue 1 of {n}
 
