@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 3                |
-| Total AI outputs reviewed       | 3                |
+| Total skill sessions logged     | 4                |
+| Total AI outputs reviewed       | 4                |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 0                |
 | Items added manually by student | 0                |
@@ -169,3 +169,62 @@ qa-artifacts/domain-analysis/FR07-domain-analysis.md
 | Accuracy            | 5            | 28 classes correctly identified per guidelines.  |
 | Guideline adherence | 5            | Flawless application of Isolation & Combination. |
 | Items missed        | 0            | User-specified overrides successfully applied.   |
+
+## Interaction [4] — boundary-value-analysis
+
+| Field             | Value                                                            |
+| ----------------- | ---------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                         |
+| **Date/Time**     | 2026-06-16 17:42                                                 |
+| **Feature**       | FR-07 — Shopping Cart                                            |
+| **Skill Invoked** | boundary-value-analysis                                          |
+| **Task**          | Apply 9-point BVA strategy to quantity, price, and product_name. |
+
+### Prompt Given
+
+```text
+/boundary-value-analysis Use the boundary-value-analysis skill.
+
+Feature: FR-07 — Shopping Cart
+
+The EP classes are ready at:
+qa-artifacts/domain-analysis/FR07-domain-analysis.md (Step 2+3 section)
+
+From that output, identify all variables with ordered/numeric constraints and apply
+the 9-point BVA strategy to each one.
+
+Remember to apply BVA to:
+- Numeric fields (quantity, discount_value, min_order_amount, max_uses_per_user)
+- String LENGTH fields (password length, name length, coupon code length)
+- Date fields (expired_at)
+- NOT just numbers — string length is a boundary variable too
+
+For any UB that is not specified in the SRS, note it as "unspecified" and include
+a +alpha test case with a very large value.
+
+Save the output to:
+qa-artifacts/boundary-analysis/FR07-boundary-analysis.md
+```
+
+### AI Output Summary
+
+- Generated 20 BVA test cases across 3 variables: `quantity`, `price`, and `product_name` length.
+- Accurately applied BVA to `product_name` as a string length constraint, deducing LB=1 and UB=255.
+- Handled unspecified UBs for `quantity` and `price` effectively using the `+α` strategy with very large values.
+- Appropriately de-duplicated `-α` and `LB-1` for `product_name` length as they both equal 0.
+
+### Student Review Notes
+
+- Accepted as-is: All 3 BVA tables. The handling of unspecified upper boundaries via +α points is a hallmark of defensive QA testing. The AI also retained context regarding the quantity=0 ambiguity gap from Step 1.
+- Modified: None
+- Added manually: None
+- Rejected: None
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                          |
+| ------------------- | ------------ | ---------------------------------------------- |
+| Completeness        | 5            | Covered numeric, range, and length boundaries. |
+| Accuracy            | 5            | Deduced boundaries exactly matched SRS.        |
+| Guideline adherence | 5            | 9-point rule accurately applied.               |
+| Items missed        | 0            | Did not miss any string length application.    |
