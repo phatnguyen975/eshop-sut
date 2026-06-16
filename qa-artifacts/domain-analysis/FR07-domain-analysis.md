@@ -238,3 +238,86 @@
 | Total ECs | Valid ECs | Invalid ECs | TCs for Valid | TCs for Invalid | Total TCs |
 | --------- | --------- | ----------- | ------------- | --------------- | --------- |
 | 28        | 13        | 15          | 7             | 15              | 22        |
+
+## Step 5: Domain Coverage Review & AI Gap Analysis
+
+### 5.1 EP Guidelines Compliance
+
+| Variable                    | Guideline Applied | Valid Classes | Invalid Classes | Status |
+| --------------------------- | ----------------- | ------------- | --------------- | ------ |
+| `product_id`                | G3 + G4           | 1             | 3               | Pass   |
+| `product_name`              | G1 + G3 + G4      | 2             | 3               | Pass   |
+| `price`                     | G1 + G3           | 1             | 3               | Pass   |
+| `quantity`                  | G1 + G3 + G4      | 1             | 4               | Pass   |
+| `auth_token`                | G2                | 2             | 2               | Pass   |
+| `duplicate_product_in_cart` | G3 + G4           | 2             | 0               | Pass   |
+| `cart_empty_state`          | G3                | 2             | 0               | Pass   |
+| `confirm_dialog_response`   | G3                | 2             | 0               | Pass   |
+
+### 5.2 Missing Classes Found
+
+| #   | Missing Class | Reason | Action Taken |
+| --- | ------------- | ------ | ------------ |
+| —   | None          | —      | —            |
+
+> **Note:** The AI did not miss any required classes because explicit constraints (like duplicate item merge and quantity=0 gap) were pre-emptively forced in the human prompt.
+
+### 5.3 Rule Violations Found
+
+| TC ID | Violation | Description | Fix Applied |
+| ----- | --------- | ----------- | ----------- |
+| —     | None      | —           | —           |
+
+### 5.4 BVA Completeness
+
+| Variable              | BVA Applied | Points Generated | Missing Points |
+| --------------------- | ----------- | ---------------- | -------------- |
+| `quantity`            | Yes         | 6                | None           |
+| `price`               | Yes         | 6                | None           |
+| `product_name` length | Yes         | 8                | None           |
+
+### 5.5 AI Gap Analysis
+
+#### What AI Did Correctly
+
+- Accurately applied G1 to numeric and length boundaries (`price`, `quantity`, `product_name`).
+- Successfully applied G4 to split string inputs into XSS test vectors for SEC-04.
+- Flawlessly applied the Isolation Rule to map exactly 1 invalid EC to 1 invalid test case without defect masking.
+- Correctly implemented `+α` values for unspecified upper bounds in the SRS.
+
+#### What AI Missed
+
+1. **Implicit State Transitions (Merge vs. Insert)**
+   - Description: Without human prompting, AI naturally assumes adding a product to a cart means creating a new row, and would typically miss the `MERGE` behavior when adding a duplicate item (BR-03).
+   - Root cause: Feature complexity — state-based transitions often span multiple operations and require understanding the business logic holistically, not just the field types.
+
+2. **The "Remove" Boundary Gap (`quantity` = 0)**
+   - Description: The SRS dictates quantity must be >= 1 (FR-06), but doesn't explicitly state whether a `quantity` of 0 submitted via API should return a 400 error or successfully delete the item. AI usually misses this functional ambiguity unless prompted.
+   - Root cause: AI limitation / Feature complexity — AI expects a hard pass/fail boundary, struggling with ambiguous domains where a boundary violation actually triggers a different valid workflow (deletion).
+
+#### Root Cause Summary
+
+| Category           | % Share | Description                                                         |
+| ------------------ | ------- | ------------------------------------------------------------------- |
+| Prompt quality     | 0%      | Human prompt was highly specific and pre-empted common mistakes.    |
+| AI limitation      | 50%     | AI relies heavily on explicit SRS rules and struggles with gaps.    |
+| Feature complexity | 50%     | Complex state transitions (merge/remove) are hard to map to inputs. |
+
+#### Lesson Learned
+
+**1. AI exhibits a "Strict CRUD Bias" for State-Dependent Operations:** When generating test cases, the AI typically maps user actions 1:1 to standard database operations (e.g., "Add to Cart" = `INSERT`). It struggles to autonomously identify conditional state transitions, such as the `MERGE` behavior (incrementing quantity instead of inserting a duplicate row) dictated by BR-03.
+
+- **Mitigation Strategy for future FRs:** The QA Engineer must identify business rules that alter the state of existing data rather than creating new data. These state-dependent conditions must be explicitly fed into the AI prompt to force the creation of valid ECs (e.g., "Product already in cart").
+
+**2. AI struggles with "Functional Boundary Ambiguity" (Valid vs. Action-Trigger):** Standard BVA logic assumes boundaries separate a _Valid_ input from an _Error_ (HTTP 4xx). However, in e-commerce (like `quantity` = 0), crossing a boundary often triggers a valid alternative system action (e.g., Deleting the item). The AI will default to treating `0` as a standard validation error unless guided.
+
+- **Mitigation Strategy for future FRs:** Do not rely on AI to interpret the functional intent of ambiguous boundaries. When a boundary value alters the system workflow (e.g., turning an Update into a Delete), the human must explicitly prompt the AI to treat it as a distinct class with its own specific Expected Result.
+
+### 5.6 Final EC Count After Review
+
+| Category      | Before Review | Added | After Review |
+| ------------- | ------------- | ----- | ------------ |
+| Valid ECs     | 13            | 0     | 13           |
+| Invalid ECs   | 15            | 0     | 15           |
+| BVA Points    | 20            | 0     | 20           |
+| **Total TCs** | 42            | 0     | 42           |
