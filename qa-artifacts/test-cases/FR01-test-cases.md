@@ -644,8 +644,8 @@
 
 ## Test Case Review Report
 
-**Reviewed by:** test-case-reviewer skill
-**Date:** 2026-06-12
+**Reviewed by:** test-case-reviewer skill  
+**Date:** 2026-06-12  
 **Total TCs reviewed:** 38 (20 EP + 18 BVA)
 
 ### Tier 1: Critical Violations (Must Fix Before Execution)
