@@ -7,7 +7,7 @@
 | Feature ID        | FR-01                                                   |
 | Feature Name      | Account Registration                                    |
 | Test Layer        | Both (Web UI + API)                                     |
-| Entry Point (UI)  | `http://localhost:5173` → Registration page             |
+| Entry Point (UI)  | `http://localhost:5173/register` → Registration page    |
 | Entry Point (API) | `POST http://localhost:3000/api/register`               |
 | Actors            | Anonymous (unauthenticated user)                        |
 | Auth Required     | No — registration is a public endpoint, no JWT required |
