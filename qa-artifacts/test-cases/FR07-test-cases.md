@@ -10,653 +10,635 @@
 
 ### FR07-EP-001 — Happy Path
 
-| Field               | Value                                                                                                        |
-| ------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **TC ID**           | FR07-EP-001                                                                                                  |
-| **Objective**       | Verify product addition to cart with all valid inputs                                                        |
-| **EC Ref**          | EC01, EC05, EC10, EC14, EC19, EC23, EC25                                                                     |
-| **Pre-condition**   | SUT is running. User is logged in. Cart has existing items but NOT `id=1`. `id=1` exists in DB.              |
-| **Test Data**       | `id=1`, `name="Laptop ABC"`, `price=100000`, `quantity=2`, `Authorization: Bearer <user_jwt>`                |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Navigate to Cart UI.<br>3. Observe DB and UI.                        |
-| **Expected Result** | 1. HTTP 200 OK.<br>2. Cart row inserted in DB (per BR-03).<br>3. UI shows new row with subtotal (per BR-09). |
-| **Test Channel**    | UI + API + State                                                                                             |
-| **Observed Result** |                                                                                                              |
-| **Status**          |                                                                                                              |
-| **Teardown**        | `[Teardown]` Remove product from cart via `DELETE /api/cart/1`                                               |
+| Field               | Value                                                                                                                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-001                                                                                                                                                                              |
+| **Objective**       | Verify product addition to cart with all valid inputs                                                                                                                                    |
+| **Pre-condition**   | Admin has dynamically created a valid test product via `POST /api/products` (returns `{test_product_id}`). SUT is running. User is logged in. Cart does not contain `{test_product_id}`. |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=2`                                                                                               |
+| **Steps**           | 1. POST /api/cart with test data.<br>2. Navigate to Cart UI.<br>3. Observe DB and UI.                                                                                                    |
+| **Expected Result** | 1. HTTP 200 OK.<br>2. Cart row inserted in DB (per BR-03).<br>3. UI shows new row with subtotal (per BR-09).                                                                             |
+| **Test Channel**    | UI + API + State                                                                                                                                                                         |
+| **Observed Result** |                                                                                                                                                                                          |
+| **Status**          |                                                                                                                                                                                          |
+| **Teardown**        | 1. Remove product from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                                                                                    |
 
 ### FR07-EP-002 — Merge duplicate product
 
-| Field               | Value                                                                                           |
-| ------------------- | ----------------------------------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-002                                                                                     |
-| **Objective**       | Verify cart item merge behavior when adding existing product                                    |
-| **EC Ref**          | EC01, EC05, EC10, EC14, EC19, EC24                                                              |
-| **Pre-condition**   | User is logged in. `id=1` ALREADY exists in cart with `quantity=1`.                             |
-| **Test Data**       | `id=1`, `name="Laptop ABC"`, `price=100000`, `quantity=2`                                       |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Fetch cart items.                                       |
-| **Expected Result** | 1. HTTP 200 OK.<br>2. No duplicate row created. Existing quantity incremented to 3 (per BR-03). |
-| **Test Channel**    | API + State                                                                                     |
-| **Observed Result** |                                                                                                 |
-| **Status**          |                                                                                                 |
-| **Teardown**        | `[Teardown]` Remove product from cart via `DELETE /api/cart/1`                                  |
+| Field               | Value                                                                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-002                                                                                                                              |
+| **Objective**       | Verify cart item merge behavior when adding existing product                                                                             |
+| **Pre-condition**   | Admin has dynamically created a valid test product via `POST /api/products` (returns `{test_product_id}`). User is logged in.            |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=2`                                               |
+| **Steps**           | 1. POST /api/cart with `{test_product_id}` and `quantity=1`.<br>2. POST /api/cart with test data (`quantity=2`).<br>3. Fetch cart items. |
+| **Expected Result** | 1. HTTP 200 OK.<br>2. No duplicate row created. Existing cart quantity incremented to 3 (per BR-03).                                     |
+| **Test Channel**    | API + State                                                                                                                              |
+| **Observed Result** |                                                                                                                                          |
+| **Status**          |                                                                                                                                          |
+| **Teardown**        | 1. Remove product from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                                    |
 
 ### FR07-EP-003 — Empty cart state
 
-| Field               | Value                                                                                                      |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-003                                                                                                |
-| **Objective**       | Verify empty cart UI state when user has no items                                                          |
-| **EC Ref**          | EC19, EC26                                                                                                 |
-| **Pre-condition**   | User is logged in. User's cart is empty.                                                                   |
-| **Test Data**       | N/A                                                                                                        |
-| **Steps**           | 1. Navigate to Cart page `/cart`.<br>2. Observe UI.                                                        |
-| **Expected Result** | UI displays empty state illustration and friendly text. "Continue Shopping" button is present (per BR-08). |
-| **Test Channel**    | UI                                                                                                         |
-| **Observed Result** |                                                                                                            |
-| **Status**          |                                                                                                            |
+| Field               | Value                                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-003                                                                                                         |
+| **Objective**       | Verify empty cart UI state when user has no items                                                                   |
+| **Pre-condition**   | User is logged in. User's cart is entirely empty.                                                                   |
+| **Test Data**       | None                                                                                                                |
+| **Steps**           | 1. Navigate to Cart UI.<br>2. Observe visual state.                                                                 |
+| **Expected Result** | 1. UI displays empty state illustration and friendly text.<br>2. "Continue Shopping" button is present (per BR-08). |
+| **Test Channel**    | UI                                                                                                                  |
+| **Observed Result** |                                                                                                                     |
+| **Status**          |                                                                                                                     |
+| **Teardown**        | None                                                                                                                |
 
 ### FR07-EP-004 — Confirm delete item
 
-| Field               | Value                                                                                        |
-| ------------------- | -------------------------------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-004                                                                                  |
-| **Objective**       | Validate item deletion when user confirms delete dialog                                      |
-| **EC Ref**          | EC01, EC19, EC27                                                                             |
-| **Pre-condition**   | User is logged in. Cart has `id=1`.                                                          |
-| **Test Data**       | N/A                                                                                          |
-| **Steps**           | 1. Navigate to Cart.<br>2. Click Delete icon for product 1.<br>3. Click "Confirm" in dialog. |
-| **Expected Result** | 1. Item is removed from UI.<br>2. DB cart row is deleted (per BR-05).                        |
-| **Test Channel**    | UI + State                                                                                   |
-| **Observed Result** |                                                                                              |
-| **Status**          |                                                                                              |
+| Field               | Value                                                                                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-004                                                                                                                                               |
+| **Objective**       | Verify item removal when user confirms deletion                                                                                                           |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in.                                                                  |
+| **Test Data**       | None                                                                                                                                                      |
+| **Steps**           | 1. POST /api/cart with `{test_product_id}` to add to cart.<br>2. Navigate to Cart UI.<br>3. Click "Delete" on `{test_product_id}`.<br>4. Click "Confirm". |
+| **Expected Result** | 1. Item is removed from UI.<br>2. DB cart row is deleted (per BR-05).                                                                                     |
+| **Test Channel**    | UI + State                                                                                                                                                |
+| **Observed Result** |                                                                                                                                                           |
+| **Status**          |                                                                                                                                                           |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                                                                                           |
 
 ### FR07-EP-005 — Dismiss delete item
 
-| Field               | Value                                                                                               |
-| ------------------- | --------------------------------------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-005                                                                                         |
-| **Objective**       | Validate item retention when user dismisses delete dialog                                           |
-| **EC Ref**          | EC01, EC19, EC28                                                                                    |
-| **Pre-condition**   | User is logged in. Cart has `id=1`.                                                                 |
-| **Test Data**       | N/A                                                                                                 |
-| **Steps**           | 1. Navigate to Cart.<br>2. Click Delete icon for product 1.<br>3. Click "Cancel/Dismiss" in dialog. |
-| **Expected Result** | 1. Item remains in UI.<br>2. DB cart row is NOT deleted (per BR-05).                                |
-| **Test Channel**    | UI + State                                                                                          |
-| **Observed Result** |                                                                                                     |
-| **Status**          |                                                                                                     |
-| **Teardown**        | `[Teardown]` Remove product from cart via `DELETE /api/cart/1`                                      |
+| Field               | Value                                                                                                                                                    |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-005                                                                                                                                              |
+| **Objective**       | Verify item is retained when user cancels deletion                                                                                                       |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in.                                                                 |
+| **Test Data**       | None                                                                                                                                                     |
+| **Steps**           | 1. POST /api/cart with `{test_product_id}` to add to cart.<br>2. Navigate to Cart UI.<br>3. Click "Delete" on `{test_product_id}`.<br>4. Click "Cancel". |
+| **Expected Result** | 1. Item remains in UI.<br>2. DB cart row is NOT deleted (per BR-05).                                                                                     |
+| **Test Channel**    | UI + State                                                                                                                                               |
+| **Observed Result** |                                                                                                                                                          |
+| **Status**          |                                                                                                                                                          |
+| **Teardown**        | 1. Remove product from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                                                    |
 
-### FR07-EP-006 — XSS Payload product name
+### FR07-EP-006 — XSS in Name payload
 
-| Field               | Value                                                                           |
-| ------------------- | ------------------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-006                                                                     |
-| **Objective**       | Verify output encoding when product name contains XSS payload                   |
-| **EC Ref**          | EC06, EC10, EC14, EC19, EC23                                                    |
-| **Pre-condition**   | User is logged in. Cart is empty.                                               |
-| **Test Data**       | `id=2`, `name="<script>alert(1)</script>"`, `price=1000`, `quantity=1`          |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Navigate to Cart UI.<br>3. Inspect DOM. |
-| **Expected Result** | Payload is rendered as escaped text. No alert is triggered (per SEC-04, BR-16). |
-| **Test Channel**    | API + UI + DOM                                                                  |
-| **Observed Result** |                                                                                 |
-| **Status**          |                                                                                 |
-| **Teardown**        | `[Teardown]` Remove product from cart via DELETE /api/cart/2                    |
+| Field               | Value                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| **TC ID**           | FR07-EP-006                                                                                      |
+| **Objective**       | Verify cart handles malicious name input safely (XSS defense)                                    |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in.         |
+| **Test Data**       | `id={test_product_id}`, `name="<script>alert(1)</script>"`, `price={valid_price}`, `quantity=1`  |
+| **Steps**           | 1. POST /api/cart with malicious test data.<br>2. Navigate to Cart UI.<br>3. Execute DOM checks. |
+| **Expected Result** | Payload is rendered as escaped text. No alert is triggered (per SEC-04, BR-16).                  |
+| **Test Channel**    | API + UI + DOM                                                                                   |
+| **Observed Result** |                                                                                                  |
+| **Status**          |                                                                                                  |
+| **Teardown**        | 1. Remove product from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.            |
 
-### FR07-EP-007 — Admin token
+### FR07-EP-007 — Admin Token Auth
 
-| Field               | Value                                                                                  |
-| ------------------- | -------------------------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-007                                                                            |
-| **Objective**       | Verify cart access with valid Admin token                                              |
-| **EC Ref**          | EC01, EC05, EC10, EC14, EC20, EC23                                                     |
-| **Pre-condition**   | Admin is logged in. Admin's cart is empty.                                             |
-| **Test Data**       | `Authorization: Bearer <admin_jwt>`, `id=1`, `name="Laptop"`, `price=10`, `quantity=1` |
-| **Steps**           | 1. POST /api/cart with admin JWT and valid payload.                                    |
-| **Expected Result** | HTTP 200 OK. Item is added to admin's cart (per BR-01, SEC-02).                        |
-| **Test Channel**    | Role-Auth + API                                                                        |
-| **Observed Result** |                                                                                        |
-| **Status**          |                                                                                        |
-| **Teardown**        | `[Teardown]` Remove product from cart via `DELETE /api/cart/1`                         |
+| Field               | Value                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| **TC ID**           | FR07-EP-007                                                                                |
+| **Objective**       | Verify Admin token can successfully add items to their own cart                            |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). Admin is logged in.  |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=1` |
+| **Steps**           | 1. POST /api/cart using Admin JWT and valid payload.                                       |
+| **Expected Result** | HTTP 200 OK. Item is added to admin's cart (per BR-01, SEC-02).                            |
+| **Test Channel**    | Role-Auth + API                                                                            |
+| **Observed Result** |                                                                                            |
+| **Status**          |                                                                                            |
+| **Teardown**        | 1. Remove from admin cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.        |
 
-### FR07-EP-008 — Invalid id (Not in DB)
+### FR07-EP-008 — Invalid ID (Not found)
 
-| Field               | Value                                                                              |
-| ------------------- | ---------------------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-008                                                                        |
-| **Objective**       | Verify product addition rejects non-existent product ID                            |
-| **EC Ref**          | EC02                                                                               |
-| **Pre-condition**   | User is logged in. `id=99999` does not exist in DB.                                |
-| **Test Data**       | `id=99999`, `name="Laptop"`, `price=100000`, `quantity=1`, valid JWT               |
-| **Steps**           | 1. POST /api/cart with test data.                                                  |
-| **Expected Result** | HTTP 4xx (400 or 404). Item is rejected (per FR-07 implicit reference constraint). |
-| **Test Channel**    | API                                                                                |
-| **Observed Result** |                                                                                    |
-| **Status**          |                                                                                    |
+| Field               | Value                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **TC ID**           | FR07-EP-008                                                                                                  |
+| **Objective**       | Verify system rejects cart addition when product ID does not exist                                           |
+| **Pre-condition**   | SUT is running. User is logged in. NO test product is created. Product with `id=99999` does not exist in DB. |
+| **Test Data**       | `id=99999`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=1`                               |
+| **Steps**           | 1. POST /api/cart with test data.                                                                            |
+| **Expected Result** | HTTP 4xx (400 or 404). Item is rejected (per FR-07 implicit reference constraint).                           |
+| **Test Channel**    | API                                                                                                          |
+| **Observed Result** |                                                                                                              |
+| **Status**          |                                                                                                              |
+| **Teardown**        | None                                                                                                         |
 
-### FR07-EP-009 — Null id
-
-| Field               | Value                                                                          |
-| ------------------- | ------------------------------------------------------------------------------ |
-| **TC ID**           | FR07-EP-009                                                                    |
-| **Objective**       | Verify product addition rejects missing product ID                             |
-| **EC Ref**          | EC03                                                                           |
-| **Pre-condition**   | User is logged in.                                                             |
-| **Test Data**       | `id=null`, `name="Laptop"`, `price=100000`, `quantity=1`, valid JWT            |
-| **Steps**           | 1. POST /api/cart with test data.                                              |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request. Error message shown (per FR-07). |
-| **Test Channel**    | API                                                                            |
-| **Observed Result** |                                                                                |
-| **Status**          |                                                                                |
-
-### FR07-EP-010 — Non-integer id
-
-| Field               | Value                                                                |
-| ------------------- | -------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-010                                                          |
-| **Objective**       | Verify product addition rejects string product ID                    |
-| **EC Ref**          | EC04                                                                 |
-| **Pre-condition**   | User is logged in.                                                   |
-| **Test Data**       | `id="abc"`, `name="Laptop"`, `price=100000`, `quantity=1`, valid JWT |
-| **Steps**           | 1. POST /api/cart with test data.                                    |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request (per API spec).         |
-| **Test Channel**    | API                                                                  |
-| **Observed Result** |                                                                      |
-| **Status**          |                                                                      |
-
-### FR07-EP-011 — Empty name
-
-| Field               | Value                                                      |
-| ------------------- | ---------------------------------------------------------- |
-| **TC ID**           | FR07-EP-011                                                |
-| **Objective**       | Verify product addition rejects empty product name         |
-| **EC Ref**          | EC07                                                       |
-| **Pre-condition**   | User is logged in.                                         |
-| **Test Data**       | `id=1`, `name=""`, `price=100000`, `quantity=1`, valid JWT |
-| **Steps**           | 1. POST /api/cart with test data.                          |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-07).  |
-| **Test Channel**    | API                                                        |
-| **Observed Result** |                                                            |
-| **Status**          |                                                            |
-
-### FR07-EP-012 — Null name
-
-| Field               | Value                                                        |
-| ------------------- | ------------------------------------------------------------ |
-| **TC ID**           | FR07-EP-012                                                  |
-| **Objective**       | Verify product addition rejects missing product name         |
-| **EC Ref**          | EC08                                                         |
-| **Pre-condition**   | User is logged in.                                           |
-| **Test Data**       | `id=1`, `name=null`, `price=100000`, `quantity=1`, valid JWT |
-| **Steps**           | 1. POST /api/cart with test data.                            |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request (per API spec). |
-| **Test Channel**    | API                                                          |
-| **Observed Result** |                                                              |
-| **Status**          |                                                              |
-
-### FR07-EP-013 — Excessively long name
-
-| Field               | Value                                                                                       |
-| ------------------- | ------------------------------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-013                                                                                 |
-| **Objective**       | Verify product addition rejects product name exceeding 255 chars                            |
-| **EC Ref**          | EC09                                                                                        |
-| **Pre-condition**   | User is logged in.                                                                          |
-| **Test Data**       | `id=1`, `name="A" x 300`, `price=100000`, `quantity=1`, valid JWT                           |
-| **Steps**           | 1. POST /api/cart with test data.                                                           |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request or handled gracefully (per implicit DB limit). |
-| **Test Channel**    | API                                                                                         |
-| **Observed Result** |                                                                                             |
-| **Status**          |                                                                                             |
-
-### FR07-EP-014 — Price equals zero
-
-| Field               | Value                                                       |
-| ------------------- | ----------------------------------------------------------- |
-| **TC ID**           | FR07-EP-014                                                 |
-| **Objective**       | Verify product addition rejects zero price                  |
-| **EC Ref**          | EC11                                                        |
-| **Pre-condition**   | User is logged in.                                          |
-| **Test Data**       | `id=1`, `name="Laptop"`, `price=0`, `quantity=1`, valid JWT |
-| **Steps**           | 1. POST /api/cart with test data.                           |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-15).   |
-| **Test Channel**    | API                                                         |
-| **Observed Result** |                                                             |
-| **Status**          |                                                             |
-
-### FR07-EP-015 — Negative price
-
-| Field               | Value                                                            |
-| ------------------- | ---------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-015                                                      |
-| **Objective**       | Verify product addition rejects negative price                   |
-| **EC Ref**          | EC12                                                             |
-| **Pre-condition**   | User is logged in.                                               |
-| **Test Data**       | `id=1`, `name="Laptop"`, `price=-50000`, `quantity=1`, valid JWT |
-| **Steps**           | 1. POST /api/cart with test data.                                |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-15).        |
-| **Test Channel**    | API                                                              |
-| **Observed Result** |                                                                  |
-| **Status**          |                                                                  |
-
-### FR07-EP-016 — Null price
-
-| Field               | Value                                                          |
-| ------------------- | -------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-016                                                    |
-| **Objective**       | Verify product addition rejects missing price                  |
-| **EC Ref**          | EC13                                                           |
-| **Pre-condition**   | User is logged in.                                             |
-| **Test Data**       | `id=1`, `name="Laptop"`, `price=null`, `quantity=1`, valid JWT |
-| **Steps**           | 1. POST /api/cart with test data.                              |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request (per API spec).   |
-| **Test Channel**    | API                                                            |
-| **Observed Result** |                                                                |
-| **Status**          |                                                                |
-
-### FR07-EP-017 — Quantity equals zero (Gap)
-
-| Field               | Value                                                                    |
-| ------------------- | ------------------------------------------------------------------------ |
-| **TC ID**           | FR07-EP-017                                                              |
-| **Objective**       | Verify system behavior when submitted quantity is zero                   |
-| **EC Ref**          | EC15                                                                     |
-| **Pre-condition**   | User is logged in. Product 1 is already in cart.                         |
-| **Test Data**       | `id=1`, `name="Laptop"`, `price=100000`, `quantity=0`, valid JWT         |
-| **Steps**           | 1. POST /api/cart with test data.                                        |
-| **Expected Result** | System rejects request (HTTP 400) OR removes item from cart (per FR-06). |
-| **Test Channel**    | API                                                                      |
-| **Observed Result** |                                                                          |
-| **Status**          |                                                                          |
-
-### FR07-EP-018 — Negative quantity
-
-| Field               | Value                                                             |
-| ------------------- | ----------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-018                                                       |
-| **Objective**       | Verify product addition rejects negative quantity                 |
-| **EC Ref**          | EC16                                                              |
-| **Pre-condition**   | User is logged in.                                                |
-| **Test Data**       | `id=1`, `name="Laptop"`, `price=100000`, `quantity=-1`, valid JWT |
-| **Steps**           | 1. POST /api/cart with test data.                                 |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-06).         |
-| **Test Channel**    | API                                                               |
-| **Observed Result** |                                                                   |
-| **Status**          |                                                                   |
-
-### FR07-EP-019 — Null quantity
-
-| Field               | Value                                                               |
-| ------------------- | ------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-019                                                         |
-| **Objective**       | Verify product addition rejects missing quantity                    |
-| **EC Ref**          | EC17                                                                |
-| **Pre-condition**   | User is logged in.                                                  |
-| **Test Data**       | `id=1`, `name="Laptop"`, `price=100000`, `quantity=null`, valid JWT |
-| **Steps**           | 1. POST /api/cart with test data.                                   |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-06).           |
-| **Test Channel**    | API                                                                 |
-| **Observed Result** |                                                                     |
-| **Status**          |                                                                     |
-
-### FR07-EP-020 — Decimal quantity
-
-| Field               | Value                                                              |
-| ------------------- | ------------------------------------------------------------------ |
-| **TC ID**           | FR07-EP-020                                                        |
-| **Objective**       | Verify product addition rejects decimal quantity                   |
-| **EC Ref**          | EC18                                                               |
-| **Pre-condition**   | User is logged in.                                                 |
-| **Test Data**       | `id=1`, `name="Laptop"`, `price=100000`, `quantity=1.5`, valid JWT |
-| **Steps**           | 1. POST /api/cart with test data.                                  |
-| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-06).          |
-| **Test Channel**    | API                                                                |
-| **Observed Result** |                                                                    |
-| **Status**          |                                                                    |
-
-### FR07-EP-021 — No Authorization token
+### FR07-EP-009 — Null ID
 
 | Field               | Value                                                                             |
 | ------------------- | --------------------------------------------------------------------------------- |
-| **TC ID**           | FR07-EP-021                                                                       |
-| **Objective**       | Verify cart rejects anonymous requests                                            |
-| **EC Ref**          | EC21                                                                              |
-| **Pre-condition**   | User is NOT logged in.                                                            |
-| **Test Data**       | `Authorization` header missing. Valid payload `id=1, name="A", price=100, qty=1`. |
+| **TC ID**           | FR07-EP-009                                                                       |
+| **Objective**       | Verify system rejects cart addition when product ID is null                       |
+| **Pre-condition**   | SUT is running. User is logged in. NO test product is created.                    |
+| **Test Data**       | `id=null`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=1`     |
 | **Steps**           | 1. POST /api/cart with test data.                                                 |
-| **Expected Result** | HTTP 401 Unauthorized (per SEC-02).                                               |
-| **Test Channel**    | Role-Auth                                                                         |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request. Error message shown (per API spec). |
+| **Test Channel**    | API                                                                               |
 | **Observed Result** |                                                                                   |
 | **Status**          |                                                                                   |
+| **Teardown**        | None                                                                              |
 
-### FR07-EP-022 — Invalid Authorization token
+### FR07-EP-010 — Invalid ID Type (String)
 
-| Field               | Value                                                     |
-| ------------------- | --------------------------------------------------------- |
-| **TC ID**           | FR07-EP-022                                               |
-| **Objective**       | Verify cart rejects expired/invalid tokens                |
-| **EC Ref**          | EC22                                                      |
-| **Pre-condition**   | None.                                                     |
-| **Test Data**       | `Authorization: Bearer invalid_jwt_token`. Valid payload. |
-| **Steps**           | 1. POST /api/cart with test data.                         |
-| **Expected Result** | HTTP 401 Unauthorized (per SEC-02).                       |
-| **Test Channel**    | Role-Auth                                                 |
-| **Observed Result** |                                                           |
-| **Status**          |                                                           |
+| Field               | Value                                                                          |
+| ------------------- | ------------------------------------------------------------------------------ |
+| **TC ID**           | FR07-EP-010                                                                    |
+| **Objective**       | Verify system rejects cart addition when product ID is a string                |
+| **Pre-condition**   | SUT is running. User is logged in. NO test product is created.                 |
+| **Test Data**       | `id="abc"`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=1` |
+| **Steps**           | 1. POST /api/cart with test data.                                              |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request (per API spec).                   |
+| **Test Channel**    | API                                                                            |
+| **Observed Result** |                                                                                |
+| **Status**          |                                                                                |
+| **Teardown**        | None                                                                           |
+
+### FR07-EP-011 — Empty Name
+
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-011                                                                              |
+| **Objective**       | Verify system rejects cart addition when product name is empty in payload                |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `id={test_product_id}`, `name=""`, `price={valid_price}`, `quantity=1`                   |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                              |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-07).                                |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
+
+### FR07-EP-012 — Null Name
+
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-012                                                                              |
+| **Objective**       | Verify system rejects cart addition when product name is null in payload                 |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `id={test_product_id}`, `name=null`, `price={valid_price}`, `quantity=1`                 |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                              |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request (per API spec).                             |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
+
+### FR07-EP-013 — Excessively Long Name
+
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-013                                                                              |
+| **Objective**       | Verify system rejects payload with excessively long string                               |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `id={test_product_id}`, `name="A"x300`, `price={valid_price}`, `quantity=1`              |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                              |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request or handled gracefully (per DB limit).       |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
+
+### FR07-EP-014 — Zero Price
+
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-014                                                                              |
+| **Objective**       | Verify system rejects payload with price 0                                               |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price=0`, `quantity=1`           |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                              |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-15).                                |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
+
+### FR07-EP-015 — Negative Price
+
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-015                                                                              |
+| **Objective**       | Verify system rejects payload with negative price                                        |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price=-50000`, `quantity=1`      |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                              |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-15).                                |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
+
+### FR07-EP-016 — Null Price
+
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-016                                                                              |
+| **Objective**       | Verify system rejects payload with null price                                            |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price=null`, `quantity=1`        |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                              |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request (per API spec).                             |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
+
+### FR07-EP-017 — Zero Quantity
+
+| Field               | Value                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| **TC ID**           | FR07-EP-017                                                                                |
+| **Objective**       | Verify system rejects or gracefully handles payload with quantity 0                        |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in.   |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=0` |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                                |
+| **Expected Result** | System rejects request (HTTP 400) OR interprets as delete action (per FR-06).              |
+| **Test Channel**    | API                                                                                        |
+| **Observed Result** |                                                                                            |
+| **Status**          |                                                                                            |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                            |
+
+### FR07-EP-018 — Negative Quantity
+
+| Field               | Value                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-018                                                                                 |
+| **Objective**       | Verify system rejects payload with negative quantity                                        |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in.    |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=-1` |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                                 |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-06).                                   |
+| **Test Channel**    | API                                                                                         |
+| **Observed Result** |                                                                                             |
+| **Status**          |                                                                                             |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                             |
+
+### FR07-EP-019 — Null Quantity
+
+| Field               | Value                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-019                                                                                   |
+| **Objective**       | Verify system rejects payload with null quantity                                              |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in.      |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=null` |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                                   |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-06).                                     |
+| **Test Channel**    | API                                                                                           |
+| **Observed Result** |                                                                                               |
+| **Status**          |                                                                                               |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                               |
+
+### FR07-EP-020 — Decimal Quantity
+
+| Field               | Value                                                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-020                                                                                  |
+| **Objective**       | Verify system rejects payload with decimal quantity                                          |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in.     |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=1.5` |
+| **Steps**           | 1. POST /api/cart with malicious test data.                                                  |
+| **Expected Result** | System rejects request. HTTP 400 Bad Request (per FR-06).                                    |
+| **Test Channel**    | API                                                                                          |
+| **Observed Result** |                                                                                              |
+| **Status**          |                                                                                              |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                              |
+
+### FR07-EP-021 — Missing Token
+
+| Field               | Value                                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-021                                                                                             |
+| **Objective**       | Verify authentication constraint when missing token                                                     |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is NOT logged in (No token). |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=1`              |
+| **Steps**           | 1. POST /api/cart without Authorization header.                                                         |
+| **Expected Result** | HTTP 401 Unauthorized (per SEC-02).                                                                     |
+| **Test Channel**    | Role-Auth                                                                                               |
+| **Observed Result** |                                                                                                         |
+| **Status**          |                                                                                                         |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                                         |
+
+### FR07-EP-022 — Invalid Token
+
+| Field               | Value                                                                                                           |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-EP-022                                                                                                     |
+| **Objective**       | Verify authentication constraint with invalid token                                                             |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User uses a fake token.                   |
+| **Test Data**       | `id={test_product_id}`, `name="{valid_product_name}"`, `price={valid_price}`, `quantity=1`, `Auth: Bearer fake` |
+| **Steps**           | 1. POST /api/cart with invalid Authorization header.                                                            |
+| **Expected Result** | HTTP 401/403 (per SEC-02).                                                                                      |
+| **Test Channel**    | Role-Auth                                                                                                       |
+| **Observed Result** |                                                                                                                 |
+| **Status**          |                                                                                                                 |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                                                 |
 
 ## Part 2: BVA Test Cases
 
-### FR07-BVA-001 — `quantity` at -α (empty)
+### FR07-BVA-001 — Quantity null
 
-| Field               | Value                                                   |
-| ------------------- | ------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-001                                            |
-| **Objective**       | Verify product addition rejects empty quantity          |
-| **BVA Ref**         | `quantity` = empty / null, BVA Point: -α                |
-| **Pre-condition**   | User is logged in.                                      |
-| **Test Data**       | `quantity=null`, all other inputs = valid               |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result. |
-| **Expected Result** | System rejects empty quantity. HTTP 400 (per FR-06).    |
-| **Test Channel**    | API                                                     |
-| **Observed Result** |                                                         |
-| **Status**          |                                                         |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-001                                                                             |
+| **Objective**       | Verify boundary Quantity=-α (null)                                                       |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `quantity=null`                                                                          |
+| **Steps**           | 1. POST /api/cart with test data payload.                                                |
+| **Expected Result** | HTTP 400 Bad Request.                                                                    |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
 
-### FR07-BVA-002 — `quantity` at LB-1
+### FR07-BVA-002 — Quantity 0
 
-| Field               | Value                                                          |
-| ------------------- | -------------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-002                                                   |
-| **Objective**       | Verify behavior when quantity is below lower boundary          |
-| **BVA Ref**         | `quantity` = 0, BVA Point: LB-1                                |
-| **Pre-condition**   | User is logged in.                                             |
-| **Test Data**       | `quantity=0`, all other inputs = valid                         |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.        |
-| **Expected Result** | System rejects request OR removes item if present (per FR-06). |
-| **Test Channel**    | API                                                            |
-| **Observed Result** |                                                                |
-| **Status**          |                                                                |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-002                                                                             |
+| **Objective**       | Verify boundary Quantity=0 (LB-1)                                                        |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `quantity=0`                                                                             |
+| **Steps**           | 1. POST /api/cart with test data payload.                                                |
+| **Expected Result** | HTTP 400 Bad Request.                                                                    |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
 
-### FR07-BVA-003 — `quantity` at LB (exact)
+### FR07-BVA-003 — Quantity 1
 
-| Field               | Value                                                        |
-| ------------------- | ------------------------------------------------------------ |
-| **TC ID**           | FR07-BVA-003                                                 |
-| **Objective**       | Verify product addition accepts exact minimum quantity       |
-| **BVA Ref**         | `quantity` = 1, BVA Point: LB                                |
-| **Pre-condition**   | User is logged in.                                           |
-| **Test Data**       | `quantity=1`, all other inputs = valid                       |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.      |
-| **Expected Result** | Accept: HTTP 200 OK. Item added with quantity 1 (per FR-06). |
-| **Test Channel**    | API                                                          |
-| **Observed Result** |                                                              |
-| **Status**          |                                                              |
-| **Teardown**        | `[Teardown]` Remove product from cart                        |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-003                                                                             |
+| **Objective**       | Verify boundary Quantity=1 (LB)                                                          |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `quantity=1`                                                                             |
+| **Steps**           | 1. POST /api/cart with test data payload.                                                |
+| **Expected Result** | HTTP 200 OK. Item added successfully.                                                    |
+| **Test Channel**    | API + State                                                                              |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.            |
 
-### FR07-BVA-004 — `quantity` at LB+1
+### FR07-BVA-004 — Quantity 2
 
-| Field               | Value                                                        |
-| ------------------- | ------------------------------------------------------------ |
-| **TC ID**           | FR07-BVA-004                                                 |
-| **Objective**       | Verify product addition accepts quantity above minimum       |
-| **BVA Ref**         | `quantity` = 2, BVA Point: LB+1                              |
-| **Pre-condition**   | User is logged in.                                           |
-| **Test Data**       | `quantity=2`, all other inputs = valid                       |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.      |
-| **Expected Result** | Accept: HTTP 200 OK. Item added with quantity 2 (per FR-06). |
-| **Test Channel**    | API                                                          |
-| **Observed Result** |                                                              |
-| **Status**          |                                                              |
-| **Teardown**        | `[Teardown]` Remove product from cart                        |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-004                                                                             |
+| **Objective**       | Verify boundary Quantity=2 (LB+1)                                                        |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `quantity=2`                                                                             |
+| **Steps**           | 1. POST /api/cart with test data payload.                                                |
+| **Expected Result** | HTTP 200 OK. Item added successfully.                                                    |
+| **Test Channel**    | API + State                                                                              |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.            |
 
-### FR07-BVA-005 — `quantity` at Nominal
+### FR07-BVA-005 — Quantity Nominal
 
-| Field               | Value                                                        |
-| ------------------- | ------------------------------------------------------------ |
-| **TC ID**           | FR07-BVA-005                                                 |
-| **Objective**       | Verify product addition accepts nominal quantity             |
-| **BVA Ref**         | `quantity` = 5, BVA Point: Nominal                           |
-| **Pre-condition**   | User is logged in.                                           |
-| **Test Data**       | `quantity=5`, all other inputs = valid                       |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.      |
-| **Expected Result** | Accept: HTTP 200 OK. Item added with quantity 5 (per FR-06). |
-| **Test Channel**    | API                                                          |
-| **Observed Result** |                                                              |
-| **Status**          |                                                              |
-| **Teardown**        | `[Teardown]` Remove product from cart                        |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-005                                                                             |
+| **Objective**       | Verify boundary Quantity=Nominal (5)                                                     |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `quantity=5`                                                                             |
+| **Steps**           | 1. POST /api/cart with test data payload.                                                |
+| **Expected Result** | HTTP 200 OK. Item added successfully.                                                    |
+| **Test Channel**    | API + State                                                                              |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.            |
 
-### FR07-BVA-006 — `quantity` at +α (very large)
+### FR07-BVA-006 — Quantity +α
 
-| Field               | Value                                                            |
-| ------------------- | ---------------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-006                                                     |
-| **Objective**       | Verify behavior when quantity is extremely large                 |
-| **BVA Ref**         | `quantity` = 9999, BVA Point: +α                                 |
-| **Pre-condition**   | User is logged in.                                               |
-| **Test Data**       | `quantity=9999`, all other inputs = valid                        |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.          |
-| **Expected Result** | Reject (system limit exceeded) or Accept gracefully (per FR-06). |
-| **Test Channel**    | API                                                              |
-| **Observed Result** |                                                                  |
-| **Status**          |                                                                  |
-| **Teardown**        | `[Teardown]` Remove product from cart if accepted                |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-006                                                                             |
+| **Objective**       | Verify boundary Quantity=+α (9999)                                                       |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `quantity=9999`                                                                          |
+| **Steps**           | 1. POST /api/cart with test data payload.                                                |
+| **Expected Result** | HTTP 200 OK or handled gracefully per DB limits.                                         |
+| **Test Channel**    | API + State                                                                              |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.            |
 
-### FR07-BVA-007 — `price` at -α (empty)
+### FR07-BVA-007 — Price null
 
-| Field               | Value                                                   |
-| ------------------- | ------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-007                                            |
-| **Objective**       | Verify product addition rejects empty price             |
-| **BVA Ref**         | `price` = empty / null, BVA Point: -α                   |
-| **Pre-condition**   | User is logged in.                                      |
-| **Test Data**       | `price=null`, all other inputs = valid                  |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result. |
-| **Expected Result** | Reject: HTTP 400. Price is required (per FR-15).        |
-| **Test Channel**    | API                                                     |
-| **Observed Result** |                                                         |
-| **Status**          |                                                         |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-007                                                                             |
+| **Objective**       | Verify boundary Price=-α (null)                                                          |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `price=null` maliciously injected into Cart payload                                      |
+| **Steps**           | 1. POST /api/cart with malicious test data payload.                                      |
+| **Expected Result** | HTTP 400 Bad Request.                                                                    |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
 
-### FR07-BVA-008 — `price` at LB-1
+### FR07-BVA-008 — Price 0
 
-| Field               | Value                                                      |
-| ------------------- | ---------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-008                                               |
-| **Objective**       | Verify product addition rejects price below lower boundary |
-| **BVA Ref**         | `price` = 0, BVA Point: LB-1                               |
-| **Pre-condition**   | User is logged in.                                         |
-| **Test Data**       | `price=0`, all other inputs = valid                        |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.    |
-| **Expected Result** | Reject: HTTP 400. Price must be > 0 (per FR-15).           |
-| **Test Channel**    | API                                                        |
-| **Observed Result** |                                                            |
-| **Status**          |                                                            |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-008                                                                             |
+| **Objective**       | Verify boundary Price=0 (LB-1)                                                           |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `price=0` maliciously injected into Cart payload                                         |
+| **Steps**           | 1. POST /api/cart with malicious test data payload.                                      |
+| **Expected Result** | HTTP 400 Bad Request.                                                                    |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
 
-### FR07-BVA-009 — `price` at LB (exact)
+### FR07-BVA-009 — Price 1
 
-| Field               | Value                                                   |
-| ------------------- | ------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-009                                            |
-| **Objective**       | Verify product addition accepts exact minimum price     |
-| **BVA Ref**         | `price` = 1, BVA Point: LB                              |
-| **Pre-condition**   | User is logged in.                                      |
-| **Test Data**       | `price=1`, all other inputs = valid                     |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result. |
-| **Expected Result** | Accept: HTTP 200 OK. Item added with 1 ₫ (per FR-15).   |
-| **Test Channel**    | API                                                     |
-| **Observed Result** |                                                         |
-| **Status**          |                                                         |
-| **Teardown**        | `[Teardown]` Remove product from cart                   |
+| Field               | Value                                                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-009                                                                                                     |
+| **Objective**       | Verify boundary Price=1 (LB)                                                                                     |
+| **Pre-condition**   | Admin has created a valid boundary test product (returns `{test_product_id}`) with `price=1`. User is logged in. |
+| **Test Data**       | `price=1`                                                                                                        |
+| **Steps**           | 1. POST /api/cart with valid test data payload matching the DB boundary product.                                 |
+| **Expected Result** | HTTP 200 OK.                                                                                                     |
+| **Test Channel**    | API + State                                                                                                      |
+| **Observed Result** |                                                                                                                  |
+| **Status**          |                                                                                                                  |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                    |
 
-### FR07-BVA-010 — `price` at LB+1
+### FR07-BVA-010 — Price 2
 
-| Field               | Value                                                        |
-| ------------------- | ------------------------------------------------------------ |
-| **TC ID**           | FR07-BVA-010                                                 |
-| **Objective**       | Verify product addition accepts price slightly above minimum |
-| **BVA Ref**         | `price` = 2, BVA Point: LB+1                                 |
-| **Pre-condition**   | User is logged in.                                           |
-| **Test Data**       | `price=2`, all other inputs = valid                          |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.      |
-| **Expected Result** | Accept: HTTP 200 OK. Item added with 2 ₫ (per FR-15).        |
-| **Test Channel**    | API                                                          |
-| **Observed Result** |                                                              |
-| **Status**          |                                                              |
-| **Teardown**        | `[Teardown]` Remove product from cart                        |
+| Field               | Value                                                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-010                                                                                                     |
+| **Objective**       | Verify boundary Price=2 (LB+1)                                                                                   |
+| **Pre-condition**   | Admin has created a valid boundary test product (returns `{test_product_id}`) with `price=2`. User is logged in. |
+| **Test Data**       | `price=2`                                                                                                        |
+| **Steps**           | 1. POST /api/cart with valid test data payload matching the DB boundary product.                                 |
+| **Expected Result** | HTTP 200 OK.                                                                                                     |
+| **Test Channel**    | API + State                                                                                                      |
+| **Observed Result** |                                                                                                                  |
+| **Status**          |                                                                                                                  |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                    |
 
-### FR07-BVA-011 — `price` at Nominal
+### FR07-BVA-011 — Price Nominal
 
-| Field               | Value                                                      |
-| ------------------- | ---------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-011                                               |
-| **Objective**       | Verify product addition accepts nominal price              |
-| **BVA Ref**         | `price` = 100000, BVA Point: Nominal                       |
-| **Pre-condition**   | User is logged in.                                         |
-| **Test Data**       | `price=100000`, all other inputs = valid                   |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.    |
-| **Expected Result** | Accept: HTTP 200 OK. Item added with 100000 ₫ (per FR-15). |
-| **Test Channel**    | API                                                        |
-| **Observed Result** |                                                            |
-| **Status**          |                                                            |
-| **Teardown**        | `[Teardown]` Remove product from cart                      |
+| Field               | Value                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **TC ID**           | FR07-BVA-011                                                                                                 |
+| **Objective**       | Verify boundary Price=100000 (Nominal)                                                                       |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`) with `price=100000`. User is logged in. |
+| **Test Data**       | `price=100000`                                                                                               |
+| **Steps**           | 1. POST /api/cart with valid test data payload matching the DB product.                                      |
+| **Expected Result** | HTTP 200 OK.                                                                                                 |
+| **Test Channel**    | API + State                                                                                                  |
+| **Observed Result** |                                                                                                              |
+| **Status**          |                                                                                                              |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                |
 
-### FR07-BVA-012 — `price` at +α (very large)
+### FR07-BVA-012 — Price +α
 
-| Field               | Value                                                     |
-| ------------------- | --------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-012                                              |
-| **Objective**       | Verify behavior when price is extremely large             |
-| **BVA Ref**         | `price` = 2000000000, BVA Point: +α                       |
-| **Pre-condition**   | User is logged in.                                        |
-| **Test Data**       | `price=2000000000`, all other inputs = valid              |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.   |
-| **Expected Result** | Reject (limit exceeded) or Accept gracefully (per FR-15). |
-| **Test Channel**    | API                                                       |
-| **Observed Result** |                                                           |
-| **Status**          |                                                           |
-| **Teardown**        | `[Teardown]` Remove product from cart if accepted         |
+| Field               | Value                                                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-012                                                                                                              |
+| **Objective**       | Verify boundary Price=2000000000 (+α)                                                                                     |
+| **Pre-condition**   | Admin has created a valid boundary test product (returns `{test_product_id}`) with `price=2000000000`. User is logged in. |
+| **Test Data**       | `price=2000000000`                                                                                                        |
+| **Steps**           | 1. POST /api/cart with valid test data payload matching the DB boundary product.                                          |
+| **Expected Result** | HTTP 200 OK.                                                                                                              |
+| **Test Channel**    | API + State                                                                                                               |
+| **Observed Result** |                                                                                                                           |
+| **Status**          |                                                                                                                           |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                             |
 
-### FR07-BVA-013 — `name` at -α / LB-1
+### FR07-BVA-013 — Name Length 0
 
-| Field               | Value                                                   |
-| ------------------- | ------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-013                                            |
-| **Objective**       | Verify product addition rejects empty product name      |
-| **BVA Ref**         | `name` length = 0, BVA Point: -α / LB-1                 |
-| **Pre-condition**   | User is logged in.                                      |
-| **Test Data**       | `name=""`, all other inputs = valid                     |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result. |
-| **Expected Result** | Reject: HTTP 400. Name is required (per FR-07).         |
-| **Test Channel**    | API                                                     |
-| **Observed Result** |                                                         |
-| **Status**          |                                                         |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-013                                                                             |
+| **Objective**       | Verify boundary Name Length=0 (LB-1)                                                     |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `name=""` maliciously injected into Cart payload                                         |
+| **Steps**           | 1. POST /api/cart with malicious test data payload.                                      |
+| **Expected Result** | HTTP 400 Bad Request.                                                                    |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
 
-### FR07-BVA-014 — `name` at LB
+### FR07-BVA-014 — Name Length 1
 
-| Field               | Value                                                     |
-| ------------------- | --------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-014                                              |
-| **Objective**       | Verify product addition accepts exact minimum name length |
-| **BVA Ref**         | `name` length = 1, BVA Point: LB                          |
-| **Pre-condition**   | User is logged in.                                        |
-| **Test Data**       | `name="A"`, all other inputs = valid                      |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.   |
-| **Expected Result** | Accept: HTTP 200 OK. Item added (per FR-07).              |
-| **Test Channel**    | API                                                       |
-| **Observed Result** |                                                           |
-| **Status**          |                                                           |
-| **Teardown**        | `[Teardown]` Remove product from cart                     |
+| Field               | Value                                                                                                             |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-014                                                                                                      |
+| **Objective**       | Verify boundary Name Length=1 (LB)                                                                                |
+| **Pre-condition**   | Admin has created a valid boundary test product (returns `{test_product_id}`) with `name="A"`. User is logged in. |
+| **Test Data**       | `name="A"`                                                                                                        |
+| **Steps**           | 1. POST /api/cart with valid test data payload matching the DB boundary product.                                  |
+| **Expected Result** | HTTP 200 OK.                                                                                                      |
+| **Test Channel**    | API + State                                                                                                       |
+| **Observed Result** |                                                                                                                   |
+| **Status**          |                                                                                                                   |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                     |
 
-### FR07-BVA-015 — `name` at LB+1
+### FR07-BVA-015 — Name Length 2
 
-| Field               | Value                                                          |
-| ------------------- | -------------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-015                                                   |
-| **Objective**       | Verify product addition accepts slightly above min name length |
-| **BVA Ref**         | `name` length = 2, BVA Point: LB+1                             |
-| **Pre-condition**   | User is logged in.                                             |
-| **Test Data**       | `name="AB"`, all other inputs = valid                          |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.        |
-| **Expected Result** | Accept: HTTP 200 OK. Item added (per FR-07).                   |
-| **Test Channel**    | API                                                            |
-| **Observed Result** |                                                                |
-| **Status**          |                                                                |
-| **Teardown**        | `[Teardown]` Remove product from cart                          |
+| Field               | Value                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **TC ID**           | FR07-BVA-015                                                                                                       |
+| **Objective**       | Verify boundary Name Length=2 (LB+1)                                                                               |
+| **Pre-condition**   | Admin has created a valid boundary test product (returns `{test_product_id}`) with `name="AA"`. User is logged in. |
+| **Test Data**       | `name="AA"`                                                                                                        |
+| **Steps**           | 1. POST /api/cart with valid test data payload matching the DB boundary product.                                   |
+| **Expected Result** | HTTP 200 OK.                                                                                                       |
+| **Test Channel**    | API + State                                                                                                        |
+| **Observed Result** |                                                                                                                    |
+| **Status**          |                                                                                                                    |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                      |
 
-### FR07-BVA-016 — `name` at Nominal
+### FR07-BVA-016 — Name Length Nominal
 
-| Field               | Value                                                   |
-| ------------------- | ------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-016                                            |
-| **Objective**       | Verify product addition accepts nominal name length     |
-| **BVA Ref**         | `name` length = 6, BVA Point: Nominal                   |
-| **Pre-condition**   | User is logged in.                                      |
-| **Test Data**       | `name="Laptop"`, all other inputs = valid               |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result. |
-| **Expected Result** | Accept: HTTP 200 OK. Item added (per FR-07).            |
-| **Test Channel**    | API                                                     |
-| **Observed Result** |                                                         |
-| **Status**          |                                                         |
-| **Teardown**        | `[Teardown]` Remove product from cart                   |
+| Field               | Value                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-016                                                                                                  |
+| **Objective**       | Verify boundary Name Length=6 (Nominal)                                                                       |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`) with `name="AAAAAA"`. User is logged in. |
+| **Test Data**       | `name="AAAAAA"`                                                                                               |
+| **Steps**           | 1. POST /api/cart with valid test data payload matching the DB product.                                       |
+| **Expected Result** | HTTP 200 OK.                                                                                                  |
+| **Test Channel**    | API + State                                                                                                   |
+| **Observed Result** |                                                                                                               |
+| **Status**          |                                                                                                               |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                 |
 
-### FR07-BVA-017 — `name` at UB-1
+### FR07-BVA-017 — Name Length 254
 
-| Field               | Value                                                      |
-| ------------------- | ---------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-017                                               |
-| **Objective**       | Verify product addition accepts name just below max length |
-| **BVA Ref**         | `name` length = 254, BVA Point: UB-1                       |
-| **Pre-condition**   | User is logged in.                                         |
-| **Test Data**       | `name="A" * 254`, all other inputs = valid                 |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.    |
-| **Expected Result** | Accept: HTTP 200 OK. Item added (per FR-07).               |
-| **Test Channel**    | API                                                        |
-| **Observed Result** |                                                            |
-| **Status**          |                                                            |
-| **Teardown**        | `[Teardown]` Remove product from cart                      |
+| Field               | Value                                                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-017                                                                                                          |
+| **Objective**       | Verify boundary Name Length=254 (UB-1)                                                                                |
+| **Pre-condition**   | Admin has created a valid boundary test product (returns `{test_product_id}`) with `name="A"x254`. User is logged in. |
+| **Test Data**       | `name="A"x254`                                                                                                        |
+| **Steps**           | 1. POST /api/cart with valid test data payload matching the DB boundary product.                                      |
+| **Expected Result** | HTTP 200 OK.                                                                                                          |
+| **Test Channel**    | API + State                                                                                                           |
+| **Observed Result** |                                                                                                                       |
+| **Status**          |                                                                                                                       |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                         |
 
-### FR07-BVA-018 — `name` at UB (exact)
+### FR07-BVA-018 — Name Length 255
 
-| Field               | Value                                                     |
-| ------------------- | --------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-018                                              |
-| **Objective**       | Verify product addition accepts exact maximum name length |
-| **BVA Ref**         | `name` length = 255, BVA Point: UB                        |
-| **Pre-condition**   | User is logged in.                                        |
-| **Test Data**       | `name="A" * 255`, all other inputs = valid                |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.   |
-| **Expected Result** | Accept: HTTP 200 OK. Item added (per FR-07).              |
-| **Test Channel**    | API                                                       |
-| **Observed Result** |                                                           |
-| **Status**          |                                                           |
-| **Teardown**        | `[Teardown]` Remove product from cart                     |
+| Field               | Value                                                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-018                                                                                                          |
+| **Objective**       | Verify boundary Name Length=255 (UB)                                                                                  |
+| **Pre-condition**   | Admin has created a valid boundary test product (returns `{test_product_id}`) with `name="A"x255`. User is logged in. |
+| **Test Data**       | `name="A"x255`                                                                                                        |
+| **Steps**           | 1. POST /api/cart with valid test data payload matching the DB boundary product.                                      |
+| **Expected Result** | HTTP 200 OK.                                                                                                          |
+| **Test Channel**    | API + State                                                                                                           |
+| **Observed Result** |                                                                                                                       |
+| **Status**          |                                                                                                                       |
+| **Teardown**        | 1. Remove from cart DB.<br>2. Admin `DELETE /api/products/{test_product_id}`.                                         |
 
-### FR07-BVA-019 — `name` at UB+1
+### FR07-BVA-019 — Name Length 256
 
-| Field               | Value                                                     |
-| ------------------- | --------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-019                                              |
-| **Objective**       | Verify product addition rejects name exceeding max length |
-| **BVA Ref**         | `name` length = 256, BVA Point: UB+1                      |
-| **Pre-condition**   | User is logged in.                                        |
-| **Test Data**       | `name="A" * 256`, all other inputs = valid                |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result.   |
-| **Expected Result** | Reject: HTTP 400. Name too long (per FR-07).              |
-| **Test Channel**    | API                                                       |
-| **Observed Result** |                                                           |
-| **Status**          |                                                           |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-019                                                                             |
+| **Objective**       | Verify boundary Name Length=256 (UB+1)                                                   |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `name="A"x256` maliciously injected into Cart payload                                    |
+| **Steps**           | 1. POST /api/cart with malicious test data payload.                                      |
+| **Expected Result** | HTTP 400 Bad Request.                                                                    |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
 
-### FR07-BVA-020 — `name` at +α (very long)
+### FR07-BVA-020 — Name Length 1000
 
-| Field               | Value                                                   |
-| ------------------- | ------------------------------------------------------- |
-| **TC ID**           | FR07-BVA-020                                            |
-| **Objective**       | Verify product addition rejects excessively long name   |
-| **BVA Ref**         | `name` length = 1000, BVA Point: +α                     |
-| **Pre-condition**   | User is logged in.                                      |
-| **Test Data**       | `name="A" * 1000`, all other inputs = valid             |
-| **Steps**           | 1. POST /api/cart with test data.<br>2. Observe result. |
-| **Expected Result** | Reject: HTTP 400 or handled gracefully (per DB limits). |
-| **Test Channel**    | API                                                     |
-| **Observed Result** |                                                         |
-| **Status**          |                                                         |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **TC ID**           | FR07-BVA-020                                                                             |
+| **Objective**       | Verify boundary Name Length=1000 (+α)                                                    |
+| **Pre-condition**   | Admin has created a valid test product (returns `{test_product_id}`). User is logged in. |
+| **Test Data**       | `name="A"x1000` maliciously injected into Cart payload                                   |
+| **Steps**           | 1. POST /api/cart with malicious test data payload.                                      |
+| **Expected Result** | HTTP 400 Bad Request.                                                                    |
+| **Test Channel**    | API                                                                                      |
+| **Observed Result** |                                                                                          |
+| **Status**          |                                                                                          |
+| **Teardown**        | Admin `DELETE /api/products/{test_product_id}`.                                          |
 
 ## TC Summary Table
 

@@ -40,8 +40,6 @@ This skill operates in two phases:
 - Screenshots are NOT required per TC. One screen recording per FR uploaded to YouTube is sufficient execution evidence. JSON files saved by the script are API evidence.
 - **DOM screenshots:** one per FR (entire console output panel).
 
----
-
 ## 2. SUT Database Information
 
 The EShop SUT uses **SQLite**. The database file is located at:
@@ -90,8 +88,6 @@ sqlite3 "$DB" "DELETE FROM users WHERE email='ep001@test.com';"
 sqlite3 "$DB" "DELETE FROM coupons WHERE code='TESTCODE';"
 ```
 
----
-
 ## 3. TC Classification (Do This First)
 
 Before generating any script, read ALL TCs from the test-cases `qa-artifacts/test-cases/FRxx-test-cases.md` file and classify each:
@@ -130,8 +126,6 @@ Not wait for human confirmation before generating scripts, start generate script
 - `Mobile UI` → MANUAL
 - `DOM` → DOM (JS script only; human pastes console output)
 - `UI + DOM + State` → DOM + SCRIPT-FULL for State/DB; MANUAL for UI visual
-
----
 
 ## 4. Phase A — Script Generation
 
@@ -199,6 +193,15 @@ ADMIN_TOKEN=$(curl -s -X POST "$BASE_URL/api/login" \
 [[ "$USER_TOKEN"  == "TOKEN_ERROR" ]] && echo -e "${RED}ERROR: Cannot get user token${NC}"  && exit 1
 [[ "$ADMIN_TOKEN" == "TOKEN_ERROR" ]] && echo -e "${RED}ERROR: Cannot get admin token${NC}" && exit 1
 echo -e "${GREEN}Tokens acquired.${NC}\n"
+
+# ── Test Data Setup (Cross-FR Dependencies) ───────────────────────────────────
+echo -e "${BOLD}>>> Setting up prerequisite test data...${NC}"
+# AI INSTRUCTION: If this FR requires data from another FR (e.g., FR-07 Cart needs Products, FR-08 Checkout needs a Cart),
+# use the ADMIN_TOKEN to call the creation API here and extract the ID into a bash variable.
+# DO NOT USE HARDCODED IDs (like id=1).
+# Example:
+# TEST_PROD_ID=$(curl -s -X POST "$BASE_URL/api/products" -H "Authorization: Bearer $ADMIN_TOKEN" -H "Content-Type: application/json" -d '{"name":"AutoTest","price":100,"category_id":1}' | python3 -c "import sys,json; print(json.load(sys.stdin).get('id', ''))")
+# [[ -z "$TEST_PROD_ID" ]] && echo -e "${RED}ERROR: Failed to setup test data${NC}" && exit 1
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -491,8 +494,6 @@ echo ""
 end_tc
 ```
 
----
-
 #### 4.3 Script Closing Block
 
 Always end every script with this block:
@@ -524,8 +525,6 @@ echo ""
 echo "Response JSON files saved to: $RESP_DIR/"
 echo "Paste the summary block above into Phase B prompt."
 ```
-
----
 
 ### Deliverable 2: `scripts/curl/FR{nn}-dom-checks.js`
 
@@ -668,8 +667,6 @@ A single self-contained JavaScript file for ALL DOM-channel TCs of this FR. The 
 })();
 ```
 
----
-
 ### Deliverable 3: Execution Results Template
 
 Create `qa-artifacts/execution-results/FR{nn}-execution-results.md`. Pre-fill TC metadata and Expected Results. Leave Observed Result and Status blank.
@@ -683,8 +680,6 @@ Create `qa-artifacts/execution-results/FR{nn}-execution-results.md`. Pre-fill TC
 **API responses:** `evidence/api-responses/FR{nn}/`  
 **Session recording:** {YouTube link — add after recording by human}
 
----
-
 ## How to complete this file
 
 | Source             | What to do                                                          |
@@ -693,8 +688,6 @@ Create `qa-artifacts/execution-results/FR{nn}-execution-results.md`. Pre-fill TC
 | SCRIPT-PARTIAL TCs | Script covers API part; fill UI observation manually                |
 | MANUAL TCs         | Fill in after browser/mobile testing                                |
 | DOM TCs            | Paste console output from `scripts/curl/FR{nn}-dom-checks.js`       |
-
----
 
 ## Execution Log
 
@@ -712,8 +705,6 @@ Create `qa-artifacts/execution-results/FR{nn}-execution-results.md`. Pre-fill TC
 | **API Response**    | `evidence/api-responses/FR{nn}/FR{nn}-EP-{nnn}-response.json` |
 | **Status**          | _(PASS / FAIL / BLOCKED / SKIPPED)_                           |
 
----
-
 ### FR{nn}-EP-{nnn} — {Objective} `[MANUAL]`
 
 | Field               | Value                               |
@@ -726,11 +717,7 @@ Create `qa-artifacts/execution-results/FR{nn}-execution-results.md`. Pre-fill TC
 | **Observed Result** | _(fill after browser testing)_      |
 | **Status**          | _(PASS / FAIL / BLOCKED / SKIPPED)_ |
 
----
-
 [... one entry per TC ...]
-
----
 
 ## Execution Summary
 
@@ -747,8 +734,6 @@ Create `qa-artifacts/execution-results/FR{nn}-execution-results.md`. Pre-fill TC
 **MANUAL TCs list:** {FR{nn}-EP-{nnn}, ...}
 **DOM page URL:** {http://localhost:.../...}
 ```
-
----
 
 ## 5. Phase B — Record Results & Sync Both Files
 
@@ -812,8 +797,6 @@ Bugs required for:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
----
-
 ## 6. Evidence Requirements
 
 | Evidence                          | Required                           | How produced                                               |
@@ -823,8 +806,6 @@ Bugs required for:
 | Session recording (1 per FR)      | ✅ Upload to YouTube               | Record screen while running script + UI tests + DOM checks |
 | DOM console screenshot (1 per FR) | ✅ 1 screenshot                    | Screenshot DevTools Console showing DOM check summary      |
 | Per-TC screenshot                 | ❌ Not required                    | Only take screenshots when creating GitHub Issues for bugs |
-
----
 
 ## 7. SQLite Best Practices for Script Generation
 
@@ -888,7 +869,13 @@ run_and_assert "FR{nn}-BVA-{nnn}" "200" "POST" "/api/register" "none" \
   '{"name": "Nguyen Van A", "email": "'"$LONG_EMAIL"'", "password": "Test@123"}'
 ```
 
----
+**Rule 8 — Handling Cross-FR Data Dependencies (Dynamic Setup & Teardown):**
+
+When testing a feature that depends on entities from another feature (e.g., FR-07 Shopping Cart needs existing Products, FR-08 Checkout needs an existing Cart), you MUST NOT rely on hardcoded IDs (like `id=1` or `category_id=1`). Doing so causes Foreign Key constraint errors if the DB is empty.
+
+- **Setup:** At the beginning of the script (in the Test Data Setup block), dynamically create the prerequisite data using Admin APIs. Store the generated IDs in bash variables (e.g., `TEST_PROD_ID`).
+- **Execution:** Pass these bash variables into the `curl` JSON payloads for all test cases.
+- **Teardown:** At the very end of the bash script, explicitly delete this prerequisite data (via Admin API or `teardown_db`) to ensure the SUT remains completely clean for the next test execution.
 
 ## 8. Quality Checklist
 
@@ -904,6 +891,7 @@ run_and_assert "FR{nn}-BVA-{nnn}" "200" "POST" "/api/register" "none" \
 - [ ] Script closing block prints formatted summary table
 - [ ] DOM checks JS covers all DOM-channel TCs for this FR
 - [ ] Execution results template pre-fills Expected Results from TC table
+- [ ] Cross-FR data dependencies are handled dynamically (no hardcoded IDs for foreign keys; Setup block and final Teardown included per Rule 8).
 
 **Phase B recording:**
 
