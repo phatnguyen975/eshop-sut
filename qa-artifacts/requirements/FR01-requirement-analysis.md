@@ -12,8 +12,6 @@
 | Actors            | Anonymous (unauthenticated user)                        |
 | Auth Required     | No — registration is a public endpoint, no JWT required |
 
----
-
 ## 2. Input Fields & Constraints
 
 | Field/Param       | Layer    | Type   | Explicit Constraints (from SRS)                                                                                                                                          | Implicit Constraints (Architecture/DB)                                                                                            | API Param Name      |
@@ -24,8 +22,6 @@
 | `confirmPassword` | UI only  | string | Required; must exactly match `password` field (per FR-01); rendered as `type="password"` (per FR-22)                                                                     | This field is UI-side only — API spec does NOT include `confirmPassword` in the request body; mismatch must be caught client-side | _(not in API body)_ |
 
 > **Note:** The API spec (`POST /api/register`) only accepts three fields: `name`, `email`, `password`. The `confirmPassword` field is a UI-only control — the API does not validate it. This means password-mismatch testing is a **UI-only** test scenario.
-
----
 
 ## 3. Business Rules
 
@@ -43,8 +39,6 @@
 - **[BR-12]** The registration API (`POST /api/register`) does not require a JWT token — it is a public endpoint. (per SEC-02, inferred: no auth guard on this endpoint)
 - **[BR-13]** All user input displayed back on the UI (e.g., name in toast/welcome messages) must be properly escaped — no raw HTML rendering. (per SEC-04)
 - **[BR-14]** Database queries for email uniqueness check and user insertion must use parameterized queries, not string concatenation. (per SEC-05)
-
----
 
 ## 4. Expected Outputs
 
@@ -67,8 +61,6 @@
 - **Password contains only invalid special chars (e.g., `#`, `^`):** HTTP `400 Bad Request` — the special char requirement is NOT satisfied by out-of-set characters. (per FR-01, BR-08)
 - **`confirmPassword` ≠ `password` (UI only):** The UI must prevent form submission and display an error above the submit button indicating passwords do not match. No API call is made. (per FR-01, BR-09, FR-22)
 
----
-
 ## 5. GUI Requirements Applicable (FR-21~24)
 
 > **Platform:** Web UI — HTML/DOM semantics checks apply.
@@ -84,8 +76,6 @@
 - **[GUI-09]** Tab Order must follow top-to-bottom, left-to-right focus sequence: `name` → `email` → `password` → `confirmPassword` → submit button. (per FR-21)
 - **[GUI-10]** No toast notification is mandated by SRS for registration success — the redirect to the Login page serves as the success feedback. (per FR-01, FR-24 — no explicit toast requirement for this FR)
 
----
-
 ## 6. Security Requirements Applicable (SEC-xx)
 
 - **[SEC-01]** Password must be hashed before storage. Test indirectly: after registration, attempt login with the submitted password via `POST /api/login` — if it succeeds, password hashing is functioning. Direct DB inspection is required to confirm no plaintext storage.
@@ -94,8 +84,6 @@
 - **[SEC-05]** The email uniqueness check and user insertion must use parameterized queries. This is a code-level concern; indirect testing via SQL injection payload in `email` field (e.g., `' OR '1'='1`) can detect concatenation vulnerabilities.
 
 > **Note:** SEC-03 (role=admin check), SEC-06 (role field protection), and SEC-07 (OTP) do NOT apply to FR-01.
-
----
 
 ## 7. Notes for Domain Testing
 

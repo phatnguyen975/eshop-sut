@@ -10,8 +10,6 @@
 
 > **Note on UB:** For all 3 variables, no explicit upper bound is stated in the SRS. The value 255 is used as the assumed architectural boundary (typical SQLite/MySQL VARCHAR default). UB-1/UB/UB+1 points are tested against this assumed value, and the +α point tests the system beyond any reasonable limit.
 
----
-
 ## BVA Table 1: `password` (string length)
 
 **Constraint:** length ≥ 8 characters (per FR-01, BR-04)
@@ -29,8 +27,6 @@
 | FR01-BVA-006 | +α (very long)     | `"Aa1@" + "A"×296` _(300 chars, meets char rules)_ | 300    | Invalid (likely) | Reject — HTTP 400 or 500 (implicit DB/system limit exceeded)              |
 
 > **Note on FR01-BVA-003, 004, 005:** These are success cases — each must use a **unique email** not previously registered in the DB (e.g., `bva003@test.com`, `bva004@test.com`, `bva005@test.com`). Clean up after execution (delete test user via Admin API or DB).
-
----
 
 ## BVA Table 2: `name` (string length)
 
@@ -51,8 +47,6 @@
 | FR01-BVA-013 | UB+1 (assumed 256 chars) | `"A"×256`        | 256    | Invalid (likely) | Reject or truncate — behavior depends on DB schema (not defined in SRS) |
 | FR01-BVA-014 | +α (very long)           | `"A"×500`        | 500    | Invalid (likely) | Reject or server error — exceeds any reasonable DB limit                |
 
----
-
 ## BVA Table 3: `email` (string length)
 
 **Constraint:** LB = implicit (minimum valid format ~5 chars e.g. `a@b.c`) | UB = unspecified in SRS (assumed DB VARCHAR = 255)
@@ -69,8 +63,6 @@
 | FR01-BVA-017 | UB+1 (assumed 256 chars) | `"a"×247 + "@test.com"` _(256 chars)_ | 256    | Invalid (likely) | Reject or truncate — behavior depends on DB schema |
 | FR01-BVA-018 | +α (very long)           | `"a"×291 + "@test.com"` _(300 chars)_ | 300    | Invalid (likely) | Reject or server error                             |
 
----
-
 ## BVA Summary
 
 | Variable          | LB       | UB (assumed)  | BVA Points Generated                           | Valid TCs | Invalid TCs | Total BVA TCs |
@@ -79,8 +71,6 @@
 | `name` length     | 1        | 255 (assumed) | −α/LB−1, LB, LB+1, Nominal, UB−1, UB, UB+1, +α | 5         | 3           | 8             |
 | `email` length    | implicit | 255 (assumed) | Nominal, UB, UB+1, +α                          | 2         | 2           | 4             |
 | **Total**         |          |               |                                                | **10**    | **8**       | **18**        |
-
----
 
 > **Combined TC count for FR-01:**
 >

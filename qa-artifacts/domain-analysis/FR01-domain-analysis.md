@@ -21,8 +21,6 @@
 | I6  | `password_char_set`   | Input content       | enum    | Whether special chars used are from the allowed set `@$!%*?&` or outside it; drives BR-08 (G4 split)               |
 | I7  | `auth_token_presence` | HTTP request header | boolean | Whether an `Authorization: Bearer` token is present; must NOT be required for this public endpoint (BR-12, SEC-02) |
 
----
-
 ### 1.2 Output Variables
 
 #### Direct Outputs (Visible)
@@ -49,8 +47,6 @@
 | O13 | DOM: submit button color    | DOM     | Submit button must be blue (positive action color) (per FR-21, GUI-07)                                           |
 | O14 | XSS safety: `name` display  | UI      | If `name` is echoed back (e.g., profile/welcome), it must be escaped — no raw HTML rendering (per SEC-04, BR-13) |
 
----
-
 ### 1.3 Variable Summary for EP
 
 - **Total inputs identified:** 7 (4 direct + 3 indirect)
@@ -67,8 +63,6 @@
   - `password` **length**: explicit LB = 8 chars; UB = implicit DB/system limit (→ BVA target)
   - `name` **length**: no explicit SRS bound; implicit DB VARCHAR limit (→ BVA candidate)
   - `email` **length**: no explicit SRS bound; implicit DB VARCHAR limit (→ BVA candidate)
-
----
 
 > **Blind Spot Check (per domain-identifier skill Section 7):**
 >
@@ -92,8 +86,6 @@
 
 > **Guideline applied:** G3 — binary must-be condition: name must be non-empty. B1 extension adds empty and null cases. G4 split adds EC24: a valid name containing HTML/script tags verifies the system accepts the input but renders it safely on UI (per SEC-04, O14). Rejection is NOT expected — safe display is the pass criterion.
 
----
-
 ### Variable: `email` (I2) — Guideline 3 (Must-Be: valid format) + Guideline 3 (Must-Be: unique in DB) + B1
 
 | Class ID | Type    | Description                                        | Representative Value                |
@@ -107,8 +99,6 @@
 | EC10     | Invalid | Null / field omitted from API body (B1: missing)   | _(omit `email` key from JSON)_      |
 
 > **Guidelines applied:** G3 × 2 — (1) email format must be valid; (2) email must be unique in DB. B1 extension adds empty and null cases. EC05–EC07 cover three structurally distinct invalid format sub-cases (G4 split within the invalid class).
-
----
 
 ### Variable: `password` (I3) — Guideline 1 (Range: length ≥ 8) + Guideline 3 × 4 (Must-Be: char types) + Guideline 4 (Split: special char set)
 
@@ -126,8 +116,6 @@
 
 > **Guidelines applied:** G1 for length range (≥ 8); G3 × 4 for each mandatory character category; G4 split to distinguish "no special char" (EC16) from "special char outside allowed set" (EC17). B1 adds empty and null. Representatives are designed to isolate exactly one violation each.
 
----
-
 ### Variable: `confirmPassword` (I4) — Guideline 3 (Must-Be: matches `password`) + B1 — **UI channel only**
 
 | Class ID | Type    | Description                                            | Representative Value              |
@@ -138,8 +126,6 @@
 
 > **Guideline applied:** G3 — binary must-be: confirmPassword must equal password. B1 adds empty case. **UI-only variable — no corresponding API class.**
 
----
-
 ### Variable: `auth_token_presence` (I7) — Guideline 3 (Must-Be: public endpoint, no JWT required — SEC-02)
 
 | Class ID | Type  | Description                                                      | Representative Value          |
@@ -149,8 +135,6 @@
 > **Guideline applied:** G3 — SEC-02 compliance: `POST /api/register` must be accessible without a JWT. The valid class is "no token present → HTTP 200".
 
 > **Note on I5 (`email_uniqueness`) and I6 (`password_char_set`):** These indirect variables are folded into the EP classes of their parent variables — I5 → EC08 (duplicate email), I6 → EC17 (out-of-set special char). They do not require separate EP tables.
-
----
 
 ### EP Class Summary
 
@@ -172,8 +156,6 @@ Core valid classes (EC01, EC04, EC11, EC20, EC23) combined into one single happy
 | TC ID       | Valid ECs Combined               | Test Data Summary                                                                                                      | Channel  |
 | ----------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------- |
 | FR01-EP-001 | EC01 + EC04 + EC11 + EC20 + EC23 | name=`"Nguyen Van A"`, email=`"newuser@test.com"`, password=`"Test@123"`, confirmPassword=`"Test@123"`, no auth header | UI + API |
-
----
 
 ### 3.2 Invalid Classes Coverage (Isolation Rule)
 
@@ -219,8 +201,6 @@ Each TC isolates **exactly ONE** invalid class. All other inputs are drawn from 
 | FR01-EP-018 | EC21 — confirmPassword ≠ password (`"DifferentPass@1"`) | name=valid, email=valid, password=`"Test@123"`, no token | UI      |
 | FR01-EP-019 | EC22 — empty confirmPassword (`""`)                     | name=valid, email=valid, password=`"Test@123"`, no token | UI      |
 
----
-
 **`name` security class (EC24 — UI + DOM channel):**
 
 | TC ID       | EC Tested                                                      | Other Inputs (all valid)                                           | Channel  |
@@ -228,8 +208,6 @@ Each TC isolates **exactly ONE** invalid class. All other inputs are drawn from 
 | FR01-EP-020 | EC24 — `name` with XSS payload (`"<script>alert(1)</script>"`) | email=valid, password=`"Test@123"`, confirm=`"Test@123"`, no token | UI + DOM |
 
 > **Expected result for FR01-EP-020:** HTTP 200 — system accepts registration. On UI, the name is displayed as escaped text; no script executes in the browser. Verify via DevTools DOM inspection: confirm name rendered as `&lt;script&gt;alert(1)&lt;/script&gt;` (per SEC-04, O14).
-
----
 
 ### 3.3 EC Coverage Summary
 
@@ -248,8 +226,6 @@ Each TC isolates **exactly ONE** invalid class. All other inputs are drawn from 
 | `password` (I3)        | G1 + G3 × 4 + G4 + B1        | 1 (EC11)       | 8 (EC12–19) | ✅ PASS |
 | `confirmPassword` (I4) | G3 + B1 (UI only)            | 1 (EC20)       | 2 (EC21–22) | ✅ PASS |
 | `auth_token` (I7)      | G3 (SEC-02)                  | 1 (EC23)       | 0           | ✅ PASS |
-
----
 
 ### 5.2 Missing Classes Detection
 
@@ -300,8 +276,6 @@ FR-01 is a single-step form — no multi-step workflow. **N/A ✅**
 | `name` length DB VARCHAR (~255)     | UB/UB+1/+α FR01-BVA-012/013/014 ✅ | PASS   |
 | `email` length DB VARCHAR (~255)    | UB/UB+1/+α FR01-BVA-016/017/018 ✅ | PASS   |
 
----
-
 ### 5.3 Rule Violations Found
 
 #### Isolation Rule Scan (all 18 invalid TCs + FR01-EP-020)
@@ -322,8 +296,6 @@ All 18 invalid TCs verified: each contains exactly 1 invalid input; all other in
 
 > EC24 is tested separately (FR01-EP-020) because its output verification (DOM/XSS check) differs from the standard success path (FR01-EP-001). This is a justified exception to the combination rule.
 
----
-
 ### 5.4 BVA Completeness
 
 | Variable          | BVA Table | Points Generated        | −α  | +α  | Missing           | Verdict |
@@ -333,8 +305,6 @@ All 18 invalid TCs verified: each contains exactly 1 invalid input; all other in
 | `email` length    | ✅ Yes    | 4 (FR01-BVA-015 to 018) | N/A | ✅  | LB N/A (implicit) | ✅ PASS |
 | Date fields       | N/A       | —                       | —   | —   | —                 | ✅ N/A  |
 | Numeric fields    | N/A       | —                       | —   | —   | —                 | ✅ N/A  |
-
----
 
 ### 5.5 AI Gap Analysis
 
@@ -367,9 +337,13 @@ All 18 invalid TCs verified: each contains exactly 1 invalid input; all other in
 
 #### Lesson Learned
 
-> _(Placeholder — Human writes the final version in `qa-artifacts/ai-audit/ai-critique.md` after completing all 4 FRs)_
+**1. AI struggles with Output-to-Input reverse engineering (Security/State constraints):** While the AI effectively maps validation rules directly tied to input fields (e.g., length, missing data), it fails to auto-generate Equivalence Classes for constraints defined on the output side or UI rendering side (e.g., SEC-04 XSS escaping).
 
----
+- **Mitigation Strategy for future FRs:** The QA Engineer must manually cross-reference the `Output Variables` table against the generated `Equivalence Classes`. If an output behavior (like security escaping, specific error UI, or DB state change) does not have a dedicated input trigger in the EC table, the human must manually prompt the AI to add it via a G4 split.
+
+**2. AI exhibits "Happy Path Bias" and requires explicit prompting for nuanced Negative Testing:** The AI successfully generates standard invalid classes (B1 empty/null, G1 length bounds), but routinely misses edge-case negative classes (e.g., characters _outside_ a specific allowed set like EC17).
+
+- **Mitigation Strategy for future FRs:** Do not rely on the AI's autonomous generation for complex domain constraints. Always review the "Common AI Blind Spots" or "EShop-Specific EP Patterns" in the skill instructions and explicitly force the AI to include these specific invalid classes in the initial Prompt.
 
 ### 5.6 Final EC Count After Review
 
@@ -381,8 +355,6 @@ All 18 invalid TCs verified: each contains exactly 1 invalid input; all other in
 | EP TCs        | 19            | +1 (FR01-EP-020) | **20**       |
 | BVA TCs       | 18            | 0                | **18**       |
 | **Total TCs** | **37**        | **+1**           | **38**       |
-
----
 
 ### 5.7 Overall Coverage Verdict
 

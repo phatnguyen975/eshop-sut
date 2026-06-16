@@ -24,8 +24,6 @@
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT to remove the created test user                                                                                                                                                                                                                                                                                                                                                             |
 
----
-
 ### FR01-EP-002 — Empty Name
 
 | Field               | Value                                                                                                                                                                                                                                                                                                                                                             |
@@ -40,8 +38,6 @@
 | **Test Channel**    | UI + API                                                                                                                                                                                                                                                                                                                                                          |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` Relies on native HTML5 tooltip instead of inline error.                                                                                                                                                                                                                                        |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                                                                                              |
-
----
 
 ### FR01-EP-003 — Missing Name Field (API)
 
@@ -58,8 +54,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).                                                                                                   |
 | **Status**          | FAIL                                                                                                                                                  |
 
----
-
 ### FR01-EP-004 — Invalid Email: No @ Symbol
 
 | Field               | Value                                                                                                                                                                                                                                                                                                         |
@@ -74,8 +68,6 @@
 | **Test Channel**    | UI + API                                                                                                                                                                                                                                                                                                      |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` Displayed weak password error instead of invalid email error.                                                                                                                                                                              |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                                          |
-
----
 
 ### FR01-EP-005 — Invalid Email: No Domain After @
 
@@ -92,8 +84,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` Blocked by incorrect password validation.                                                                                                                                                 |
 | **Status**          | FAIL                                                                                                                                                                                                                                                         |
 
----
-
 ### FR01-EP-006 — Invalid Email: No Local Part Before @
 
 | Field               | Value                                                                                                                                                                                                                                                                    |
@@ -108,8 +98,6 @@
 | **Test Channel**    | UI + API                                                                                                                                                                                                                                                                 |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` Blocked by incorrect password validation.                                                                                                                                                             |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                     |
-
----
 
 ### FR01-EP-007 — Duplicate Email (Already Registered)
 
@@ -126,8 +114,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 409).; `[Manual UI]` Blocked by incorrect password validation logic.                                                                                                                                                                                                                     |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                                                                   |
 
----
-
 ### FR01-EP-008 — Empty Email
 
 | Field               | Value                                                                                                                                                                                                                                                     |
@@ -142,8 +128,6 @@
 | **Test Channel**    | UI + API                                                                                                                                                                                                                                                  |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` Relies on native HTML5 tooltip.                                                                                                                                                        |
 | **Status**          | FAIL                                                                                                                                                                                                                                                      |
-
----
 
 ### FR01-EP-009 — Missing Email Field (API)
 
@@ -160,8 +144,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).                                                                                                 |
 | **Status**          | FAIL                                                                                                                                                |
 
----
-
 ### FR01-EP-010 — Password Below Minimum Length
 
 | Field               | Value                                                                                                                                                                                                                                                                                 |
@@ -176,8 +158,6 @@
 | **Test Channel**    | UI + API                                                                                                                                                                                                                                                                              |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` UI correctly blocked and showed inline error (PASS). Overall FAIL due to API.                                                                                                                                      |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                  |
-
----
 
 ### FR01-EP-011 — Password Missing Uppercase Letter
 
@@ -194,8 +174,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` UI correctly blocked and showed inline error (PASS). Overall FAIL due to API.                                                                                                                                                  |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                              |
 
----
-
 ### FR01-EP-012 — Password Missing Lowercase Letter
 
 | Field               | Value                                                                                                                                                                                                                                                                                             |
@@ -210,8 +188,6 @@
 | **Test Channel**    | UI + API                                                                                                                                                                                                                                                                                          |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` UI correctly blocked and showed inline error (PASS). Overall FAIL due to API.                                                                                                                                                  |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                              |
-
----
 
 ### FR01-EP-013 — Password Missing Digit
 
@@ -228,8 +204,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` UI correctly blocked and showed inline error (PASS). Overall FAIL due to API.                                                                                                                                                  |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                              |
 
----
-
 ### FR01-EP-014 — Password Missing Special Character
 
 | Field               | Value                                                                                                                                                                                                                                                                                             |
@@ -244,8 +218,6 @@
 | **Test Channel**    | UI + API                                                                                                                                                                                                                                                                                          |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` UI correctly blocked and showed inline error (PASS). Overall FAIL due to API.                                                                                                                                                  |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                              |
-
----
 
 ### FR01-EP-015 — Password Special Character Outside Allowed Set
 
@@ -262,8 +234,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` UI correctly blocked and showed inline error (PASS). Overall FAIL due to API.                                                                                                                                                 |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                             |
 
----
-
 ### FR01-EP-016 — Empty Password
 
 | Field               | Value                                                                                                                                                                                                                                                                    |
@@ -278,8 +248,6 @@
 | **Test Channel**    | UI + API                                                                                                                                                                                                                                                                 |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` Relies on native HTML5 tooltip instead of inline error.                                                                                                                                               |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                     |
-
----
 
 ### FR01-EP-017 — Missing Password Field (API)
 
@@ -296,8 +264,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).                                                                                                    |
 | **Status**          | FAIL                                                                                                                                                   |
 
----
-
 ### FR01-EP-018 — Confirm Password Mismatch (UI Only)
 
 | Field               | Value                                                                                                                                                                                                                                                                              |
@@ -313,8 +279,6 @@
 | **Observed Result** | `[Manual UI]` Confirm Password input field is entirely missing from the UI.                                                                                                                                                                                                        |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                               |
 
----
-
 ### FR01-EP-019 — Empty Confirm Password (UI Only)
 
 | Field               | Value                                                                                                                                                                                                              |
@@ -329,8 +293,6 @@
 | **Test Channel**    | UI                                                                                                                                                                                                                 |
 | **Observed Result** | `[Manual UI]` Confirm Password input field is entirely missing from the UI.                                                                                                                                        |
 | **Status**          | FAIL                                                                                                                                                                                                               |
-
----
 
 ### FR01-EP-020 — XSS Payload in Name (SEC-04)
 
@@ -348,11 +310,7 @@
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT to remove the created test user                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
----
-
 ## Part 2: BVA Test Cases
-
----
 
 ### FR01-BVA-001 — `password` at −α (Absolute Minimum: Empty)
 
@@ -369,8 +327,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).                                                                                                              |
 | **Status**          | FAIL                                                                                                                                                             |
 
----
-
 ### FR01-BVA-002 — `password` at LB−1 (7 chars — One Below Minimum)
 
 | Field               | Value                                                                                                                                                                                                                                                                                           |
@@ -385,8 +341,6 @@
 | **Test Channel**    | UI + API                                                                                                                                                                                                                                                                                        |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).; `[Manual UI]` UI correctly blocked and showed inline error (PASS). Overall FAIL due to API.                                                                                                                                                |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                                            |
-
----
 
 ### FR01-BVA-003 — `password` at LB (8 chars — Exact Minimum)
 
@@ -404,8 +358,6 @@
 | **Status**          | FAIL                                                                                                                                                                                                                                                                  |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                                                                                                                                                         |
 
----
-
 ### FR01-BVA-004 — `password` at LB+1 (9 chars)
 
 | Field               | Value                                                                                                                                                |
@@ -421,8 +373,6 @@
 | **Observed Result** | `[Automated]` DB password stored as plaintext Test@1234.                                                                                             |
 | **Status**          | FAIL                                                                                                                                                 |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                                        |
-
----
 
 ### FR01-BVA-005 — `password` at Nominal (15 chars)
 
@@ -440,8 +390,6 @@
 | **Status**          | FAIL                                                                                                                                                                                            |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                                                                                   |
 
----
-
 ### FR01-BVA-006 — `password` at +α (300 chars — Absolute Maximum)
 
 | Field               | Value                                                                                                                                                                                                                                                                             |
@@ -457,8 +405,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400/500).                                                                                                                                                                                                                           |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                              |
 
----
-
 ### FR01-BVA-007 — `name` at −α/LB−1 (0 chars — Empty)
 
 | Field               | Value                                                                                                                                   |
@@ -473,8 +419,6 @@
 | **Test Channel**    | API                                                                                                                                     |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400).                                                                                     |
 | **Status**          | FAIL                                                                                                                                    |
-
----
 
 ### FR01-BVA-008 — `name` at LB (1 char — Exact Minimum)
 
@@ -492,8 +436,6 @@
 | **Status**          | FAIL                                                                                                                                                      |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                                             |
 
----
-
 ### FR01-BVA-009 — `name` at LB+1 (2 chars)
 
 | Field               | Value                                                                                                                                     |
@@ -509,8 +451,6 @@
 | **Observed Result** | `[Automated]` DB password stored as plaintext.                                                                                            |
 | **Status**          | FAIL                                                                                                                                      |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                             |
-
----
 
 ### FR01-BVA-010 — `name` at Nominal (12 chars)
 
@@ -528,8 +468,6 @@
 | **Status**          | FAIL                                                                                                                                                |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                                       |
 
----
-
 ### FR01-BVA-011 — `name` at UB−1 (254 chars)
 
 | Field               | Value                                                                                                                                                      |
@@ -545,8 +483,6 @@
 | **Observed Result** | `[Automated]` DB password stored as plaintext.                                                                                                             |
 | **Status**          | FAIL                                                                                                                                                       |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                                              |
-
----
 
 ### FR01-BVA-012 — `name` at UB (255 chars — Assumed DB VARCHAR Limit)
 
@@ -564,8 +500,6 @@
 | **Status**          | FAIL                                                                                                                                                  |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                                         |
 
----
-
 ### FR01-BVA-013 — `name` at UB+1 (256 chars)
 
 | Field               | Value                                                                                                                                                                                                                                                                             |
@@ -581,8 +515,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400/500).                                                                                                                                                                                                                           |
 | **Status**          | FAIL                                                                                                                                                                                                                                                                              |
 
----
-
 ### FR01-BVA-014 — `name` at +α (500 chars — Absolute Maximum)
 
 | Field               | Value                                                                                                             |
@@ -597,8 +529,6 @@
 | **Test Channel**    | API                                                                                                               |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400/500).                                                           |
 | **Status**          | FAIL                                                                                                              |
-
----
 
 ### FR01-BVA-015 — `email` at Nominal (16 chars)
 
@@ -616,8 +546,6 @@
 | **Status**          | FAIL                                                                                                                                                 |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                                        |
 
----
-
 ### FR01-BVA-016 — `email` at UB (255 chars — Assumed DB VARCHAR Limit)
 
 | Field               | Value                                                                                                                                            |
@@ -634,8 +562,6 @@
 | **Status**          | FAIL                                                                                                                                             |
 | **Teardown**        | `DELETE /api/admin/users/{id}` with admin JWT                                                                                                    |
 
----
-
 ### FR01-BVA-017 — `email` at UB+1 (256 chars)
 
 | Field               | Value                                                                                                                                                                                                                                            |
@@ -651,8 +577,6 @@
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400/500).                                                                                                                                                                                          |
 | **Status**          | FAIL                                                                                                                                                                                                                                             |
 
----
-
 ### FR01-BVA-018 — `email` at +α (300 chars — Absolute Maximum)
 
 | Field               | Value                                                                                                                                            |
@@ -667,8 +591,6 @@
 | **Test Channel**    | API                                                                                                                                              |
 | **Observed Result** | `[Automated]` API returned HTTP 200 (expected 400/500).                                                                                          |
 | **Status**          | FAIL                                                                                                                                             |
-
----
 
 ## TC Summary Table
 
@@ -720,15 +642,11 @@
 - **BVA Points:** 18/18 generated (6 password + 8 name + 4 email)
 - **Self-cleaning:** Teardown present on all 12 success-path TCs that create persistent data
 
----
-
 ## Test Case Review Report
 
 **Reviewed by:** test-case-reviewer skill
 **Date:** 2026-06-12
 **Total TCs reviewed:** 38 (20 EP + 18 BVA)
-
----
 
 ### Tier 1: Critical Violations (Must Fix Before Execution)
 
@@ -788,8 +706,6 @@
 
 **Critical Violations Total: 0** ✅
 
----
-
 ### Tier 2: Serious Warnings (Should Fix)
 
 **S1 — Objective Syntax (Action + Function + Condition):** All 38 objectives are ≥ 5 words, specific, and follow the required syntax. ✅ PASS
@@ -836,8 +752,6 @@ All 12 success-path TCs have teardowns. ✅ PASS
 
 **Serious Warnings Total: 0** ✅
 
----
-
 ### Tier 3: Cosmetic Issues (Nice to Fix)
 
 **N1 — TC ID Format:** All 38 IDs follow `FR01-EP-{nnn}` and `FR01-BVA-{nnn}`. Sequential, no gaps. ✅
@@ -862,8 +776,6 @@ All 12 success-path TCs have teardowns. ✅ PASS
 
 **Cosmetic Issues Total: 5 (all optional enhancements)**
 
----
-
 ### Coverage Matrix
 
 | Category      | Total  | Covered | Missing |
@@ -872,8 +784,6 @@ All 12 success-path TCs have teardowns. ✅ PASS
 | Invalid ECs   | 18     | 18      | 0       |
 | BVA Points    | 18     | 18      | 0       |
 | **Total TCs** | **38** | **38**  | **0**   |
-
----
 
 ### Quality Summary
 

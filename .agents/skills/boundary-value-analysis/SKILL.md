@@ -148,7 +148,7 @@ File `qa-artifacts/boundary-analysis/FR{nn}-boundary-analysis.md`:
 | `password` length | integer (string) | 8   | unspecified | 1 char    | Per FR-01 |
 | `quantity`        | integer          | 1   | unspecified | 1         | Per FR-07 |
 
-## BVA Table: `password` (string length)
+## BVA Table 1: `password` (string length)
 
 **Constraint:** length >= 8 characters (per FR-01)
 **LB = 8, UB = unspecified**
@@ -161,6 +161,10 @@ File `qa-artifacts/boundary-analysis/FR{nn}-boundary-analysis.md`:
 | FR01-BVA-004 | LB+1           | `Test@1234`         | 9      | Valid            | Accept                    |
 | FR01-BVA-005 | Nominal        | `TestPassword1!`    | 15     | Valid            | Accept                    |
 | FR01-BVA-006 | +α (very long) | `{300-char string}` | 300    | Invalid (likely) | Reject or system error    |
+
+## BVA Table 2: `quantity` (integer)
+
+{Repeat similar structure for quantity variable}
 
 ## BVA Summary
 
