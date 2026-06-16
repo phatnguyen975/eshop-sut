@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 5                |
-| Total AI outputs reviewed       | 5                |
+| Total skill sessions logged     | 6                |
+| Total AI outputs reviewed       | 6                |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 0                |
 | Items added manually by student | 0                |
@@ -292,3 +292,61 @@ qa-artifacts/domain-analysis/FR07-domain-analysis.md
 | Accuracy            | 5            | Calculated TCs and evaluated classes perfectly. |
 | Guideline adherence | 5            | Strictly followed review template structure.    |
 | Items missed        | 0            | Handled everything according to the prompt.     |
+
+## Interaction [6] — test-case-generator
+
+| Field             | Value                                                               |
+| ----------------- | ------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                            |
+| **Date/Time**     | 2026-06-16 18:06                                                    |
+| **Feature**       | FR-07 — Shopping Cart                                               |
+| **Skill Invoked** | test-case-generator                                                 |
+| **Task**          | Generate 42 test cases from EP and BVA outputs using 9-column table |
+
+### Prompt Given
+
+```text
+/test-case-generator Use the test-case-generator skill.
+
+Feature: FR-07 — Shopping
+
+Read the complete domain analysis (including the gap analysis) at:
+qa-artifacts/domain-analysis/FR07-domain-analysis.md
+
+And the boundary analysis at:
+qa-artifacts/boundary-analysis/FR07-boundary-analysis.md
+
+Generate the full test case table with both EP TCs (FR07-EP-001, 002, ...) and BVA TCs (FR07-BVA-001, 002, ...).
+
+For every TC:
+- Use the "Action + Function + Operating Condition" objective syntax
+- Include all 9 mandatory columns including Test Channel and EC/BVA Ref
+- Write specific concrete Expected Results citing the FR number (e.g., per FR-07)
+- Add a Teardown step for any TC that creates persistent data
+- Assign the correct Test Channel (UI / API / Role-Auth / DOM / State)
+
+Save the output to: qa-artifacts/test-cases/FR07-test-cases.md
+```
+
+### AI Output Summary
+
+- Generated the complete test suite consisting of 42 Test Cases (22 EP + 20 BVA) with all 9 mandatory columns.
+- Applied the `Action + Function + Operating Condition` syntax for all TC Objectives flawlessly.
+- Assured traceability by referencing the correct FRs, SECs, and BRs in the Expected Results.
+- Properly included `Teardown` steps across all Test Cases that create persistent cart state.
+
+### Student Review Notes
+
+- Accepted as-is: The entire test suite. The inclusion of Teardown steps demonstrates a high-level understanding of automation prerequisites. The ambiguity in Expected Results for quantity=0 was correctly maintained as documented in the SRS gap analysis.
+- Modified: None
+- Added manually: None
+- Rejected: None
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                     |
+| ------------------- | ------------ | ----------------------------------------- |
+| Completeness        | 5            | All 42 TCs documented fully.              |
+| Accuracy            | 5            | Properly transferred logic from EP & BVA. |
+| Guideline adherence | 5            | Objective syntax and columns correct.     |
+| Items missed        | 0            | Did not miss any required rules.          |

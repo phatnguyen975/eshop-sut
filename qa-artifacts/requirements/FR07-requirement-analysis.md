@@ -120,12 +120,12 @@
 
 ## 7. Notes for Domain Testing
 
-- **Input variables identified:** `product_id` (integer), `product_name` (string), `price` (numeric), `quantity` (positive integer), `JWT token` (auth state: absent / valid user / valid admin)
+- **Input variables identified:** `id` (integer), `name` (string), `price` (numeric), `quantity` (positive integer), `JWT token` (auth state: absent / valid user / valid admin)
 - **Output variables identified:** HTTP status code, response body (cart item list / success message / error message), UI cart table state, cart badge count, DB cart row state (created / updated / deleted), empty-state UI display, confirm dialog behavior
 - **Boundary candidates:**
   - `quantity`: boundary at 0 (invalid), 1 (lower bound — valid), very large values (upper boundary — system limit)
   - `price`: boundary at 0 (should be rejected per FR-15), positive values
-  - `product_id`: valid existing ID vs. non-existent ID
+  - `id`: valid existing ID vs. non-existent ID
 - **High-risk areas:**
   - **Quantity = 0:** SRS does not explicitly state behavior when quantity is set to 0 via the +/- UI buttons — does it remove the item, or reject the action? This is a known gap.
   - **Duplicate product add:** Merge vs. new-row behavior (BR-03) — commonly mis-implemented

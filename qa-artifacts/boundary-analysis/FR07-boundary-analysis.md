@@ -2,11 +2,11 @@
 
 ## Boundary Variables Identified
 
-| Variable              | Data Type        | LB  | UB          | Increment | Note                                       |
-| --------------------- | ---------------- | --- | ----------- | --------- | ------------------------------------------ |
-| `quantity`            | integer          | 1   | unspecified | 1         | Per FR-06/FR-07 (must be positive integer) |
-| `price`               | number (integer) | 1   | unspecified | 1         | Per FR-15 (must be > 0)                    |
-| `product_name` length | integer (string) | 1   | 255         | 1 char    | Implicit DB VARCHAR(255) constraint        |
+| Variable      | Data Type        | LB  | UB          | Increment | Note                                       |
+| ------------- | ---------------- | --- | ----------- | --------- | ------------------------------------------ |
+| `quantity`    | integer          | 1   | unspecified | 1         | Per FR-06/FR-07 (must be positive integer) |
+| `price`       | number (integer) | 1   | unspecified | 1         | Per FR-15 (must be > 0)                    |
+| `name` length | integer (string) | 1   | 255         | 1 char    | Implicit DB VARCHAR(255) constraint        |
 
 ## BVA Table 1: `quantity` (integer)
 
@@ -42,7 +42,7 @@
 | FR07-BVA-017 | UB+1            | N/A          | —                | —                                        |
 | FR07-BVA-018 | +α (very large) | `2000000000` | Invalid (likely) | Reject (system limit exceeded) or accept |
 
-## BVA Table 3: `product_name` (string length)
+## BVA Table 3: `name` (string length)
 
 **Constraint:** length between 1 and 255 chars (implicit DB constraint)  
 **LB = 1, UB = 255**
@@ -61,11 +61,11 @@
 
 ## BVA Summary
 
-| Variable              | Total BVA Points | Valid Points | Invalid Points | BVA TCs Generated |
-| --------------------- | ---------------- | ------------ | -------------- | ----------------- |
-| `quantity`            | 6                | 3            | 3              | 6                 |
-| `price`               | 6                | 3            | 3              | 6                 |
-| `product_name` length | 8                | 4            | 4              | 8 (Note 1)        |
-| **Total**             |                  |              |                | **20**            |
+| Variable      | Total BVA Points | Valid Points | Invalid Points | BVA TCs Generated |
+| ------------- | ---------------- | ------------ | -------------- | ----------------- |
+| `quantity`    | 6                | 3            | 3              | 6                 |
+| `price`       | 6                | 3            | 3              | 6                 |
+| `name` length | 8                | 4            | 4              | 8 (Note 1)        |
+| **Total**     |                  |              |                | **20**            |
 
-> **Note 1:** For `product_name`, `-α` and `LB-1` are identical (length 0). FR07-BVA-019 covers both. The total BVA TCs generated is 20.
+> **Note 1:** For `name`, `-α` and `LB-1` are identical (length 0). FR07-BVA-019 covers both. The total BVA TCs generated is 20.
