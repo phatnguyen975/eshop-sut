@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 4                |
-| Total AI outputs reviewed       | 4                |
+| Total skill sessions logged     | 5                |
+| Total AI outputs reviewed       | 5                |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 0                |
 | Items added manually by student | 0                |
@@ -229,3 +229,66 @@ qa-artifacts/boundary-analysis/FR17-boundary-analysis.md
 | Accuracy            | 5            | Were generated items correct per SRS? Yes, rules properly adhered to.    |
 | Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, 9-point BVA properly applied. |
 | Items missed        | 0 count      | Number of classes AI did not generate                                    |
+
+## Interaction [5] — domain-coverage-reviewer
+
+| Field             | Value                                                                |
+| ----------------- | -------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                             |
+| **Date/Time**     | 2026-06-18 04:35                                                     |
+| **Feature**       | FR-17 — Coupon Management                                            |
+| **Skill Invoked** | domain-coverage-reviewer                                             |
+| **Task**          | Performed QA gate gap analysis and domain coverage review for FR-17. |
+
+### Prompt Given
+
+```text
+/domain-coverage-reviewer Use the domain-coverage-reviewer skill.
+
+Feature: FR-17 — Coupon Management
+
+Review the complete domain analysis at:
+qa-artifacts/domain-analysis/FR17-domain-analysis.md
+
+And the boundary analysis at:
+qa-artifacts/boundary-analysis/FR17-boundary-analysis.md
+
+Run all checks in the skill:
+- EP Guidelines compliance for each variable
+- Missing class detection (especially B1 through B6)
+- Isolation Rule compliance scan
+- Combination Rule scan
+- BVA completeness check
+
+Then write the AI gap analysis section answering:
+1. What did the AI generate correctly?
+2. What did the AI miss?
+3. Root cause for each miss
+4. Leave the "Lesson Learned" as a placeholder (I will write it in ai-critique.md)
+
+Append the output as Step 5 to:
+qa-artifacts/domain-analysis/FR17-domain-analysis.md
+```
+
+### AI Output Summary
+
+- Verified EP Guidelines compliance across all 8 variable sets (combinations of G1–G4).
+- Confirmed the Isolation Rule and Combination Rule were correctly enforced across all 72 TCs with zero violations.
+- Validated BVA completeness across the 5 ordered/numeric variables, verifying 35 distinct boundary points.
+- Produced the AI Gap Analysis explicitly detailing how the AI originally adhered too literally to SRS silence on date creation, thereby treating `expired_at` past dates as valid until corrected.
+
+### Student Review Notes
+
+- **Accepted as-is:** The coverage metrics are mathematically accurate and correctly reflect the manual adjustments made in the previous BVA step. The Gap Analysis accurately captured the most critical oversight.
+- **Modified:** None.
+- **Added manually:** None.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                               |
+| ------------------- | ------------ | ----------------------------------------------------------------------------------- |
+| Completeness        | 5            | Did AI cover all required gap elements? Yes, all requested metrics covered.         |
+| Accuracy            | 5            | Were generated items correct per SRS? Yes, gap reasoning was accurate.              |
+| Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, properly identified coverage compliance. |
+| Items missed        | 0 count      | Number of classes AI did not generate                                               |

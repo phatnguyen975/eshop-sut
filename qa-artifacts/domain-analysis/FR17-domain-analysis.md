@@ -218,3 +218,77 @@ Each TC contains **exactly 1 invalid input**. All other inputs drawn from valid 
 | Total ECs | Valid ECs | Invalid ECs | TCs for Valid | TCs for Invalid | Total TCs |
 | --------- | --------- | ----------- | ------------- | --------------- | --------- |
 | 41        | 13        | 28          | 5             | 32              | **37**    |
+
+## Step 5: Domain Coverage Review & AI Gap Analysis
+
+### 5.1 EP Guidelines Compliance
+
+| Variable            | Guideline Applied | Valid Classes | Invalid Classes | Status |
+| ------------------- | ----------------- | ------------- | --------------- | ------ |
+| `code`              | G3 + G4           | 2             | 3               | Pass   |
+| `type`              | G2                | 2             | 4               | Pass   |
+| `discount_value`    | G1 + G4           | 2             | 5               | Pass   |
+| `expired_at`        | G3 + G4           | 1             | 4               | Pass   |
+| `min_order_amount`  | G1                | 2             | 2               | Pass   |
+| `max_uses_per_user` | G1                | 2             | 4               | Pass   |
+| `id`                | G1 + G3           | 1             | 3               | Pass   |
+| `auth` + `role`     | G2                | 1             | 3               | Pass   |
+
+### 5.2 Missing Classes Found
+
+| #   | Missing Class                            | Reason                                       | Action Taken                            |
+| --- | ---------------------------------------- | -------------------------------------------- | --------------------------------------- |
+| 1   | `expired_at` past date at creation       | AI strictly followed SRS silence on creation | Corrected EC20 to Invalid during review |
+| 2   | Implicit limits (e.g. `code` length 255) | Often omitted unless explicitly modeled      | Covered by `+α` in BVA Phase            |
+
+### 5.3 Rule Violations Found
+
+| TC ID | Violation | Description                                                                             | Fix Applied |
+| ----- | --------- | --------------------------------------------------------------------------------------- | ----------- |
+| —     | None      | All invalid TCs correctly follow the Isolation Rule. Valid TCs follow Combination Rule. | —           |
+
+### 5.4 BVA Completeness
+
+| Variable            | BVA Applied | Points Generated | Missing Points |
+| ------------------- | ----------- | ---------------- | -------------- |
+| `discount_value`    | Yes         | 9                | None           |
+| `min_order_amount`  | Yes         | 6                | None           |
+| `max_uses_per_user` | Yes         | 6                | None           |
+| `expired_at`        | Yes         | 6                | None           |
+| `code` length       | Yes         | 8                | None           |
+
+### 5.5 AI Gap Analysis
+
+#### What AI Did Correctly
+
+- Successfully identified all direct and indirect input variables, including system state (`code_uniqueness`) and request headers (`auth_token`).
+- Perfectly enforced the Isolation Rule across 32 invalid equivalence partition test cases, ensuring no defect masking could occur.
+- Efficiently applied the Combination Rule to compress 13 valid classes into 5 happy-path test cases.
+- Implemented high-quality dynamic boundary generation for date fields (`TODAY`, `TODAY - 1 day`) to prevent brittle hardcoded dates.
+
+#### What AI Missed
+
+1. **`expired_at` past date invalidity at creation time**
+   - **Description:** Initially, the AI classified past dates for `expired_at` as a Valid class, observing that FR-09's expiry check happens at usage time and the creation SRS was silent.
+   - **Root cause:** Feature complexity / AI limitation — The AI strictly adhered to the literal explicit constraints of the SRS and failed to apply the implicit logical domain rule that creating an already-expired coupon serves no valid business purpose.
+
+#### Root Cause Summary
+
+| Category           | % Share | Description                                                  |
+| ------------------ | ------- | ------------------------------------------------------------ |
+| Prompt quality     | 0%      | Human explicitly provided high-risk constraints.             |
+| AI limitation      | 50%     | Struggles to prioritize logical deduction over literal text. |
+| Feature complexity | 50%     | SRS silence created ambiguity requiring human override.      |
+
+#### Lesson Learned
+
+AI excels at extracting explicit constraints from the SRS but struggles with implicit business logic and common sense. When the SRS is silent on a specific detail (like whether a newly created coupon can already be expired), the AI will default to a literal interpretation and allow it. As a QA engineer, my core value in collaborating with AI is providing the real-world business context and enforcing logical boundaries that the documentation misses.
+
+### 5.6 Final EC Count After Review
+
+| Category      | Before Review | Added/Modified | After Review |
+| ------------- | ------------- | -------------- | ------------ |
+| Valid ECs     | 14            | -1             | 13           |
+| Invalid ECs   | 27            | +1             | 28           |
+| BVA Points    | 35            | 0              | 35           |
+| **Total TCs** | 72            | 0              | 72           |
