@@ -31,7 +31,7 @@
 - **[BR-02]** The `code` field must be unique — the system must reject a duplicate coupon code already existing in the database. (per FR-17)
 - **[BR-03]** The `type` field is required and must be exactly one of the two enum values: `"percent"` or `"fixed"`. Any other value must be rejected. (per FR-17)
 - **[BR-04]** The `discount_value` field is required and must be a positive number (> 0). A value of 0 or any negative number must be rejected. (per FR-17)
-- **[BR-05]** The `expired_at` field is required and must be a valid date string. The SRS does not prohibit past dates at creation time — expiry is checked at coupon usage time (FR-09, C2). However, the format must be parseable. (per FR-17, FR-09)
+- **[BR-05]** The `expired_at` field is required and must be a valid date string. The date must be strictly >= the current date at the time of creation (it is invalid to create an already-expired coupon). The format must be parseable. (per FR-17, logical business rule)
 - **[BR-06]** The `min_order_amount` field is required and must be >= 0. A value of 0 is valid (meaning no minimum order threshold). Negative values must be rejected. (per FR-17)
 - **[BR-07]** The `max_uses_per_user` field is required and must be >= 1. A value of 0 is invalid — it would make the coupon permanently unusable. (per FR-17)
 - **[BR-08]** Only authenticated users with `role = 'admin'` may call the Create (`POST`) and Delete (`DELETE`) coupon admin endpoints. Unauthenticated requests receive HTTP 401; authenticated non-admin users receive HTTP 403. (per FR-12, SEC-02, SEC-03)
@@ -106,7 +106,7 @@ This is a **Web Admin UI** feature (not Mobile). Apply HTML/DOM semantics checks
   - `min_order_amount`: lower boundary = 0 (valid, just at boundary) vs. -1 (invalid)
   - `max_uses_per_user`: lower boundary = 1 (valid) vs. 0 (invalid)
   - `code` string length: test empty string (invalid) and very long string (potential DB truncation)
-  - `expired_at`: boundary at today's date (already-expired vs. future); past date at creation time (allowed per SRS)
+  - `expired_at`: boundary at today's date (today vs. yesterday); yesterday is invalid at creation time
 - **High-risk areas:**
   - Role-Auth bypass: user-role JWT calling admin coupon endpoints
   - `type` enum validation: what happens with values like `"PERCENT"` (uppercase), `""` (empty), `"discount"` (unknown)

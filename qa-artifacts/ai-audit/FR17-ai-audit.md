@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 2                |
-| Total AI outputs reviewed       | 2                |
+| Total skill sessions logged     | 3                |
+| Total AI outputs reviewed       | 3                |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 0                |
 | Items added manually by student | 0                |
@@ -62,13 +62,13 @@ Output the result to: qa-artifacts/requirements/FR17-requirement-analysis.md
 
 ## Interaction [2] — domain-identifier
 
-| Field             | Value                                              |
-| ----------------- | -------------------------------------------------- |
-| **Tool**          | Antigravity CLI (Gemini 3.1 Pro High backend)      |
-| **Date/Time**     | 2026-06-18 01:44                                   |
-| **Feature**       | FR-17 — Coupon Management (Admin CRUD)             |
-| **Skill Invoked** | domain-identifier                                  |
-| **Task**          | Identify all input and output variables for FR-17. |
+| Field             | Value                                                |
+| ----------------- | ---------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Claude Sonnet 4.6 Thinking backend) |
+| **Date/Time**     | 2026-06-18 01:44                                     |
+| **Feature**       | FR-17 — Coupon Management (Admin CRUD)               |
+| **Skill Invoked** | domain-identifier                                    |
+| **Task**          | Identify all input and output variables for FR-17.   |
 
 ### Prompt Given
 
@@ -112,3 +112,61 @@ Append the output as Step 1 to: qa-artifacts/domain-analysis/FR17-domain-analysi
 | Accuracy            | 5            | Were generated items correct per SRS? Yes, fully accurate.                                 |
 | Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, properly identified EP and boundary candidates. |
 | Items missed        | 0 count      | Number of classes AI did not generate                                                      |
+
+## Interaction [3] — equivalence-partitioning
+
+| Field             | Value                                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Claude Sonnet 4.6 Thinking backend)                                   |
+| **Date/Time**     | 2026-06-18 03:38                                                                       |
+| **Feature**       | FR-17 — Coupon Management                                                              |
+| **Skill Invoked** | equivalence-partitioning                                                               |
+| **Task**          | Applied EP guidelines to all FR-17 variables, optimizing valid and invalid test cases. |
+
+### Prompt Given
+
+```text
+Feature: FR-17 — Coupon Management (Admin CRUD)
+
+The variable list is ready at:
+qa-artifacts/domain-analysis/FR17-domain-analysis.md (Step 1 section)
+
+Apply all 4 EP Guidelines to EVERY input variable identified.
+Then apply the Combination Rule for valid classes and the Isolation Rule for invalid classes.
+
+Important — do NOT miss these for FR-17:
+Authorization (FR-17 and any admin endpoint) — 3 auth classes:
+1. No token → 401
+2. Valid user token (non-admin) → 403
+3. Valid admin token → 200
+
+For FR-17 add:
+- User JWT token calling admin endpoint as a separate auth invalid class
+- discount_value = 0 exactly as a separate invalid class (boundary at zero)
+
+Append the output as Step 2 and Step 3 to:
+qa-artifacts/domain-analysis/FR17-domain-analysis.md
+```
+
+### AI Output Summary
+
+- Generated 41 Equivalence Classes across 11 variables (14 valid, 27 invalid).
+- Successfully enforced the Isolation Rule, resulting in exactly one invalid input per test case across 31 invalid TCs.
+- Successfully applied the Combination Rule to consolidate valid classes into 6 valid TCs.
+- Correctly implemented specific required classes such as `discount_value = 0` and role-based Auth boundaries (User JWT calling admin endpoint).
+
+### Student Review Notes
+
+- **Accepted as-is:** The AI perfectly navigated the logical constraints of the EShop SRS. No Defect Masking occurred.
+- **Modified:** None.
+- **Added manually:** None.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                            |
+| ------------------- | ------------ | -------------------------------------------------------------------------------- |
+| Completeness        | 5            | Did AI cover all required classes? Yes.                                          |
+| Accuracy            | 5            | Were generated items correct per SRS? Yes.                                       |
+| Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, strict isolation/combination applied. |
+| Items missed        | 0 count      | Number of classes AI did not generate                                            |
