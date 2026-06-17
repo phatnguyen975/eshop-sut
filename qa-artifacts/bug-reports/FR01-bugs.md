@@ -7,8 +7,7 @@
 - `qa-artifacts/test-cases/FR01-test-cases.md`
 - `qa-artifacts/execution-results/FR01-execution-results.md`
 
-**Total bugs:** 10  
-**Session recording:** pending upload
+**Total bugs:** 10
 
 ## BUG-001
 
