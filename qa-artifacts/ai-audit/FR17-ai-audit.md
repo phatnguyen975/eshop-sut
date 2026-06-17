@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 1                |
-| Total AI outputs reviewed       | 1                |
+| Total skill sessions logged     | 2                |
+| Total AI outputs reviewed       | 2                |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 0                |
 | Items added manually by student | 0                |
@@ -59,3 +59,56 @@ Output the result to: qa-artifacts/requirements/FR17-requirement-analysis.md
 | Accuracy            | 5            | Were generated items correct per SRS? Yes, fully accurate.                                        |
 | Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? N/A for requirement analysis, but followed all skill steps. |
 | Items missed        | 0 count      | Number of classes AI did not generate                                                             |
+
+## Interaction [2] — domain-identifier
+
+| Field             | Value                                              |
+| ----------------- | -------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro High backend)      |
+| **Date/Time**     | 2026-06-18 01:44                                   |
+| **Feature**       | FR-17 — Coupon Management (Admin CRUD)             |
+| **Skill Invoked** | domain-identifier                                  |
+| **Task**          | Identify all input and output variables for FR-17. |
+
+### Prompt Given
+
+```text
+/domain-identifier Use the domain-identifier skill.
+
+Feature: FR-17 — Coupon Management
+
+The requirement analysis is complete. Read it at:
+qa-artifacts/requirements/FR17-requirement-analysis.md
+
+Also read: .agents/context/eshop-srs.md and .agents/context/eshop-api-spec.md
+
+Identify ALL input variables (direct and hidden/indirect) and ALL output variables
+(direct and hidden/indirect) for this feature.
+
+Pay special attention to the Common AI Blind Spots section in the skill.
+
+Append the output as Step 1 to: qa-artifacts/domain-analysis/FR17-domain-analysis.md
+```
+
+### AI Output Summary
+
+- Identified 7 direct inputs and 4 indirect inputs (including `auth_token`, `user_role`, `code_uniqueness`, `coupon_id_existence`).
+- Identified 6 direct outputs and 6 indirect outputs (including DB INSERT/DELETE states and DOM checks).
+- Listed all variables requiring EP and identified valid boundary candidates for BVA (`discount_value`, `min_order_amount`, `max_uses_per_user`, etc.).
+- Correctly assigned channels to each variable (UI, API, State, DOM).
+
+### Student Review Notes
+
+- **Accepted as-is:** The output flawlessly captured the common AI blind spots, particularly the hidden DB states and JWT role requirements.
+- **Modified:** None.
+- **Added manually:** None.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                                      |
+| ------------------- | ------------ | ------------------------------------------------------------------------------------------ |
+| Completeness        | 5            | Did AI cover all required variables? Yes, covered all direct and hidden variables.         |
+| Accuracy            | 5            | Were generated items correct per SRS? Yes, fully accurate.                                 |
+| Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, properly identified EP and boundary candidates. |
+| Items missed        | 0 count      | Number of classes AI did not generate                                                      |
