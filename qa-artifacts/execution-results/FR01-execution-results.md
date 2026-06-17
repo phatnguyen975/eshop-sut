@@ -21,8 +21,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext `Test@123`. `[Manual UI]` Password incorrectly rejected due to standard special character (requires space instead).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-002 — Verify user registration rejects submission when the name field is empty
 
@@ -37,8 +35,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` Relies on native HTML5 tooltip instead of inline error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-003 — Verify registration API rejects request with name field absent from JSON body
 
@@ -52,8 +48,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-004 — Verify user registration rejects email that does not contain an @ symbol
 
@@ -68,8 +62,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` Displayed weak password error instead of invalid email error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-005 — Verify user registration rejects email with no domain part after the @ symbol
 
@@ -84,8 +76,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` Blocked by incorrect password validation.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-006 — Verify user registration rejects email with no local part before the @ symbol
 
@@ -100,8 +90,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` Blocked by incorrect password validation.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-007 — Verify user registration rejects email that is already registered in the system
 
@@ -116,8 +104,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 409). `[Manual UI]` Blocked by incorrect password validation logic.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-008 — Verify user registration rejects submission when the email field is empty
 
@@ -132,8 +118,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` Relies on native HTML5 tooltip.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-009 — Verify registration API rejects request with email field absent from JSON body
 
@@ -147,8 +131,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-010 — Verify user registration rejects password shorter than the minimum required 8 characters
 
@@ -163,8 +145,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` UI correctly blocked and showed inline error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-011 — Verify user registration rejects password that contains no uppercase letter
 
@@ -179,8 +159,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` UI correctly blocked and showed inline error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-012 — Verify user registration rejects password that contains no lowercase letter
 
@@ -195,8 +173,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` UI correctly blocked and showed inline error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-013 — Verify user registration rejects password that contains no numeric digit
 
@@ -211,8 +187,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` UI correctly blocked and showed inline error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-014 — Verify user registration rejects password that contains no special character at all
 
@@ -227,8 +201,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` UI correctly blocked and showed inline error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-015 — Verify user registration rejects password containing a special character outside the allowed set `@$!%*?&`
 
@@ -243,8 +215,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` UI correctly blocked and showed inline error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-016 — Verify user registration rejects submission when the password field is empty
 
@@ -259,8 +229,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` Relies on native HTML5 tooltip instead of inline error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-017 — Verify registration API rejects request with password field absent from JSON body
 
@@ -274,8 +242,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-018 — Verify user registration rejects submission when confirm password does not match password
 
@@ -290,8 +256,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Manual UI]` Confirm Password input field is entirely missing from the UI.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-019 — Verify user registration rejects submission when the confirm password field is empty
 
@@ -305,8 +269,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Manual UI]` Confirm Password input field is entirely missing from the UI.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-EP-020 — Verify registration accepts name containing XSS payload and renders it safely on UI without script execution
 
@@ -322,8 +284,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext. `[DOM]` XSS payload escaped and not executed.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-001 — Verify user registration rejects password at absolute minimum length (0 chars — empty string)
 
@@ -337,8 +297,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-002 — Verify user registration rejects password of exactly 7 characters, one below the minimum required length of 8
 
@@ -353,8 +311,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400). `[Manual UI]` UI correctly blocked and showed inline error.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-003 — Verify user registration accepts password of exactly 8 characters at the lower boundary
 
@@ -370,8 +326,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext `Test@123`. `[Manual UI]` Rejected valid password (requires space).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-004 — Verify user registration accepts password of 9 characters, one above the lower boundary
 
@@ -386,8 +340,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext `Test@1234`.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-005 — Verify user registration accepts password of 15 characters at nominal length
 
@@ -402,8 +354,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext `TestPassw0rd!Ab`.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-006 — Verify system behavior when password reaches absolute maximum length of 300 characters
 
@@ -417,8 +367,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400/500).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-007 — Verify user registration rejects name at absolute minimum length (0 chars — empty string)
 
@@ -432,8 +380,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-008 — Verify user registration accepts name of exactly 1 character at the lower boundary
 
@@ -448,8 +394,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-009 — Verify user registration accepts name of 2 characters, one above the lower boundary
 
@@ -463,8 +407,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-010 — Verify user registration accepts name of 12 characters at nominal length
 
@@ -478,8 +420,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-011 — Verify user registration accepts name of 254 characters, one below the assumed DB VARCHAR upper limit
 
@@ -493,8 +433,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-012 — Verify user registration accepts name of 255 characters at the assumed DB VARCHAR upper boundary
 
@@ -508,8 +446,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-013 — Verify system behavior when name exceeds the assumed DB VARCHAR limit by 1 character
 
@@ -523,8 +459,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400/500).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-014 — Verify system behavior when name reaches absolute system maximum of 500 characters
 
@@ -537,8 +471,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400/500).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-015 — Verify user registration accepts email of 16 characters at nominal length
 
@@ -552,8 +484,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-016 — Verify user registration accepts email of 255 characters at the assumed DB VARCHAR upper boundary
 
@@ -567,8 +497,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` DB password stored as plaintext.
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-017 — Verify system behavior when email exceeds the assumed DB VARCHAR limit by 1 character
 
@@ -582,8 +510,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400/500).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ### FR01-BVA-018 — Verify system behavior when email reaches absolute system maximum of 300 characters
 
@@ -596,8 +522,6 @@
 
 - **Status:** FAIL
 - **Observed Details:** `[Automated]` API returned HTTP 200 (expected 400/500).
-- **Bug Created:**
-- **Evidence:** Script output + UI review
 
 ## Execution Summary
 
@@ -610,4 +534,3 @@
 | Blocked    | 0       |
 | Skipped    | 0       |
 | Pass Rate  | 0%      |
-| Bugs Found | Pending |
