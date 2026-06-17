@@ -23,7 +23,7 @@
 | **Priority**     | Immediate                                                                                                                                                                                                                                |
 | **Reported by**  | 23127449 - Nguyến Tấn Phát                                                                                                                                                                                                               |
 | **Date**         | 2026-06-16                                                                                                                                                                                                                               |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                                                                                                                                                                            |
+| **GitHub Issue** | [#11](https://github.com/phatnguyen975/eshop-sut/issues/11)                                                                                                                                                                              |
 
 ### Environment
 
@@ -99,7 +99,7 @@ Specifically:
 | **Priority**     | High                                                                                                     |
 | **Reported by**  | 23127449 - Nguyến Tấn Phát                                                                               |
 | **Date**         | 2026-06-16                                                                                               |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                                            |
+| **GitHub Issue** | [#12](https://github.com/phatnguyen975/eshop-sut/issues/12)                                              |
 
 ### Environment
 
@@ -171,7 +171,7 @@ Specifically:
 | **Priority**     | Immediate                                                                                                   |
 | **Reported by**  | 23127449 - Nguyến Tấn Phát                                                                                  |
 | **Date**         | 2026-06-16                                                                                                  |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                                               |
+| **GitHub Issue** | [#13](https://github.com/phatnguyen975/eshop-sut/issues/13)                                                 |
 
 ### Environment
 
@@ -235,7 +235,7 @@ Specifically:
 | **Priority**     | High                                                                                                       |
 | **Reported by**  | 23127449 - Nguyến Tấn Phát                                                                                 |
 | **Date**         | 2026-06-16                                                                                                 |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                                              |
+| **GitHub Issue** | [#14](https://github.com/phatnguyen975/eshop-sut/issues/14)                                                |
 
 ### Environment
 
@@ -296,7 +296,7 @@ Specifically:
 | **Priority**     | Medium                                                                                            |
 | **Reported by**  | 23127449 - Nguyến Tấn Phát                                                                        |
 | **Date**         | 2026-06-16                                                                                        |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                                     |
+| **GitHub Issue** | [#15](https://github.com/phatnguyen975/eshop-sut/issues/15)                                       |
 
 ### Environment
 
@@ -345,19 +345,19 @@ Specifically:
 
 ## BUG-006
 
-| Field            | Value                                                      |
-| ---------------- | ---------------------------------------------------------- |
-| **Bug ID**       | BUG-006                                                    |
-| **Feature**      | FR-07 — Shopping Cart                                      |
-| **Linked TCs**   | FR07-DOM-H1                                                |
-| **Channel**      | DOM                                                        |
-| **Summary**      | Cart page has 0 <h1> tags instead of exactly 1 (per FR-21) |
-| **Status**       | New                                                        |
-| **Severity**     | Cosmetic                                                   |
-| **Priority**     | Low                                                        |
-| **Reported by**  | 23127449 - Nguyến Tấn Phát                                 |
-| **Date**         | 2026-06-16                                                 |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_              |
+| Field            | Value                                                       |
+| ---------------- | ----------------------------------------------------------- |
+| **Bug ID**       | BUG-006                                                     |
+| **Feature**      | FR-07 — Shopping Cart                                       |
+| **Linked TCs**   | FR07-DOM-H1                                                 |
+| **Channel**      | DOM                                                         |
+| **Summary**      | Cart page has 0 <h1> tags instead of exactly 1 (per FR-21)  |
+| **Status**       | New                                                         |
+| **Severity**     | Cosmetic                                                    |
+| **Priority**     | Low                                                         |
+| **Reported by**  | 23127449 - Nguyến Tấn Phát                                  |
+| **Date**         | 2026-06-16                                                  |
+| **GitHub Issue** | [#16](https://github.com/phatnguyen975/eshop-sut/issues/16) |
 
 ### Environment
 
@@ -477,7 +477,7 @@ Specifically:
 | **Priority**     | Low                                                                   |
 | **Reported by**  | 23127449 - Nguyến Tấn Phát                                            |
 | **Date**         | 2026-06-16                                                            |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                         |
+| **GitHub Issue** | [#17](https://github.com/phatnguyen975/eshop-sut/issues/17)           |
 
 ### Environment
 
@@ -597,12 +597,12 @@ Specifically:
 
 ## Bug Summary Table
 
-| Bug ID  | Linked TCs                     | Channel | Summary (brief)                                              | Severity | Priority  | GitHub Issue |
-| ------- | ------------------------------ | ------- | ------------------------------------------------------------ | -------- | --------- | ------------ |
-| BUG-001 | FR07-EP-001, FR07-BVA-003+     | API     | POST /api/cart fails to persist cart items in database       | Fatal    | Immediate | _(pending)_  |
-| BUG-002 | FR07-EP-008~020, FR07-BVA-001+ | API     | POST /api/cart returns HTTP 200 on completely invalid data   | Serious  | High      | _(pending)_  |
-| BUG-003 | FR07-EP-004, FR07-EP-005       | UI      | UI deletes item instantly without dialog or API request      | Fatal    | Immediate | _(pending)_  |
-| BUG-004 | FR07-EP-002                    | UI      | UI creates duplicate cart rows instead of merging quantities | Serious  | High      | _(pending)_  |
-| BUG-005 | FR07-EP-001                    | UI      | Missing quantity selector and +/- buttons on UI              | Medium   | Medium    | _(pending)_  |
-| BUG-006 | FR07-DOM-H1                    | DOM     | Page has 0 `<h1>` tags instead of exactly 1                  | Cosmetic | Low       | _(pending)_  |
-| BUG-007 | FR07-DOM-TOTAL                 | DOM     | Cart page displays wrong total label "Tổng tạm tính"         | Medium   | Low       | _(pending)_  |
+| Bug ID  | Linked TCs                     | Channel | Summary (brief)                                              | Severity | Priority  | GitHub Issue                                                |
+| ------- | ------------------------------ | ------- | ------------------------------------------------------------ | -------- | --------- | ----------------------------------------------------------- |
+| BUG-001 | FR07-EP-001, FR07-BVA-003+     | API     | POST /api/cart fails to persist cart items in database       | Fatal    | Immediate | [#11](https://github.com/phatnguyen975/eshop-sut/issues/11) |
+| BUG-002 | FR07-EP-008~020, FR07-BVA-001+ | API     | POST /api/cart returns HTTP 200 on completely invalid data   | Serious  | High      | [#12](https://github.com/phatnguyen975/eshop-sut/issues/12) |
+| BUG-003 | FR07-EP-004, FR07-EP-005       | UI      | UI deletes item instantly without dialog or API request      | Fatal    | Immediate | [#13](https://github.com/phatnguyen975/eshop-sut/issues/13) |
+| BUG-004 | FR07-EP-002                    | UI      | UI creates duplicate cart rows instead of merging quantities | Serious  | High      | [#14](https://github.com/phatnguyen975/eshop-sut/issues/14) |
+| BUG-005 | FR07-EP-001                    | UI      | Missing quantity selector and +/- buttons on UI              | Medium   | Medium    | [#15](https://github.com/phatnguyen975/eshop-sut/issues/15) |
+| BUG-006 | FR07-DOM-H1                    | DOM     | Page has 0 `<h1>` tags instead of exactly 1                  | Cosmetic | Low       | [#16](https://github.com/phatnguyen975/eshop-sut/issues/16) |
+| BUG-007 | FR07-DOM-TOTAL                 | DOM     | Cart page displays wrong total label "Tổng tạm tính"         | Medium   | Low       | [#17](https://github.com/phatnguyen975/eshop-sut/issues/17) |

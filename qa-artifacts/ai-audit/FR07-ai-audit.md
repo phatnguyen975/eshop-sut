@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 9                |
-| Total AI outputs reviewed       | 9                |
+| Total skill sessions logged     | 10               |
+| Total AI outputs reviewed       | 10               |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 3                |
 | Items added manually by student | 1                |
@@ -495,3 +495,56 @@ Wait for my confirmation, then generate the complete qa-artifacts/bug-reports/FR
 | Accuracy            | 5            | Severities and priorities were perfectly aligned with EShop SRS definitions.      |
 | Guideline adherence | 5            | Followed the one-sentence summary rule and root cause grouping principle exactly. |
 | Items missed        | 0            | No FAIL TCs were left behind.                                                     |
+
+## Interaction [10] — github-issue-writer
+
+| Field             | Value                                                                     |
+| ----------------- | ------------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                                  |
+| **Date/Time**     | 2026-06-18 00:20                                                          |
+| **Feature**       | FR-07 — Shopping Cart                                                     |
+| **Skill Invoked** | github-issue-writer                                                       |
+| **Task**          | Generate GitHub Issues Guide and sync assigned numbers to the bug report. |
+
+### Prompt Given
+
+```text
+/github-issue-writer Use the github-issue-writer skill.
+
+Feature: FR-07 — Shopping Cart
+
+Read all pending bugs from:
+- qa-artifacts/bug-reports/FR07-bugs.md (process all entries where GitHub Issue is pending)
+- qa-artifacts/execution-results/FR07-execution-results.md
+
+Group GitHub repo URL: https://github.com/phatnguyen975/eshop-sut/.
+
+Step 1: Scan the bug reports and print the list of pending bugs to process.
+Step 2: STOP AND WAIT for my confirmation. DO NOT generate the guide file yet.
+Step 3: Generate the complete guide file at: scripts/github-issues/FR07-github-issues-guide.md
+
+All placeholders must be filled. No {value} text may remain in any issue body.
+```
+
+### AI Output Summary
+
+- Successfully extracted and listed the 7 pending bugs along with their severities.
+- Paused execution and waited for human confirmation before writing the file.
+- Generated `scripts/github-issues/FR07-github-issues-guide.md` with fully formatted issues, labels derived from channels (e.g., `api`, `ui`, `dom`), and no placeholders.
+- Synchronized the human-provided issue numbers (#11 to #17) back into `qa-artifacts/bug-reports/FR07-bugs.md` by replacing all `_(pending)_` markers with direct GitHub issue URLs.
+
+### Student Review Notes
+
+- **Accepted as-is:** The generated markdown was perfectly formatted for GitHub's issue tracker. The automatic categorization of bugs into `api`, `ui`, and `dom` labels was highly accurate and saves significant triage time.
+- **Modified:** None
+- **Added manually:** None
+- **Rejected:** None
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                            |
+| ------------------- | ------------ | ---------------------------------------------------------------- |
+| Completeness        | 5            | Generated all 7 issues with all fields filled.                   |
+| Accuracy            | 5            | All formatting and labels were correct.                          |
+| Guideline adherence | 5            | Paused for confirmation, followed sync-back procedure perfectly. |
+| Items missed        | 0            | No issues or labels were missed.                                 |

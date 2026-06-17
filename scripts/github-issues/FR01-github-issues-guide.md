@@ -1105,20 +1105,20 @@ _Screenshot file: `evidence/screenshots/FR01/BUG-010.png`_
 
 After posting all **10** issues to **https://github.com/phatnguyen975/eshop-sut/issues**:
 
-- [ ] 10 issues submitted
-- [ ] Each issue has the correct labels applied
-- [ ] Screenshots attached where listed (UI/DOM bugs)
-- [ ] Issue numbers noted:
-  - BUG-001 → #___
-  - BUG-002 → #___
-  - BUG-003 → #___
-  - BUG-004 → #___
-  - BUG-005 → #___
-  - BUG-006 → #___
-  - BUG-007 → #___
-  - BUG-008 → #___
-  - BUG-009 → #___
-  - BUG-010 → #___
+- [X] 10 issues submitted
+- [X] Each issue has the correct labels applied
+- [X] Screenshots attached where listed (UI/DOM bugs)
+- [X] Issue numbers noted:
+  - BUG-001 → #1
+  - BUG-002 → #2
+  - BUG-003 → #3
+  - BUG-004 → #4
+  - BUG-005 → #5
+  - BUG-006 → #6
+  - BUG-007 → #7
+  - BUG-008 → #8
+  - BUG-009 → #9
+  - BUG-010 → #10
 
 **When ready, provide issue numbers by typing:**
 
