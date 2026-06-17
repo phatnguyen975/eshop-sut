@@ -2,12 +2,12 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 7                |
-| Total AI outputs reviewed       | 7                |
+| Total skill sessions logged     | 8                |
+| Total AI outputs reviewed       | 8                |
 | Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 0                |
-| Items added manually by student | 0                |
-| Items rejected                  | 0                |
+| Items modified by student       | 3                |
+| Items added manually by student | 1                |
+| Items rejected                  | 2                |
 
 ## Interaction [1] — requirement-analyzer
 
@@ -409,3 +409,45 @@ End with a clear verdict: APPROVED or NEEDS REVISION.
 | Accuracy            | 5            | Correctly identified 0 violations.       |
 | Guideline adherence | 5            | Checked Tiers 1-3 perfectly.             |
 | Items missed        | 0            | Did not miss any issues.                 |
+
+## Interaction 8 — test-execution-assistant
+
+| Field             | Value                                                         |
+| ----------------- | ------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                      |
+| **Date/Time**     | 2026-06-17 18:35                                              |
+| **Feature**       | FR-07 — Shopping Cart                                         |
+| **Skill Invoked** | test-execution-assistant                                      |
+| **Task**          | Generate test execution artifacts and record phase B outcomes |
+
+### Prompt Given
+
+```text
+/test-execution-assistant Use the test-execution-assistant skill.
+Generate the execution scripts for Phase A (Rule 8 cross-FR dependencies, Rule 7 large strings, Pattern E).
+[Followed by Phase B prompt feeding back terminal output and manual UI notes].
+```
+
+### AI Output Summary
+
+- Categorized all 42 Test Cases and generated the classification table (39 SCRIPT-FULL, 2 SCRIPT-PARTIAL, 1 MANUAL, 1 DOM).
+- Generated the bash script `FR07-api-tests.sh` incorporating dynamic product creation (`TEST_PROD_ID`) and BVA boundary setups.
+- Generated DOM checks script `FR07-dom-checks.js` with XSS verification logic.
+- Processed Phase B terminal feedback, accurately identifying major architectural defects (missing `cart_items` table, missing input validation).
+- Updated both `execution-results.md` and `test-cases.md` with Observed Results and Status correctly.
+
+### Student Review Notes
+
+- **Modified:** Heavily refactored the generated bash script during Phase A to isolate test data. Replaced the generic SQLite `teardown_db` with a "Fresh Product ID per TC" strategy to bypass the RAM-based State Pollution bug. Removed hybrid API/UI steps (EP-004, EP-005) from the script and converted them to 100% Manual Execution due to disconnected Frontend state.
+- **Added manually:** Added specific DOM checks for static UI elements ("Tổng cộng" and "Tiếp tục mua sắm").
+- **Rejected:** The initial AI logic that marked DB SQLite errors as "PASS" simply because the `cart_items` table didn't exist. Rejected the initial DOM-XSS logic (looking for escaped text) and replaced it with a strict `innerHTML` tag check.
+- **Accepted as-is:** The final structured summaries, which served as a great baseline before customization.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                                                                |
+| ------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
+| Completeness        | 4            | Covered all required files and phases, though struggled initially with table parsing in Phase B.                     |
+| Accuracy            | 3            | Failed to interpret backend architecture nuances properly initially, required human refactoring for state isolation. |
+| Guideline adherence | 5            | Followed phase protocol and strict formatting rules.                                                                 |
+| Items missed        | 0 count      | All TCs were successfully tracked and logged.                                                                        |
