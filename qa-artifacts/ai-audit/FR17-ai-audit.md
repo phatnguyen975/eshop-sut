@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 5                |
-| Total AI outputs reviewed       | 5                |
+| Total skill sessions logged     | 6                |
+| Total AI outputs reviewed       | 6                |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 0                |
 | Items added manually by student | 0                |
@@ -273,7 +273,7 @@ qa-artifacts/domain-analysis/FR17-domain-analysis.md
 ### AI Output Summary
 
 - Verified EP Guidelines compliance across all 8 variable sets (combinations of G1–G4).
-- Confirmed the Isolation Rule and Combination Rule were correctly enforced across all 72 TCs with zero violations.
+- Confirmed the Isolation Rule and Combination Rule were correctly enforced across all 73 TCs with zero violations.
 - Validated BVA completeness across the 5 ordered/numeric variables, verifying 35 distinct boundary points.
 - Produced the AI Gap Analysis explicitly detailing how the AI originally adhered too literally to SRS silence on date creation, thereby treating `expired_at` past dates as valid until corrected.
 
@@ -292,3 +292,64 @@ qa-artifacts/domain-analysis/FR17-domain-analysis.md
 | Accuracy            | 5            | Were generated items correct per SRS? Yes, gap reasoning was accurate.              |
 | Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, properly identified coverage compliance. |
 | Items missed        | 0 count      | Number of classes AI did not generate                                               |
+
+## Interaction [6] — test-case-generator
+
+| Field             | Value                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                                              |
+| **Date/Time**     | 2026-06-18 05:16                                                                      |
+| **Feature**       | FR-17 — Coupon Management                                                             |
+| **Skill Invoked** | test-case-generator                                                                   |
+| **Task**          | Generated the complete test cases table containing 73 TCs (38 EP + 35 BVA) for FR-17. |
+
+### Prompt Given
+
+```text
+/test-case-generator Use the test-case-generator skill.
+
+Feature: FR-17 — Coupon Management (Admin CRUD)
+
+Read the complete domain analysis (including the gap analysis) at:
+qa-artifacts/domain-analysis/FR17-domain-analysis.md
+
+And the boundary analysis at:
+qa-artifacts/boundary-analysis/FR17-boundary-analysis.md
+
+Generate the full test case table with both EP TCs (FR17-EP-001, 002, ...) and
+BVA TCs (FR17-BVA-001, 002, ...).
+
+For every TC:
+- Use the "Action + Function + Operating Condition" objective syntax
+- Include all 9 mandatory columns including Test Channel and EC/BVA Ref
+- Write specific concrete Expected Results citing the FR number (e.g., per FR-17)
+- Add a Teardown step for any TC that creates persistent data
+- Assign the correct Test Channel (UI / API / Role-Auth / DOM / State)
+- Steps of each TC must as most detailed as
+
+Save the output to (Do not wait for my APPROVAL):
+qa-artifacts/test-cases/FR17-test-cases.md
+```
+
+### AI Output Summary
+
+- Generated a complete, consolidated test case table containing exactly 73 TCs (38 EP + 35 BVA).
+- Accurately mapped all EP classes and BVA points from previous analysis phases into concrete, actionable tests without missing any classes.
+- Consistently applied the `Action + Function + Operating Condition` objective syntax, included explicit Expected Results citing `FR-17`, and added appropriate Teardown steps to happy-path cases.
+- Provided a complete TC Summary Table at the end confirming 100% EC and BVA point coverage.
+
+### Student Review Notes
+
+- **Accepted as-is:** The generated Test Case table was structurally excellent and comprehensive.
+- **Modified:** None.
+- **Added manually:** None.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                        |
+| ------------------- | ------------ | ---------------------------------------------------------------------------- |
+| Completeness        | 5            | Did AI cover all required classes? Yes, generated all 73 expected TCs.       |
+| Accuracy            | 5            | Were generated items correct per SRS? Yes, format and data were exact.       |
+| Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, maintained Isolation/Combination. |
+| Items missed        | 0 count      | Number of classes AI did not generate.                                       |

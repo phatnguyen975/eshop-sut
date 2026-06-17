@@ -167,6 +167,7 @@ All valid classes combined efficiently into 6 test cases.
 | FR17-EP-003 | POST      | EC02, EC06, EC12, EC19, EC25, EC28, EC38 | `code="<script>alert(1)</script>"`, all other valid — SEC-04 XSS safety check; expect 200 OK + safe display                                |
 | FR17-EP-004 | DELETE    | EC34, EC38                               | DELETE `/api/admin/coupons/1` with admin JWT — delete existing coupon happy path                                                           |
 | FR17-EP-005 | GET       | EC38                                     | GET `/api/coupons` with admin JWT — retrieve coupon list                                                                                   |
+| FR17-EP-006 | UI / DOM  | EC38                                     | Navigate to UI with Admin JWT — Verify static DOM elements (`h1`, required `*`, `type="date"`, button semantics)                           |
 
 > **Valid ECs covered:** EC01, EC02, EC06, EC07, EC12, EC17, EC19, EC24, EC25, EC28, EC29, EC34, EC38 **(13/13 — 100% coverage)**
 
@@ -217,7 +218,7 @@ Each TC contains **exactly 1 invalid input**. All other inputs drawn from valid 
 
 | Total ECs | Valid ECs | Invalid ECs | TCs for Valid | TCs for Invalid | Total TCs |
 | --------- | --------- | ----------- | ------------- | --------------- | --------- |
-| 41        | 13        | 28          | 5             | 32              | **37**    |
+| 41        | 13        | 28          | 6             | 32              | **38**    |
 
 ## Step 5: Domain Coverage Review & AI Gap Analysis
 
@@ -291,4 +292,4 @@ AI excels at extracting explicit constraints from the SRS but struggles with imp
 | Valid ECs     | 14            | -1             | 13           |
 | Invalid ECs   | 27            | +1             | 28           |
 | BVA Points    | 35            | 0              | 35           |
-| **Total TCs** | 72            | 0              | 72           |
+| **Total TCs** | 73            | 0              | 73           |
