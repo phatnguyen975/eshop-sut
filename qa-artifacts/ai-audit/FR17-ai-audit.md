@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 3                |
-| Total AI outputs reviewed       | 3                |
+| Total skill sessions logged     | 4                |
+| Total AI outputs reviewed       | 4                |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 0                |
 | Items added manually by student | 0                |
@@ -170,3 +170,62 @@ qa-artifacts/domain-analysis/FR17-domain-analysis.md
 | Accuracy            | 5            | Were generated items correct per SRS? Yes.                                       |
 | Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, strict isolation/combination applied. |
 | Items missed        | 0 count      | Number of classes AI did not generate                                            |
+
+## Interaction [4] — boundary-value-analysis
+
+| Field             | Value                                                                            |
+| ----------------- | -------------------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Claude Sonnet 4.6 Thinking backend)                             |
+| **Date/Time**     | 2026-06-18 04:18                                                                 |
+| **Feature**       | FR-17 — Coupon Management                                                        |
+| **Skill Invoked** | boundary-value-analysis                                                          |
+| **Task**          | Applied the 9-point BVA strategy to all ordered and numeric variables for FR-17. |
+
+### Prompt Given
+
+```text
+/boundary-value-analysis Use the boundary-value-analysis skill.
+
+Feature: FR-17 — Coupon Management
+
+The EP classes are ready at:
+qa-artifacts/domain-analysis/FR17-domain-analysis.md (Step 2+3 section)
+
+From that output, identify all variables with ordered/numeric constraints and apply
+the 9-point BVA strategy to each one.
+
+Remember to apply BVA to:
+- Numeric fields (quantity, discount_value, min_order_amount, max_uses_per_user)
+- String LENGTH fields (password length, name length, coupon code length)
+- Date fields (expired_at)
+- NOT just numbers — string length is a boundary variable too
+
+For any UB that is not specified in the SRS, note it as "unspecified" and include
+a +alpha test case with a very large value.
+
+Save the output to:
+qa-artifacts/boundary-analysis/FR17-boundary-analysis.md
+```
+
+### AI Output Summary
+
+- Identified 5 boundary variables: `discount_value`, `min_order_amount`, `max_uses_per_user`, `expired_at`, and `code` length. Excluded unordered variables.
+- Generated 35 BVA test cases, enforcing the isolation rule (exactly one invalid point per TC with valid baselines for others).
+- Authored dynamic date bounds (`TODAY`, `TODAY - 1 day`) for `expired_at` rather than hardcoding stale dates.
+- Managed unspecified upper bounds via +α tests (e.g. 9999999 for discount, 300 chars for code) and noted semantic upper bound (100) for percent discounts.
+
+### Student Review Notes
+
+- **Accepted as-is:** The BVA execution was flawless and perfectly synchronized with the previous manual overrides. The dynamic date generation logic for `expired_at` was an exceptionally high-quality addition.
+- **Modified:** None.
+- **Added manually:** None.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                    |
+| ------------------- | ------------ | ------------------------------------------------------------------------ |
+| Completeness        | 5            | Did AI cover all required variables? Yes, 5 variables identified.        |
+| Accuracy            | 5            | Were generated items correct per SRS? Yes, rules properly adhered to.    |
+| Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, 9-point BVA properly applied. |
+| Items missed        | 0 count      | Number of classes AI did not generate                                    |
