@@ -2,10 +2,10 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 5                |
-| Total AI outputs reviewed       | 5                |
+| Total skill sessions logged     | 6                |
+| Total AI outputs reviewed       | 6                |
 | Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 4                |
+| Items modified by student       | 5                |
 | Items added manually by student | 0                |
 | Items rejected                  | 0                |
 
@@ -333,3 +333,79 @@ qa-artifacts/domain-analysis/FR03-domain-analysis.md
 | Accuracy            | 5            | Exactly matched the prior audit history.             |
 | Guideline adherence | 5            | Followed gap analysis structure exactly as mandated. |
 | Items missed        | 0            | Did not miss any required check.                     |
+
+## Interaction [6] — test-case-generator
+
+| Field             | Value                                             |
+| ----------------- | ------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)          |
+| **Date/Time**     | 2026-06-19 05:06                                  |
+| **Feature**       | FR-03 — Forgot Password & Reset Password (Mobile) |
+| **Skill Invoked** | test-case-generator                               |
+| **Task**          | Generate complete EP and BVA test case table      |
+
+### Prompt Given
+
+```text
+/test-case-generator Use the test-case-generator skill.
+
+Feature: FR-03 — Forgot Password
+
+Read the complete domain analysis (including the gap analysis) at:
+qa-artifacts/domain-analysis/FR03-domain-analysis.md
+
+And the boundary analysis at:
+qa-artifacts/boundary-analysis/FR03-boundary-analysis.md
+
+Generate the full test case table with both EP TCs (FR03-EP-001, 002, ...) and
+BVA TCs (FR03-BVA-001, 002, ...).
+
+For every TC:
+- Use the "Action + Function + Operating Condition" objective syntax
+- Include all 9 mandatory columns including Test Channel and EC/BVA Ref
+- Write specific concrete Expected Results citing the FR number (e.g., per FR-03)
+- Add a Teardown step for any TC that creates persistent data
+- Assign the correct Test Channel (UI / API / Role-Auth / DOM / State)
+- Steps of each TC must as most detailed as
+
+Save the output to (Do not wait for my APPROVAL):
+qa-artifacts/test-cases/FR03-test-cases.md
+
+EDIT: Excellent job generating the 46 Test Cases. However, I found a critical logical flaw regarding the Mobile UX and a lack of clarity in execution steps. Please apply the following corrections:
+
+1. The `email_step2` parameter is an API-payload-only field. The Mobile UI does NOT have an email input field on Step 2 (it only asks for OTP, New Password, and Confirm Password). Therefore, you cannot test `email_step2` validation via the UI.
+   - Change the "Test Channel" to strictly "API" for FR03-EP-009, FR03-EP-010, FR03-EP-011, and FR03-EP-012.
+   - Rewrite the "Steps" for FR03-EP-008 through FR03-EP-013 to strictly describe sending a `POST /api/reset-password` API request. Remove any instructions about "Enter email_step2" on the UI.
+
+2. For all other Test Cases that have the "UI + API" channel (e.g., testing OTP limits or Password constraints), the steps are currently ambiguous. Please explicitly split the "Steps" section into two distinct execution paths:
+   - **[UI Execution]:** Steps to test validation on the Mobile App screen.
+   - **[API Execution]:** Steps to send a direct POST request bypassing the UI.
+
+3. Ensure the "Expected Result" clearly states what happens on the UI vs what happens on the API response.
+4. Update the final "TC Summary Table" to reflect the channel changes for EP-009 to EP-012.
+
+Update and save directly to file, do not wait for my approval
+```
+
+### AI Output Summary
+
+- Translated 31 EP classes and 15 BVA points into 46 formal test cases with all 9 mandatory columns.
+- Initially assumed `email_step2` existed as a UI field, creating unrealistic UI steps for it. Corrected this to API-only channels based on student feedback.
+- Initially grouped UI and API test steps together ambiguously; corrected this by explicitly splitting "Steps" into `[UI Execution]` and `[API Execution]` blocks for all hybrid tests.
+- Re-structured Expected Results to clearly separate `[UI]`, `[API]`, and `[State]` outcomes.
+
+### Student Review Notes
+
+- Accepted after modification: The AI's initial attempt suffered from a severe "web-centric" bias, instructing testers to input `email_step2` into a non-existent UI field during Step 2. I intervened to enforce the Mobile UX reality, stripping `email_step2` cases to API-only, and explicitly splitting the execution steps for hybrid (UI+API) test cases to ensure practical repeatability.
+- Modified: Instructed the AI to strictly separate UI and API steps, and convert EP-008 through EP-013 to API-only channels.
+- Added manually: None.
+- Rejected: None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                                           |
+| ------------------- | ------------ | ----------------------------------------------------------------------------------------------- |
+| Completeness        | 5            | Generated all 46 test cases based on domain and boundary analyses.                              |
+| Accuracy            | 3            | Initial logic assumed non-existent mobile UI fields for `email_step2`, causing flawed UI steps. |
+| Guideline adherence | 5            | Adhered perfectly to the "Action + Function + Condition" objective syntax.                      |
+| Items missed        | 0            | No test case dropped or missed during generation.                                               |

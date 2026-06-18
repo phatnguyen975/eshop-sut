@@ -121,9 +121,9 @@
 
 ### 3.1 Valid Classes Coverage (Combination Rule)
 
-| TC ID       | Valid Classes Covered        | Test Data Summary                                              | Channel  |
-| ----------- | ---------------------------- | -------------------------------------------------------------- | -------- |
-| FR03-EP-001 | EC01, EC08, EC15, EC24, EC33 | Step 1: Valid email. Step 2: Valid OTP, New Pw, and Confirm Pw | UI + API |
+| TC ID       | Valid Classes Covered        | Test Data Summary                                              | Channel          |
+| ----------- | ---------------------------- | -------------------------------------------------------------- | ---------------- |
+| FR03-EP-001 | EC01, EC08, EC15, EC24, EC33 | Step 1: Valid email. Step 2: Valid OTP, New Pw, and Confirm Pw | UI + API + State |
 
 ### 3.2 Invalid Classes Coverage (Isolation Rule)
 
@@ -138,10 +138,10 @@ _Note on Isolation Rule for `newPassword` constraints: To prevent defect masking
 | FR03-EP-006 | EC06 (Email Step 1 empty)                            | N/A (Fails at Step 1)                                       | UI + API |
 | FR03-EP-007 | EC07 (Email Step 1 missing in API body)              | N/A (Fails at Step 1)                                       | API      |
 | FR03-EP-008 | EC09 (Email Step 2 mismatch)                         | otp = valid, newPw = valid, confirmPw = valid               | API      |
-| FR03-EP-009 | EC10 (Email Step 2 invalid: no `@`)                  | otp = valid, newPw = valid, confirmPw = valid               | UI + API |
-| FR03-EP-010 | EC11 (Email Step 2 invalid: no domain)               | otp = valid, newPw = valid, confirmPw = valid               | UI + API |
-| FR03-EP-011 | EC12 (Email Step 2 invalid: no local part)           | otp = valid, newPw = valid, confirmPw = valid               | UI + API |
-| FR03-EP-012 | EC13 (Email Step 2 empty)                            | otp = valid, newPw = valid, confirmPw = valid               | UI + API |
+| FR03-EP-009 | EC10 (Email Step 2 invalid: no `@`)                  | otp = valid, newPw = valid, confirmPw = valid               | API      |
+| FR03-EP-010 | EC11 (Email Step 2 invalid: no domain)               | otp = valid, newPw = valid, confirmPw = valid               | API      |
+| FR03-EP-011 | EC12 (Email Step 2 invalid: no local part)           | otp = valid, newPw = valid, confirmPw = valid               | API      |
+| FR03-EP-012 | EC13 (Email Step 2 empty)                            | otp = valid, newPw = valid, confirmPw = valid               | API      |
 | FR03-EP-013 | EC14 (Email Step 2 missing in API body)              | otp = valid, newPw = valid, confirmPw = valid               | API      |
 | FR03-EP-014 | EC16 (Wrong OTP digits)                              | email2 = valid, newPw = valid, confirmPw = valid            | UI + API |
 | FR03-EP-015 | EC17 (OTP from different email - cross-email attack) | email2 = valid, newPw = valid, confirmPw = valid            | UI + API |
