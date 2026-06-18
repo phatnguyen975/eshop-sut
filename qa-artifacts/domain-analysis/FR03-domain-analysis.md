@@ -167,3 +167,81 @@ _Note on Isolation Rule for `newPassword` constraints: To prevent defect masking
 | Total ECs | Valid ECs | Invalid ECs | TCs for Valid | TCs for Invalid | Total TCs |
 | --------- | --------- | ----------- | ------------- | --------------- | --------- |
 | 35        | 5         | 30          | 1             | 30              | 31        |
+
+## Step 5: Domain Coverage Review & AI Gap Analysis
+
+### 5.1 EP Guidelines Compliance
+
+| Variable             | Guideline Applied     | Valid Classes | Invalid Classes | Status |
+| -------------------- | --------------------- | ------------- | --------------- | ------ |
+| `email_step1`        | G3 × 2 + G4 + B1      | 1             | 6               | Pass   |
+| `email_step2`        | G3 × 2 + G4 + B1      | 1             | 6               | Pass   |
+| `otp_code`           | G1 + G3 + B1          | 1             | 8               | Pass   |
+| `newPassword`        | G1 + G3 × 4 + G4 + B1 | 1             | 8               | Pass   |
+| `confirmNewPassword` | G3 + B1 (UI only)     | 1             | 2               | Pass   |
+
+### 5.2 Missing Classes Found
+
+| #   | Missing Class                                       | Reason                                           | Action Taken                  |
+| --- | --------------------------------------------------- | ------------------------------------------------ | ----------------------------- |
+| 1   | Mobile GUI constraints as explicit Output Variables | Output extraction defaulted to backend/web terms | Added O9-O13 via human prompt |
+| 2   | OTP cross-email attack (SEC-07)                     | Hidden security rule                             | Added EC17 via human prompt   |
+| 3   | OTP reuse attempt (SEC-07)                          | Hidden state-transition rule                     | Added EC18 via human prompt   |
+
+### 5.3 Rule Violations Found
+
+| TC ID | Violation | Description                                                  | Fix Applied |
+| ----- | --------- | ------------------------------------------------------------ | ----------- |
+| —     | None      | All invalid TCs correctly isolate exactly one invalid class. | —           |
+
+### 5.4 BVA Completeness
+
+| Variable             | BVA Applied | Points Generated | Missing Points                         |
+| -------------------- | ----------- | ---------------- | -------------------------------------- |
+| `newPassword` length | Yes         | 6                | None                                   |
+| `otp_code` length    | Yes         | 5                | None (Added +α via human prompt)       |
+| `email_step1` length | Yes         | 4                | None (Math corrected via human prompt) |
+
+### 5.5 AI Gap Analysis
+
+#### What AI Did Correctly
+
+- Identified core input variables and DB state dependencies flawlessly in Step 1.
+- Implemented the Isolation Rule perfectly for complex password constraints, including using the "mirror value" strategy for `confirmNewPassword` to prevent defect masking.
+- Applied the Combination Rule to successfully group all valid classes into a single Happy Path TC.
+- Recognized that `confirmNewPassword` is a UI-only variable and successfully excluded it from API body mutation tests.
+
+#### What AI Missed
+
+1. **Extreme upper boundary (+α) for exact-length fields**
+   - Description: AI missed the +α BVA point for `otp_code`, assuming that since the constraint is exactly 6 digits, it only needed to test `LB-1`, `Exact`, and `UB+1`. It failed to test a huge value for buffer overflow.
+   - Root cause: Feature complexity / AI limitation — AI tends to follow strict constraint bounds and misses extreme security/infrastructure edge cases unless explicitly prompted.
+2. **Mobile GUI attributes as explicit outputs**
+   - Description: In Step 1, AI extracted backend logic but missed mapping mobile UI constraints (like `secureTextEntry` or `keyboardType`) as formal Output Variables.
+   - Root cause: AI limitation — AI struggles to elevate UI presentation requirements to the same level of structural importance as backend state transitions without prompting.
+3. **Exact string length arithmetic for BVA**
+   - Description: AI miscalculated the exact number of characters needed for the local part of an email to reach a total string length of exactly 254, 255, and 256.
+   - Root cause: AI limitation — LLMs are notoriously imprecise with basic arithmetic and character counting inside string generation formulas.
+
+#### Root Cause Summary
+
+| Category           | % Share | Description                                                               |
+| ------------------ | ------- | ------------------------------------------------------------------------- |
+| Prompt quality     | 0%      | Context was fully provided                                                |
+| AI limitation      | 75%     | Math errors, missing extreme security limits, missing UI variable mapping |
+| Feature complexity | 25%     | SEC-07 cross-feature rules and exact-length boundaries                    |
+
+#### Lesson Learned
+
+When generating test cases for Mobile applications and security-critical features, AI models heavily default to Web DOM conventions and literal boundary definitions. QA Engineers must actively intervene to translate web requirements into mobile-native UI constraints (e.g., enforcing `secureTextEntry` or specific virtual keyboard types as explicit test outputs). Furthermore, LLMs possess inherent limitations in arithmetic (failing to correctly calculate string padding for exact boundary lengths) and often miss extreme overflow boundaries (+α) for strictly constrained fields like a 6-digit OTP. Human oversight is absolutely mandatory to enforce mathematical precision, prevent defect masking via the Isolation Rule, and uncover hidden security state vulnerabilities such as OTP cross-email attacks.
+
+### 5.6 Final EC Count After Review
+
+| Category      | Before Review | Added | After Review |
+| ------------- | ------------- | ----- | ------------ |
+| Valid ECs     | 5             | 0     | 5            |
+| Invalid ECs   | 30            | 0     | 30           |
+| BVA Points    | 15            | 0     | 15           |
+| EP TCs        | 31            | 0     | 31           |
+| BVA TCs       | 15            | 0     | 15           |
+| **Total TCs** | 46            | 0     | 46           |
