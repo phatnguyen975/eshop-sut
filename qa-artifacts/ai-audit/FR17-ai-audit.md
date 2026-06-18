@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 8                |
-| Total AI outputs reviewed       | 8                |
+| Total skill sessions logged     | 9                |
+| Total AI outputs reviewed       | 9                |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 1                |
 | Items added manually by student | 0                |
@@ -464,3 +464,53 @@ DOM OUTPUT (paste the DOM CHECK RESULTS block)
 | Accuracy            | 4            | Were generated items correct per SRS? Mostly, but had unbound variable bugs. |
 | Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, followed skill instructions.      |
 | Items missed        | 0 count      | Number of classes AI did not generate.                                       |
+
+## Interaction [9] — bug-report-writer
+
+| Field             | Value                                                                                                |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                                                             |
+| **Date/Time**     | 2026-06-18 17:38                                                                                     |
+| **Feature**       | FR-17 — Coupon Management                                                                            |
+| **Skill Invoked** | bug-report-writer                                                                                    |
+| **Task**          | Grouped all 43 failed test cases and generated 6 comprehensive bug reports covering the root causes. |
+
+### Prompt Given
+
+```text
+/bug-report-writer Use the bug-report-writer skill.
+
+Feature: FR-17 — Coupon Management
+
+Read all FAIL TCs from:
+- qa-artifacts/test-cases/FR17-test-cases.md  (Status = FAIL)
+- qa-artifacts/execution-results/FR17-execution-results.md  (Status = FAIL)
+- .agents/context/eshop-srs.md  (for FR/SEC citations)
+- .agents/context/eshop-api-spec.md  (for API details in Steps to Reproduce)
+
+First, analyze all FAIL TCs and group them by root cause. Show me the "Bug Groups" list (including Bug IDs and Affected TCs)
+Wait for my confirmation, then generate the complete qa-artifacts/bug-reports/FR17-bugs.md covering every BUG GROUP in one pass
+```
+
+### AI Output Summary
+
+- Identified 43 FAIL TCs and grouped them accurately into 6 root causes.
+- Successfully discarded false positives (such as HTTP 200 vs 201) to correctly map true defects.
+- Generated `qa-artifacts/bug-reports/FR17-bugs.md` containing 6 production-ready bug reports.
+- Automatically populated all fields including Steps to Reproduce, environment, actual/expected behavior, and priority/severity rationales.
+
+### Student Review Notes
+
+- **Accepted as-is:** The bug reports are of production-grade quality. The root cause analysis was flawless, ensuring developers won't be overwhelmed by duplicate tickets. The rationale for severity and priority assignments strictly aligned with standard QA practices.
+- **Modified:** None.
+- **Added manually:** None.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                         |
+| ------------------- | ------------ | ----------------------------------------------------------------------------- |
+| Completeness        | 5            | Did AI cover all required classes? Yes, covered all 43 failures.              |
+| Accuracy            | 5            | Were generated items correct per SRS? Yes, root causes accurately identified. |
+| Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, followed the Bug Grouping rule.    |
+| Items missed        | 0 count      | Number of classes AI did not generate.                                        |
