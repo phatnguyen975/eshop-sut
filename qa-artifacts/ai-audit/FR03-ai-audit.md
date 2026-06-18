@@ -2,10 +2,10 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 3                |
-| Total AI outputs reviewed       | 3                |
+| Total skill sessions logged     | 4                |
+| Total AI outputs reviewed       | 4                |
 | Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 3                |
+| Items modified by student       | 4                |
 | Items added manually by student | 0                |
 | Items rejected                  | 0                |
 
@@ -132,7 +132,7 @@ Print the revised preview.
 
 | Field             | Value                                                                    |
 | ----------------- | ------------------------------------------------------------------------ |
-| **Tool**          | Antigravity CLI (Gemini 2.5 Pro backend)                                 |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                                 |
 | **Date/Time**     | 2026-06-19 01:35                                                         |
 | **Feature**       | FR-03 — Forgot Password & Reset Password (Mobile)                        |
 | **Skill Invoked** | equivalence-partitioning                                                 |
@@ -198,3 +198,75 @@ EDIT: You need to review Step 2+3 in FR01-domain-analysis.md to check for more E
 | Accuracy            | 4            | Erroneous +B1 header label on confirmPassword before correction.      |
 | Guideline adherence | 5            | Isolation and Combination Rules rigorously applied.                   |
 | Items missed        | 0            | Did not miss any requested classes.                                   |
+
+## Interaction [4] — boundary-value-analysis
+
+| Field             | Value                                                        |
+| ----------------- | ------------------------------------------------------------ |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                     |
+| **Date/Time**     | 2026-06-19 02:12                                             |
+| **Feature**       | FR-03 — Forgot Password & Reset Password (Mobile)            |
+| **Skill Invoked** | boundary-value-analysis                                      |
+| **Task**          | Apply the 9-point BVA strategy to ordered/length constraints |
+
+### Prompt Given
+
+```text
+/boundary-value-analysis Use the boundary-value-analysis skill.
+
+Feature: FR-03 — Forgot Password
+
+The EP classes are ready at:
+qa-artifacts/domain-analysis/FR03-domain-analysis.md (Step 2+3 section)
+
+From that output, identify all variables with ordered/numeric constraints and apply
+the 9-point BVA strategy to each one.
+
+Remember to apply BVA to:
+
+- Numeric fields (quantity, discount_value, min_order_amount, max_uses_per_user)
+- String LENGTH fields (password length, name length, coupon code length)
+- Date fields (expired_at)
+- NOT just numbers — string length is a boundary variable too
+
+For any UB that is not specified in the SRS, note it as "unspecified" and include
+a +alpha test case with a very large value.
+
+Save the output to:
+qa-artifacts/boundary-analysis/FR03-boundary-analysis.md
+
+EDIT: The BVA structure is generally good, but there are two critical flaws I need you to fix based on strict 9-point BVA rules and correct arithmetic:
+
+1. In Table 2 (`otp_code`), you missed the extreme upper boundary test. Please add a `+α (very long)` test point (e.g., an OTP string of 100 digits) to test for buffer/database overflow handling. Update the BVA Summary count accordingly.
+2. In Table 3 (`email_step1`), your string length math is incorrect. The string "@test.com" is 9 characters long.
+- To reach length 254 (UB-1), it should be `{"a"×245} + "@test.com"`
+- To reach length 255 (UB), it should be `{"a"×246} + "@test.com"`
+- To reach length 256 (UB+1), it should be `{"a"×247} + "@test.com"`
+- To reach length 300 (+α), it should be `{"a"×291} + "@test.com"`
+Please correct these formulas in Table 3.
+
+Save directly, not wait for my approval
+```
+
+### AI Output Summary
+
+- Identified 3 boundary variables: `newPassword` length, `otp_code` length, and `email_step1` length.
+- Successfully applied the 9-point strategy, including generating string generation formulas to meet exact length limits for email testing.
+- Generated a total of 15 BVA test points (6 Valid, 9 Invalid).
+- Initially missed the `+α` point for `otp_code` due to treating the exact length as an absolute boundary, and had minor arithmetic errors calculating email prefix lengths before corrections were applied.
+
+### Student Review Notes
+
+- Accepted after modification: The overall BVA structure and isolation logic were excellent. However, the AI made a basic arithmetic error when calculating the prefix length for the email domain, and it missed the critical +α point for the strictly bounded OTP field. I overrode the AI with exact mathematical corrections.
+- Modified: Instructed the AI to add the `+α (very long)` test point for `otp_code` and explicitly provided the correct arithmetic formulas to reach the exact boundary lengths for `email_step1`.
+- Added manually: None.
+- Rejected: None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                               |
+| ------------------- | ------------ | ----------------------------------------------------------------------------------- |
+| Completeness        | 4            | Missed the +α point for `otp_code` initially.                                       |
+| Accuracy            | 3            | Made an arithmetic error calculating exact string lengths for the email boundaries. |
+| Guideline adherence | 5            | Followed BVA point generation logic cleanly.                                        |
+| Items missed        | 1            | Missed +α point for OTP.                                                            |
