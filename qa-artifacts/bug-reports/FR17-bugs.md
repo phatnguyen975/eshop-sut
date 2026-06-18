@@ -17,13 +17,13 @@
 | **Feature**      | FR-17 — Coupon Management                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | **Linked TCs**   | FR17-EP-007, FR17-EP-008, FR17-EP-010, FR17-EP-011, FR17-EP-012, FR17-EP-013, FR17-EP-014, FR17-EP-015, FR17-EP-016, FR17-EP-017, FR17-EP-018, FR17-EP-019, FR17-EP-020, FR17-EP-021, FR17-EP-022, FR17-EP-023, FR17-EP-024, FR17-EP-025, FR17-EP-026, FR17-EP-027, FR17-EP-028, FR17-BVA-001, FR17-BVA-002, FR17-BVA-008, FR17-BVA-009, FR17-BVA-010, FR17-BVA-011, FR17-BVA-016, FR17-BVA-017, FR17-BVA-022, FR17-BVA-023, FR17-BVA-028, FR17-BVA-034, FR17-BVA-035 |
 | **Channel**      | API                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **Summary**      | POST /api/coupons returns HTTP 200 instead of 400 when missing/invalid fields are submitted (per FR-17)                                                                                                                                                                                                                                                                                                                                                               |
+| **Summary**      | POST /api/admin/coupons returns HTTP 200 instead of 400 when missing/invalid fields are submitted (per FR-17)                                                                                                                                                                                                                                                                                                                                                         |
 | **Status**       | New                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | **Severity**     | Medium                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | **Priority**     | High                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | **Reported by**  | 23127449 - Nguyễn Tấn Phát                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | **Date**         | 2026-06-18                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **GitHub Issue** | [#18](https://github.com/phatnguyen975/eshop-sut/issues/18)                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 ### Environment
 
@@ -46,7 +46,7 @@
    ```
 3. Send the following request (empty code):
    ```bash
-   curl -s -X POST http://localhost:3000/api/coupons \
+   curl -s -X POST http://localhost:3000/api/admin/coupons \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer <admin_token>" \
      -d '{"code":"", "type":"fixed", "discount_value":50000, "expired_at":"2027-12-31", "min_order_amount":500000, "max_uses_per_user":1}'
@@ -83,19 +83,19 @@ Specifically (based on FR17-EP-007):
 
 ## BUG-002
 
-| Field            | Value                                                                                          |
-| ---------------- | ---------------------------------------------------------------------------------------------- |
-| **Bug ID**       | BUG-002                                                                                        |
-| **Feature**      | FR-17 — Coupon Management                                                                      |
-| **Linked TCs**   | FR17-EP-009                                                                                    |
-| **Channel**      | API                                                                                            |
-| **Summary**      | POST /api/coupons returns HTTP 500 instead of 400 when duplicate code is submitted (per FR-17) |
-| **Status**       | New                                                                                            |
-| **Severity**     | Medium                                                                                         |
-| **Priority**     | High                                                                                           |
-| **Reported by**  | 23127449 - Nguyễn Tấn Phát                                                                     |
-| **Date**         | 2026-06-18                                                                                     |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                                  |
+| Field            | Value                                                                                                |
+| ---------------- | ---------------------------------------------------------------------------------------------------- |
+| **Bug ID**       | BUG-002                                                                                              |
+| **Feature**      | FR-17 — Coupon Management                                                                            |
+| **Linked TCs**   | FR17-EP-009                                                                                          |
+| **Channel**      | API                                                                                                  |
+| **Summary**      | POST /api/admin/coupons returns HTTP 500 instead of 400 when duplicate code is submitted (per FR-17) |
+| **Status**       | New                                                                                                  |
+| **Severity**     | Medium                                                                                               |
+| **Priority**     | High                                                                                                 |
+| **Reported by**  | 23127449 - Nguyễn Tấn Phát                                                                           |
+| **Date**         | 2026-06-18                                                                                           |
+| **GitHub Issue** | [#19](https://github.com/phatnguyen975/eshop-sut/issues/19)                                          |
 
 ### Environment
 
@@ -118,7 +118,7 @@ Specifically (based on FR17-EP-007):
    ```
 3. Send a POST request with an existing code (e.g. `SAVE10`):
    ```bash
-   curl -s -X POST http://localhost:3000/api/coupons \
+   curl -s -X POST http://localhost:3000/api/admin/coupons \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer <admin_token>" \
      -d '{"code":"SAVE10", "type":"fixed", "discount_value":50000, "expired_at":"2027-12-31", "min_order_amount":500000, "max_uses_per_user":1}'
@@ -149,19 +149,19 @@ Specifically:
 
 ## BUG-003
 
-| Field            | Value                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------ |
-| **Bug ID**       | BUG-003                                                                                    |
-| **Feature**      | FR-17 — Coupon Management                                                                  |
-| **Linked TCs**   | FR17-EP-029, FR17-EP-030, FR17-EP-031                                                      |
-| **Channel**      | API                                                                                        |
-| **Summary**      | DELETE /api/coupons/:id returns HTTP 200 instead of 404 when ID does not exist (per FR-17) |
-| **Status**       | New                                                                                        |
-| **Severity**     | Medium                                                                                     |
-| **Priority**     | Medium                                                                                     |
-| **Reported by**  | 23127449 - Nguyễn Tấn Phát                                                                 |
-| **Date**         | 2026-06-18                                                                                 |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                              |
+| Field            | Value                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------ |
+| **Bug ID**       | BUG-003                                                                                          |
+| **Feature**      | FR-17 — Coupon Management                                                                        |
+| **Linked TCs**   | FR17-EP-029, FR17-EP-030, FR17-EP-031                                                            |
+| **Channel**      | API                                                                                              |
+| **Summary**      | DELETE /api/admin/coupons/:id returns HTTP 200 instead of 404 when ID does not exist (per FR-17) |
+| **Status**       | New                                                                                              |
+| **Severity**     | Medium                                                                                           |
+| **Priority**     | Medium                                                                                           |
+| **Reported by**  | 23127449 - Nguyễn Tấn Phát                                                                       |
+| **Date**         | 2026-06-18                                                                                       |
+| **GitHub Issue** | [#20](https://github.com/phatnguyen975/eshop-sut/issues/20)                                      |
 
 ### Environment
 
@@ -184,7 +184,7 @@ Specifically:
    ```
 3. Send a DELETE request to a non-existent ID:
    ```bash
-   curl -s -X DELETE http://localhost:3000/api/coupons/99999 \
+   curl -s -X DELETE http://localhost:3000/api/admin/coupons/99999 \
      -H "Authorization: Bearer <admin_token>"
    ```
 4. Observe the HTTP response status code.
@@ -202,7 +202,10 @@ Specifically:
 ### Actual Behavior
 
 - HTTP Status: `200 OK`
-- Response Body: Success message despite no rows being affected.
+- Response Body:
+  ```json
+  { "message": "Coupon deleted" }
+  ```
 
 ### Severity Rationale
 
@@ -226,7 +229,7 @@ Specifically:
 | **Priority**     | Immediate                                                                                     |
 | **Reported by**  | 23127449 - Nguyễn Tấn Phát                                                                    |
 | **Date**         | 2026-06-18                                                                                    |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                                 |
+| **GitHub Issue** | [#21](https://github.com/phatnguyen975/eshop-sut/issues/21)                                   |
 
 ### Environment
 
@@ -249,7 +252,7 @@ Specifically:
    ```
 3. Send the following restricted POST request using the User JWT:
    ```bash
-   curl -s -X POST http://localhost:3000/api/coupons \
+   curl -s -X POST http://localhost:3000/api/admin/coupons \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer <user_token>" \
      -d '{"code":"HACKER25", "type":"fixed", "discount_value":10, "expired_at":"2027-12-31", "min_order_amount":0, "max_uses_per_user":1}'
@@ -281,19 +284,19 @@ Specifically:
 
 ## BUG-005
 
-| Field            | Value                                                                                  |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| **Bug ID**       | BUG-005                                                                                |
-| **Feature**      | FR-17 — Coupon Management                                                              |
-| **Linked TCs**   | FR17-EP-034                                                                            |
-| **Channel**      | Role-Auth                                                                              |
-| **Summary**      | POST /api/coupons returns HTTP 403 instead of 401 when token is malformed (per SEC-02) |
-| **Status**       | New                                                                                    |
-| **Severity**     | Medium                                                                                 |
-| **Priority**     | Low                                                                                    |
-| **Reported by**  | 23127449 - Nguyễn Tấn Phát                                                             |
-| **Date**         | 2026-06-18                                                                             |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                          |
+| Field            | Value                                                                                        |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| **Bug ID**       | BUG-005                                                                                      |
+| **Feature**      | FR-17 — Coupon Management                                                                    |
+| **Linked TCs**   | FR17-EP-034                                                                                  |
+| **Channel**      | Role-Auth                                                                                    |
+| **Summary**      | POST /api/admin/coupons returns HTTP 403 instead of 401 when token is malformed (per SEC-02) |
+| **Status**       | New                                                                                          |
+| **Severity**     | Medium                                                                                       |
+| **Priority**     | Low                                                                                          |
+| **Reported by**  | 23127449 - Nguyễn Tấn Phát                                                                   |
+| **Date**         | 2026-06-18                                                                                   |
+| **GitHub Issue** | [#22](https://github.com/phatnguyen975/eshop-sut/issues/22)                                  |
 
 ### Environment
 
@@ -309,7 +312,7 @@ Specifically:
 
 1. Send a POST request to the endpoint with an invalid/malformed token:
    ```bash
-   curl -s -X POST http://localhost:3000/api/coupons \
+   curl -s -X POST http://localhost:3000/api/admin/coupons \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer MALFORMED_TOKEN_123" \
      -d '{"code":"TEST"}'
@@ -350,7 +353,7 @@ Specifically:
 | **Priority**     | Medium                                                                                       |
 | **Reported by**  | 23127449 - Nguyễn Tấn Phát                                                                   |
 | **Date**         | 2026-06-18                                                                                   |
-| **GitHub Issue** | _(pending — assigned by github-issue-writer)_                                                |
+| **GitHub Issue** | [#23](https://github.com/phatnguyen975/eshop-sut/issues/23)                                  |
 
 ### Environment
 
@@ -367,7 +370,171 @@ Specifically:
 1. Open Admin UI at http://localhost:5174 and log in with admin credentials.
 2. Navigate to Coupon Management tab on the left.
 3. Open DevTools: F12 → Console tab.
-4. Run the DOM checks (or inspect the form visually).
+4. Run the DOM checks script (or inspect the form visually):
+
+   ```js
+   (function FR17DOMChecks() {
+     "use strict";
+
+     let pass = 0,
+       fail = 0;
+     const results = [];
+
+     function check(tcId, description, expected, actualFn) {
+       let actual, status;
+       try {
+         actual = actualFn();
+         const ok =
+           expected === "EXISTS"
+             ? actual !== null &&
+               actual !== undefined &&
+               actual !== "NOT_FOUND" &&
+               actual !== false
+             : String(actual) === String(expected);
+         status = ok ? "PASS" : "FAIL";
+       } catch (e) {
+         actual = "ERROR: " + e.message;
+         status = "FAIL";
+       }
+       status === "PASS" ? pass++ : fail++;
+       results.push({
+         "TC ID": tcId,
+         Check: description,
+         Expected: String(expected),
+         Actual: String(actual),
+         Status: status,
+       });
+     }
+
+     // ── FR17-EP-006: Verify DOM properties for Coupon Management form ──────────
+     // Per FR-21: Exactly one <h1> on the page
+     check(
+       "FR17-EP-006-h1",
+       "Exactly one <h1> tag on page (per FR-21)",
+       "1",
+       () => document.querySelectorAll("h1").length,
+     );
+
+     // Per FR-22: Mandatory fields marked with asterisk (*)
+     check(
+       "FR17-EP-006-required-star",
+       "At least one label with '*' marking mandatory field (per FR-22)",
+       "EXISTS",
+       () => {
+         const labels = Array.from(
+           document.querySelectorAll("label, span, p, th"),
+         );
+         const found = labels.some((el) => el.textContent.includes("*"));
+         return found ? "EXISTS" : "NOT_FOUND";
+       },
+     );
+
+     // Per FR-17: expired_at field uses input type="date"
+     check(
+       "FR17-EP-006-date-input",
+       "expired_at field has type='date' (per FR-17)",
+       "EXISTS",
+       () => {
+         const dateInput = document.querySelector("input[type='date']");
+         return dateInput ? "EXISTS" : "NOT_FOUND";
+       },
+     );
+
+     // Per FR-21: Create button should have blue styling
+     check(
+       "FR17-EP-006-create-btn",
+       "Create coupon button exists on page (per FR-21)",
+       "EXISTS",
+       () => {
+         const btns = Array.from(
+           document.querySelectorAll("button, input[type='submit']"),
+         );
+         const createBtn = btns.find((b) =>
+           /create|thêm|tạo/i.test(b.textContent),
+         );
+         return createBtn ? "EXISTS" : "NOT_FOUND";
+       },
+     );
+
+     // Per FR-21: Delete button should have red styling
+     check(
+       "FR17-EP-006-delete-btn",
+       "Delete coupon button exists on page (per FR-21)",
+       "EXISTS",
+       () => {
+         const btns = Array.from(
+           document.querySelectorAll("button, input[type='submit']"),
+         );
+         const delBtn = btns.find((b) =>
+           /delete|remove|xóa/i.test(b.textContent),
+         );
+         return delBtn ? "EXISTS" : "NOT_FOUND";
+       },
+     );
+
+     // Per FR-21: Page heading text should mention "Coupon" or "Mã giảm giá"
+     check(
+       "FR17-EP-006-heading-text",
+       "Page <h1> heading references 'Coupon' or 'Mã giảm giá'",
+       "EXISTS",
+       () => {
+         const h1 = document.querySelector("h1");
+         if (!h1) return "NOT_FOUND";
+         return /coupon|mã giảm giá/i.test(h1.textContent)
+           ? "EXISTS"
+           : "NOT_FOUND";
+       },
+     );
+
+     // Check no script injection alert on page (SEC-04 — XSS safe rendering)
+     // Run AFTER creating a coupon with code = <script>alert(1)</script>
+     check(
+       "FR17-EP-038-xss",
+       "No raw <script>alert(1)</script> injected into DOM (per SEC-04)",
+       "SAFE",
+       () => {
+         return document.body.innerHTML.includes("<script>alert(1)</script>")
+           ? "VULNERABLE"
+           : "SAFE";
+       },
+     );
+
+     // ── Summary Output ─────────────────────────────────────────────────────────
+     console.log(
+       "%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+       "font-weight:bold;color:#333",
+     );
+     console.log(
+       "%c FR-17 TEST RESULTS — DOM CHECKS (FR17-EP-006)",
+       "font-weight:bold;font-size:14px;color:#0056b3",
+     );
+     console.log("%c URL: " + window.location.href, "color:#666");
+     console.log(
+       "%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+       "font-weight:bold;color:#333",
+     );
+     console.table(results);
+     const color =
+       fail === 0
+         ? "color:#28a745;font-weight:bold"
+         : "color:#dc3545;font-weight:bold";
+     console.log(
+       `TOTAL: %c${pass} PASS%c | %c${fail} FAIL`,
+       "color: green; font-weight: bold",
+       "color: inherit",
+       "color: red; font-weight: bold",
+     );
+     console.log(
+       "%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+       "font-weight:bold;color:#333",
+     );
+     console.log(
+       "%cScreenshot this panel and paste the summary into Phase B.",
+       "color:#888;font-style:italic",
+     );
+   })();
+   ```
+
 5. Observe the missing `*` on the code, type, and value fields, and the mismatched heading text.
 
 ### Expected Behavior
@@ -393,11 +560,11 @@ DOM checks failed: No required-field `*` found. Heading text mismatch.
 
 ## Bug Summary Table
 
-| Bug ID  | Linked TCs       | Channel   | Summary (brief)                                              | Severity | Priority  | GitHub Issue |
-| ------- | ---------------- | --------- | ------------------------------------------------------------ | -------- | --------- | ------------ |
-| BUG-001 | FR17-EP-007, ... | API       | POST /api/coupons returns HTTP 200 instead of 400 when missi | Medium   | High      | _(pending)_  |
-| BUG-002 | FR17-EP-009      | API       | POST /api/coupons returns HTTP 500 instead of 400 when dupli | Medium   | High      | _(pending)_  |
-| BUG-003 | FR17-EP-029, ... | API       | DELETE /api/coupons/:id returns HTTP 200 instead of 404 when | Medium   | Medium    | _(pending)_  |
-| BUG-004 | FR17-EP-033, ... | Role-Auth | Admin endpoints accept User JWT and perform action instead o | Serious  | Immediate | _(pending)_  |
-| BUG-005 | FR17-EP-034      | Role-Auth | POST /api/coupons returns HTTP 403 instead of 401 when token | Medium   | Low       | _(pending)_  |
-| BUG-006 | FR17-EP-006      | DOM       | Admin UI is missing required field markers and has incorrect | Medium   | Medium    | _(pending)_  |
+| Bug ID  | Linked TCs       | Channel   | Summary (brief)                                                                                   | Severity | Priority  | GitHub Issue                                                |
+| ------- | ---------------- | --------- | ------------------------------------------------------------------------------------------------- | -------- | --------- | ----------------------------------------------------------- |
+| BUG-001 | FR17-EP-007, ... | API       | POST /api/admin/coupons returns HTTP 200 instead of 400 when missing/invalid fields are submitted | Medium   | High      | [#18](https://github.com/phatnguyen975/eshop-sut/issues/18) |
+| BUG-002 | FR17-EP-009      | API       | POST /api/admin/coupons returns HTTP 500 instead of 400 when duplicate code is submitted          | Medium   | High      | [#19](https://github.com/phatnguyen975/eshop-sut/issues/19) |
+| BUG-003 | FR17-EP-029, ... | API       | DELETE /api/admin/coupons/:id returns HTTP 200 instead of 404 when ID does not exist              | Medium   | Medium    | [#20](https://github.com/phatnguyen975/eshop-sut/issues/20) |
+| BUG-004 | FR17-EP-033, ... | Role-Auth | Admin endpoints accept User JWT and perform action instead of returning HTTP 403                  | Serious  | Immediate | [#21](https://github.com/phatnguyen975/eshop-sut/issues/21) |
+| BUG-005 | FR17-EP-034      | Role-Auth | POST /api/admin/coupons returns HTTP 403 instead of 401 when token is malformed                   | Medium   | Low       | [#22](https://github.com/phatnguyen975/eshop-sut/issues/22) |
+| BUG-006 | FR17-EP-006      | DOM       | Admin UI is missing required field markers and has incorrect heading text                         | Medium   | Medium    | [#23](https://github.com/phatnguyen975/eshop-sut/issues/23) |

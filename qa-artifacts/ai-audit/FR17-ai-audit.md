@@ -2,8 +2,8 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 9                |
-| Total AI outputs reviewed       | 9                |
+| Total skill sessions logged     | 10               |
+| Total AI outputs reviewed       | 10               |
 | Items accepted as-is            | All (cumulative) |
 | Items modified by student       | 1                |
 | Items added manually by student | 0                |
@@ -514,3 +514,56 @@ Wait for my confirmation, then generate the complete qa-artifacts/bug-reports/FR
 | Accuracy            | 5            | Were generated items correct per SRS? Yes, root causes accurately identified. |
 | Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, followed the Bug Grouping rule.    |
 | Items missed        | 0 count      | Number of classes AI did not generate.                                        |
+
+## Interaction [10] — github-issue-writer
+
+| Field             | Value                                                                             |
+| ----------------- | --------------------------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                                          |
+| **Date/Time**     | 2026-06-18 18:17                                                                  |
+| **Feature**       | FR-17 — Coupon Management                                                         |
+| **Skill Invoked** | github-issue-writer                                                               |
+| **Task**          | Extracted all 6 pending bugs and generated a fully formatted GitHub Issues Guide. |
+
+### Prompt Given
+
+```text
+/github-issue-writer Use the github-issue-writer skill.
+
+Feature: FR-17 — Coupon Management
+
+Read all pending bugs from:
+- qa-artifacts/bug-reports/FR17-bugs.md (process all entries where GitHub Issue is pending)
+- qa-artifacts/execution-results/FR17-execution-results.md
+
+Group GitHub repo URL: https://github.com/phatnguyen975/eshop-sut
+
+Step 1: Scan the bug reports and print the list of pending bugs to process.
+Step 2: STOP AND WAIT for my confirmation. DO NOT generate the guide file yet.
+Step 3: Generate the complete guide file at: scripts/github-issues/FR17-github-issues-guide.md
+
+All placeholders must be filled. No {value} text may remain in any issue body.
+```
+
+### AI Output Summary
+
+- Identified 6 pending bug reports from `FR17-bugs.md`.
+- Generated `scripts/github-issues/FR17-github-issues-guide.md` with complete title, body, and label configurations for all 6 issues.
+- Automatically applied context-aware labels such as `security`, `api`, and `ui` based on the bug details.
+- Successfully synced back the 6 GitHub issue URLs into the `FR17-bugs.md` document after the user manually posted them.
+
+### Student Review Notes
+
+- **Accepted as-is:** The generated markdown was perfectly formatted for GitHub. The automatic application of specific labels like `security` and `role-auth` based on the bug context was an excellent touch that saves triage time.
+- **Modified:** None.
+- **Added manually:** None.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                                    |
+| ------------------- | ------------ | ---------------------------------------------------------------------------------------- |
+| Completeness        | 5            | Did AI cover all required classes? Yes, generated all 6 issues.                          |
+| Accuracy            | 5            | Were generated items correct per SRS? Yes, formatted correctly without placeholders.     |
+| Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, paused for confirmation and synced correctly. |
+| Items missed        | 0 count      | Number of classes AI did not generate.                                                   |
