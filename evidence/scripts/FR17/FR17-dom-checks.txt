@@ -1,0 +1,16 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ FR-17 TEST RESULTS — DOM CHECKS (FR17-EP-006)
+ URL: http://localhost:5174/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+(index) TC ID Check Expected Actual Status
+0	'FR17-EP-006-h1'	'Exactly one <h1> tag on page (per FR-21)'	'1'	'1'	'PASS'
+1	'FR17-EP-006-required-star'	"At least one label with '*' marking mandatory field (per FR-22)"	'EXISTS'	'NOT_FOUND'	'FAIL'
+2	'FR17-EP-006-date-input'	"expired_at field has type='date' (per FR-17)"	'EXISTS'	'EXISTS'	'PASS'
+3	'FR17-EP-006-create-btn'	'Create coupon button exists on page (per FR-21)'	'EXISTS'	'EXISTS'	'PASS'
+4	'FR17-EP-006-delete-btn'	'Delete coupon button exists on page (per FR-21)'	'EXISTS'	'EXISTS'	'PASS'
+5	'FR17-EP-006-heading-text'	"Page <h1> heading references 'Coupon' or 'Mã giảm giá'"	'EXISTS'	'NOT_FOUND'	'FAIL'
+6	'FR17-EP-038-xss'	'No raw \x3Cscript>alert(1)\x3C/script> injected into DOM (per SEC-04)'	'SAFE'	'SAFE'	'PASS'
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOTAL: 5 PASS | 2 FAIL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Screenshot this panel and paste the summary into Phase B.

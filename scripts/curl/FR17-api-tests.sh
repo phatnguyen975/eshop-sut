@@ -249,7 +249,6 @@ run_and_assert "FR17-EP-004" "200" "DELETE" "/api/admin/coupons/${DEL_ID}" "admi
 assert_db "FR17-EP-004-db" "Coupon DELTEST01 removed from DB" \
   "SELECT COUNT(*) FROM coupons WHERE code='DELTEST01';" "0"
 
-# Safety teardown in case DELETE failed
 teardown_coupon_by_code "DELTEST01"
 end_tc
 
@@ -273,6 +272,7 @@ echo -e "${CYAN}=== FR17-EP-007: Invalid code — empty string ===${NC}"
 start_tc "FR17-EP-007"
 run_and_assert "FR17-EP-007" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code ""
 end_tc
 
 # ── FR17-EP-008: Invalid code — missing field ─────────────────────────────────
@@ -297,6 +297,7 @@ echo -e "${CYAN}=== FR17-EP-010: Invalid type — unknown enum 'discount' ===${N
 start_tc "FR17-EP-010"
 run_and_assert "FR17-EP-010" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"discount","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-011: Invalid type — uppercase enum value ─────────────────────────
@@ -305,6 +306,7 @@ echo -e "${CYAN}=== FR17-EP-011: Invalid type — uppercase 'PERCENT' ===${NC}"
 start_tc "FR17-EP-011"
 run_and_assert "FR17-EP-011" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"PERCENT","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-012: Invalid type — empty string ─────────────────────────────────
@@ -313,6 +315,7 @@ echo -e "${CYAN}=== FR17-EP-012: Invalid type — empty string ===${NC}"
 start_tc "FR17-EP-012"
 run_and_assert "FR17-EP-012" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-013: Invalid type — missing field ─────────────────────────────────
@@ -321,6 +324,7 @@ echo -e "${CYAN}=== FR17-EP-013: Invalid type — missing field ===${NC}"
 start_tc "FR17-EP-013"
 run_and_assert "FR17-EP-013" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-014: Invalid discount_value — exactly zero ───────────────────────
@@ -329,6 +333,7 @@ echo -e "${CYAN}=== FR17-EP-014: Invalid discount_value — exactly 0 ===${NC}"
 start_tc "FR17-EP-014"
 run_and_assert "FR17-EP-014" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":0,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-015: Invalid discount_value — negative ───────────────────────────
@@ -337,6 +342,7 @@ echo -e "${CYAN}=== FR17-EP-015: Invalid discount_value — negative (-10) ===${
 start_tc "FR17-EP-015"
 run_and_assert "FR17-EP-015" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":-10,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-016: Invalid discount_value — missing field ──────────────────────
@@ -345,6 +351,7 @@ echo -e "${CYAN}=== FR17-EP-016: Invalid discount_value — missing field ===${N
 start_tc "FR17-EP-016"
 run_and_assert "FR17-EP-016" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-017: Invalid discount_value — non-numeric string ─────────────────
@@ -353,6 +360,7 @@ echo -e "${CYAN}=== FR17-EP-017: Invalid discount_value — non-numeric 'abc' ==
 start_tc "FR17-EP-017"
 run_and_assert "FR17-EP-017" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":"abc","expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-018: Invalid discount_value — percent > 100 ──────────────────────
@@ -370,6 +378,7 @@ echo -e "${CYAN}=== FR17-EP-019: Invalid expired_at — past date 2020-01-01 ===
 start_tc "FR17-EP-019"
 run_and_assert "FR17-EP-019" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"expired_at":"2020-01-01","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-020: Invalid expired_at — wrong format DD-MM-YYYY ────────────────
@@ -378,6 +387,7 @@ echo -e "${CYAN}=== FR17-EP-020: Invalid expired_at — wrong format '31-12-2099
 start_tc "FR17-EP-020"
 run_and_assert "FR17-EP-020" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"expired_at":"31-12-2099","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-021: Invalid expired_at — non-date string ─────────────────────────
@@ -386,6 +396,7 @@ echo -e "${CYAN}=== FR17-EP-021: Invalid expired_at — non-date string 'notadat
 start_tc "FR17-EP-021"
 run_and_assert "FR17-EP-021" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"expired_at":"notadate","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-022: Invalid expired_at — missing field ──────────────────────────
@@ -394,6 +405,7 @@ echo -e "${CYAN}=== FR17-EP-022: Invalid expired_at — missing field ===${NC}"
 start_tc "FR17-EP-022"
 run_and_assert "FR17-EP-022" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-023: Invalid min_order_amount — negative ─────────────────────────
@@ -402,6 +414,7 @@ echo -e "${CYAN}=== FR17-EP-023: Invalid min_order_amount — negative (-1) ===$
 start_tc "FR17-EP-023"
 run_and_assert "FR17-EP-023" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":-1,"max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-024: Invalid min_order_amount — missing field ────────────────────
@@ -410,6 +423,7 @@ echo -e "${CYAN}=== FR17-EP-024: Invalid min_order_amount — missing field ===$
 start_tc "FR17-EP-024"
 run_and_assert "FR17-EP-024" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"expired_at":"2099-12-31","max_uses_per_user":1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-025: Invalid max_uses_per_user — exactly zero ────────────────────
@@ -418,6 +432,7 @@ echo -e "${CYAN}=== FR17-EP-025: Invalid max_uses_per_user — exactly 0 ===${NC
 start_tc "FR17-EP-025"
 run_and_assert "FR17-EP-025" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":0}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-026: Invalid max_uses_per_user — negative ────────────────────────
@@ -426,6 +441,7 @@ echo -e "${CYAN}=== FR17-EP-026: Invalid max_uses_per_user — negative (-1) ===
 start_tc "FR17-EP-026"
 run_and_assert "FR17-EP-026" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":-1}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-027: Invalid max_uses_per_user — missing field ───────────────────
@@ -434,6 +450,7 @@ echo -e "${CYAN}=== FR17-EP-027: Invalid max_uses_per_user — missing field ===
 start_tc "FR17-EP-027"
 run_and_assert "FR17-EP-027" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-028: Invalid max_uses_per_user — float value ─────────────────────
@@ -442,6 +459,7 @@ echo -e "${CYAN}=== FR17-EP-028: Invalid max_uses_per_user — float (1.5) ===${
 start_tc "FR17-EP-028"
 run_and_assert "FR17-EP-028" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"NEWCODE01","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1.5}'
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-029: Invalid DELETE — non-existent ID ────────────────────────────
@@ -449,6 +467,7 @@ end_tc
 echo -e "${CYAN}=== FR17-EP-029: Invalid DELETE — non-existent ID 99999 ===${NC}"
 start_tc "FR17-EP-029"
 run_and_assert "FR17-EP-029" "404" "DELETE" "/api/admin/coupons/99999" "admin"
+teardown_coupon_by_code "NEWCODE01"
 end_tc
 
 # ── FR17-EP-030: Invalid DELETE — non-numeric ID ─────────────────────────────
@@ -558,12 +577,14 @@ echo -e "${CYAN}=== FR17-BVA-001: discount_value -α — omitted/empty ===${NC}"
 start_tc "FR17-BVA-001"
 run_and_assert "FR17-BVA-001" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"BVA01","type":"percent","expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "BVA01"
 end_tc
 
 echo -e "${CYAN}=== FR17-BVA-002: discount_value LB-1 — exactly 0 ===${NC}"
 start_tc "FR17-BVA-002"
 run_and_assert "FR17-BVA-002" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"BVA02","type":"percent","discount_value":0,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "BVA02"
 end_tc
 
 echo -e "${CYAN}=== FR17-BVA-003: discount_value LB — exactly 1 (valid) ===${NC}"
@@ -621,12 +642,14 @@ echo -e "${CYAN}=== FR17-BVA-010: min_order_amount -α — omitted ===${NC}"
 start_tc "FR17-BVA-010"
 run_and_assert "FR17-BVA-010" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"BVA10","type":"percent","discount_value":15,"expired_at":"2099-12-31","max_uses_per_user":1}'
+teardown_coupon_by_code "BVA10"
 end_tc
 
 echo -e "${CYAN}=== FR17-BVA-011: min_order_amount LB-1 — exactly -1 ===${NC}"
 start_tc "FR17-BVA-011"
 run_and_assert "FR17-BVA-011" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"BVA11","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":-1,"max_uses_per_user":1}'
+teardown_coupon_by_code "BVA11"
 end_tc
 
 echo -e "${CYAN}=== FR17-BVA-012: min_order_amount LB — exactly 0 (valid) ===${NC}"
@@ -663,12 +686,14 @@ echo -e "${CYAN}=== FR17-BVA-016: max_uses_per_user -α — omitted ===${NC}"
 start_tc "FR17-BVA-016"
 run_and_assert "FR17-BVA-016" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"BVA16","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000}'
+teardown_coupon_by_code "BVA16"
 end_tc
 
 echo -e "${CYAN}=== FR17-BVA-017: max_uses_per_user LB-1 — exactly 0 ===${NC}"
 start_tc "FR17-BVA-017"
 run_and_assert "FR17-BVA-017" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"BVA17","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":0}'
+teardown_coupon_by_code "BVA17"
 end_tc
 
 echo -e "${CYAN}=== FR17-BVA-018: max_uses_per_user LB — exactly 1 (valid) ===${NC}"
@@ -705,12 +730,14 @@ echo -e "${CYAN}=== FR17-BVA-022: expired_at -α — omitted ===${NC}"
 start_tc "FR17-BVA-022"
 run_and_assert "FR17-BVA-022" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"BVA22","type":"percent","discount_value":15,"min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code "BVA22"
 end_tc
 
 echo -e "${CYAN}=== FR17-BVA-023: expired_at LB-1 — yesterday ($YESTERDAY) ===${NC}"
 start_tc "FR17-BVA-023"
 run_and_assert "FR17-BVA-023" "400" "POST" "/api/admin/coupons" "admin" \
   "{\"code\":\"BVA23\",\"type\":\"percent\",\"discount_value\":15,\"expired_at\":\"${YESTERDAY}\",\"min_order_amount\":100000,\"max_uses_per_user\":1}"
+teardown_coupon_by_code "BVA23"
 end_tc
 
 echo -e "${CYAN}=== FR17-BVA-024: expired_at LB — today ($TODAY) (valid) ===${NC}"
@@ -747,6 +774,7 @@ echo -e "${CYAN}=== FR17-BVA-028: code -α — empty string ===${NC}"
 start_tc "FR17-BVA-028"
 run_and_assert "FR17-BVA-028" "400" "POST" "/api/admin/coupons" "admin" \
   '{"code":"","type":"percent","discount_value":15,"expired_at":"2099-12-31","min_order_amount":100000,"max_uses_per_user":1}'
+teardown_coupon_by_code ""
 end_tc
 
 echo -e "${CYAN}=== FR17-BVA-029: code LB — 1 character 'A' (valid) ===${NC}"

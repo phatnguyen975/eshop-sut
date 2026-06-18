@@ -2,10 +2,10 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 7                |
-| Total AI outputs reviewed       | 7                |
+| Total skill sessions logged     | 8                |
+| Total AI outputs reviewed       | 8                |
 | Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 0                |
+| Items modified by student       | 1                |
 | Items added manually by student | 0                |
 | Items rejected                  | 0                |
 
@@ -411,3 +411,56 @@ End with a clear verdict: APPROVED or NEEDS REVISION.
 | Accuracy            | 5            | Were generated items correct per SRS? Yes, correctly identified 0 violations. |
 | Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, rigorously checked Isolation Rule. |
 | Items missed        | 0 count      | Number of classes AI did not generate.                                        |
+
+## Interaction [8] — test-execution-assistant
+
+| Field             | Value                                                             |
+| ----------------- | ----------------------------------------------------------------- |
+| **Tool**          | Antigravity CLI (Gemini 3.1 Pro backend)                          |
+| **Date/Time**     | 2026-06-18 16:54                                                  |
+| **Feature**       | FR-17 — Coupon Management                                         |
+| **Skill Invoked** | test-execution-assistant                                          |
+| **Task**          | Executed Phase A and Phase B to run and verify tests against SUT. |
+
+### Prompt Given
+
+```text
+/test-execution-assistant Use the test-execution-assistant skill — Phase A.
+Feature: FR-17 — Coupon Management (Admin CRUD)
+Read the approved test cases at: qa-artifacts/test-cases/FR17-test-cases.md
+
+First, show me the TC Classification table...
+Then generate:
+1. scripts/curl/FR17-api-tests.sh
+2. scripts/curl/FR17-dom-checks.js
+3. qa-artifacts/execution-results/FR17-execution-results.md
+
+/test-execution-assistant Use the test-execution-assistant skill — Phase B.
+SCRIPT OUTPUT (paste the full summary block from terminal)
+DOM OUTPUT (paste the DOM CHECK RESULTS block)
+```
+
+### AI Output Summary
+
+- Displayed TC Classification table.
+- Generated `FR17-api-tests.sh` utilizing custom `start_tc/end_tc` wrappers and dynamic dates.
+- Generated `FR17-dom-checks.js` for executing the DOM verifications.
+- Generated `FR17-execution-results.md` and later updated both it and `FR17-test-cases.md` with the observed Phase B results.
+
+### Student Review Notes
+
+- **Accepted after modification:** The generated scripts were structurally excellent but contained several execution and logic flaws that required manual QA intervention.
+- **Modified:**
+  1. Bash Script: Fixed a `set -u` unbound variable error (`$C`) caused by the AI assigning variables inside a `(...)` subshell. Replaced it with a standard `if-elif-else` block.
+  2. Bash Script: Lowered the expected HTTP status for successful POST requests from `201` to `200` to match the actual SUT behavior and prevent false negatives.
+- **Added manually:** None.
+- **Rejected:** None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                        |
+| ------------------- | ------------ | ---------------------------------------------------------------------------- |
+| Completeness        | 5            | Did AI cover all required classes? Yes, generated scripts for all TCs.       |
+| Accuracy            | 4            | Were generated items correct per SRS? Mostly, but had unbound variable bugs. |
+| Guideline adherence | 5            | Did AI follow EP/BVA rules correctly? Yes, followed skill instructions.      |
+| Items missed        | 0 count      | Number of classes AI did not generate.                                       |

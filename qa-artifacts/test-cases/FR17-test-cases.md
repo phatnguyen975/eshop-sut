@@ -20,8 +20,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.<br>3. Check DB state via GET /api/coupons. |
 | **Expected Result** | 1. HTTP 201 Created (or 200 OK) (per FR-17).<br>2. Response body matches spec.<br>3. DB `coupons` table contains the new record.      |
 | **Test Channel**    | API + State                                                                                                                           |
-| **Observed Result** |                                                                                                                                       |
-| **Status**          |                                                                                                                                       |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                                 |
+| **Status**          | PASS                                                                                                                                  |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -37,8 +37,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.<br>3. Check DB state.         |
 | **Expected Result** | 1. HTTP 201 Created (or 200 OK) (per FR-17).<br>2. DB `coupons` table contains the new record.                           |
 | **Test Channel**    | API + State                                                                                                              |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                    |
+| **Status**          | PASS                                                                                                                     |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -54,8 +54,8 @@
 | **Steps**           | 1. Navigate to Admin UI coupon form.<br>2. Fill in form with XSS payload code and valid fields.<br>3. Click Add Coupon.<br>4. View coupon list. |
 | **Expected Result** | 1. UI accepts input and creates coupon (per FR-17).<br>2. Script does not execute on list view, text displayed safely (per SEC-04).             |
 | **Test Channel**    | UI                                                                                                                                              |
-| **Observed Result** |                                                                                                                                                 |
-| **Status**          |                                                                                                                                                 |
+| **Observed Result** | UI accepts XSS code `<script>alert(1)</script>`. Rendered safely in DOM without execution. (per SEC-04)                                         |
+| **Status**          | PASS                                                                                                                                            |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -71,8 +71,8 @@
 | **Steps**           | 1. Send DELETE to `/api/admin/coupons/1` with Admin JWT.<br>2. Observe HTTP response.<br>3. Check DB state. |
 | **Expected Result** | 1. HTTP 200 OK (per FR-17).<br>2. Coupon removed from DB.                                                   |
 | **Test Channel**    | API + State                                                                                                 |
-| **Observed Result** |                                                                                                             |
-| **Status**          |                                                                                                             |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                       |
+| **Status**          | PASS                                                                                                        |
 
 ### FR17-EP-005 — Happy Path (List coupons)
 
@@ -86,23 +86,23 @@
 | **Steps**           | 1. Send GET request to API with Admin JWT.<br>2. Observe HTTP response. |
 | **Expected Result** | 1. HTTP 200 OK (per FR-17).<br>2. Response contains list of coupons.    |
 | **Test Channel**    | API                                                                     |
-| **Observed Result** |                                                                         |
-| **Status**          |                                                                         |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                   |
+| **Status**          | PASS                                                                    |
 
 ### FR17-EP-006 — Verify DOM properties for form validation
 
-| Field               | Value                                                                                                                                                                                             |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **TC ID**           | FR17-EP-006                                                                                                                                                                                       |
-| **Objective**       | Verify UI form validation markings, types, and colors                                                                                                                                             |
-| **EC Ref**          | EC-DOM (Implicit DOM requirements)                                                                                                                                                                |
-| **Pre-condition**   | SUT is running. Admin is logged in to Admin UI.                                                                                                                                                   |
-| **Test Data**       | N/A                                                                                                                                                                                               |
-| **Steps**           | 1. Navigate to Admin Coupon Management page.<br>2. Inspect `<h1>` count.<br>3. Inspect mandatory fields for `*`.<br>4. Inspect `expired_at` input for `type="date"`.<br>5. Inspect button colors. |
-| **Expected Result** | 1. Exactly one `<h1>` tag exists (per FR-21).<br>2. Mandatory fields have `*` (per FR-22).<br>3. `expired_at` uses `type="date"`.<br>4. Add button is blue, Delete is red (per FR-21).            |
-| **Test Channel**    | UI + DOM                                                                                                                                                                                          |
-| **Observed Result** |                                                                                                                                                                                                   |
-| **Status**          |                                                                                                                                                                                                   |
+| Field               | Value                                                                                                                                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TC ID**           | FR17-EP-006                                                                                                                                                                                               |
+| **Objective**       | Verify UI form validation markings, types, and colors                                                                                                                                                     |
+| **EC Ref**          | EC-DOM (Implicit DOM requirements)                                                                                                                                                                        |
+| **Pre-condition**   | SUT is running. Admin is logged in to Admin UI.                                                                                                                                                           |
+| **Test Data**       | N/A                                                                                                                                                                                                       |
+| **Steps**           | 1. Navigate to Admin Coupon Management page.<br>2. Inspect `<h1>` count.<br>3. Inspect mandatory fields for `*`.<br>4. Inspect `expired_at` input for `type="date"`.<br>5. Inspect button colors.         |
+| **Expected Result** | 1. Exactly one `<h1>` tag exists (per FR-21).<br>2. Mandatory fields have `*` (per FR-22).<br>3. `expired_at` uses `type="date"`.<br>4. Add button is blue, Delete is red (per FR-21).                    |
+| **Test Channel**    | UI + DOM                                                                                                                                                                                                  |
+| **Observed Result** | DOM: 5 PASS / 2 FAIL. Exactly 1 `h1` (PASS). No required-field `*` found (FAIL). `expired_at` has `type="date"` (PASS). Add/Delete buttons present (PASS). Heading text mismatch (FAIL). XSS safe (PASS). |
+| **Status**          | FAIL                                                                                                                                                                                                      |
 
 ### FR17-EP-007 — Invalid code (empty)
 
@@ -116,8 +116,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                     |
 | **Expected Result** | HTTP 400 Bad Request. System rejects empty code (per FR-17).                                                        |
 | **Test Channel**    | API                                                                                                                 |
-| **Observed Result** |                                                                                                                     |
-| **Status**          |                                                                                                                     |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                     |
+| **Status**          | FAIL                                                                                                                |
 
 ### FR17-EP-008 — Invalid code (missing)
 
@@ -131,8 +131,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                           |
 | **Expected Result** | HTTP 400 Bad Request. Code is required (per FR-17).                                                                       |
 | **Test Channel**    | API                                                                                                                       |
-| **Observed Result** |                                                                                                                           |
-| **Status**          |                                                                                                                           |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                           |
+| **Status**          | FAIL                                                                                                                      |
 
 ### FR17-EP-009 — Invalid code (duplicate)
 
@@ -146,8 +146,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                           |
 | **Expected Result** | HTTP 400 Bad Request. Code must be unique (per FR-17).                                                                    |
 | **Test Channel**    | API                                                                                                                       |
-| **Observed Result** |                                                                                                                           |
-| **Status**          |                                                                                                                           |
+| **Observed Result** | Actual: HTTP 500 instead of Expected: HTTP 400.                                                                           |
+| **Status**          | FAIL                                                                                                                      |
 
 ### FR17-EP-010 — Invalid type (unknown enum)
 
@@ -161,8 +161,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 400 Bad Request. Invalid type enum (per FR-17).                                                                          |
 | **Test Channel**    | API                                                                                                                           |
-| **Observed Result** |                                                                                                                               |
-| **Status**          |                                                                                                                               |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                               |
+| **Status**          | FAIL                                                                                                                          |
 
 ### FR17-EP-011 — Invalid type (uppercase)
 
@@ -176,8 +176,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                              |
 | **Expected Result** | HTTP 400 Bad Request. Invalid enum value (per FR-17).                                                                        |
 | **Test Channel**    | API                                                                                                                          |
-| **Observed Result** |                                                                                                                              |
-| **Status**          |                                                                                                                              |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                              |
+| **Status**          | FAIL                                                                                                                         |
 
 ### FR17-EP-012 — Invalid type (empty)
 
@@ -191,8 +191,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                       |
 | **Expected Result** | HTTP 400 Bad Request. Type is required (per FR-17).                                                                   |
 | **Test Channel**    | API                                                                                                                   |
-| **Observed Result** |                                                                                                                       |
-| **Status**          |                                                                                                                       |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                       |
+| **Status**          | FAIL                                                                                                                  |
 
 ### FR17-EP-013 — Invalid type (missing)
 
@@ -206,8 +206,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                             |
 | **Expected Result** | HTTP 400 Bad Request. Type is required (per FR-17).                                                                         |
 | **Test Channel**    | API                                                                                                                         |
-| **Observed Result** |                                                                                                                             |
-| **Status**          |                                                                                                                             |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                             |
+| **Status**          | FAIL                                                                                                                        |
 
 ### FR17-EP-014 — Invalid discount_value (exactly zero)
 
@@ -221,8 +221,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                             |
 | **Expected Result** | HTTP 400 Bad Request. Discount must be > 0 (per FR-17).                                                                     |
 | **Test Channel**    | API                                                                                                                         |
-| **Observed Result** |                                                                                                                             |
-| **Status**          |                                                                                                                             |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                             |
+| **Status**          | FAIL                                                                                                                        |
 
 ### FR17-EP-015 — Invalid discount_value (negative)
 
@@ -236,8 +236,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 400 Bad Request. Discount must be > 0 (per FR-17).                                                                       |
 | **Test Channel**    | API                                                                                                                           |
-| **Observed Result** |                                                                                                                               |
-| **Status**          |                                                                                                                               |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                               |
+| **Status**          | FAIL                                                                                                                          |
 
 ### FR17-EP-016 — Invalid discount_value (missing)
 
@@ -251,8 +251,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                                    |
 | **Expected Result** | HTTP 400 Bad Request. Discount value is required (per FR-17).                                                                      |
 | **Test Channel**    | API                                                                                                                                |
-| **Observed Result** |                                                                                                                                    |
-| **Status**          |                                                                                                                                    |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                                    |
+| **Status**          | FAIL                                                                                                                               |
 
 ### FR17-EP-017 — Invalid discount_value (string)
 
@@ -266,8 +266,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                                 |
 | **Expected Result** | HTTP 400 Bad Request. Expected numeric value (per FR-17).                                                                       |
 | **Test Channel**    | API                                                                                                                             |
-| **Observed Result** |                                                                                                                                 |
-| **Status**          |                                                                                                                                 |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                                 |
+| **Status**          | FAIL                                                                                                                            |
 
 ### FR17-EP-018 — Invalid discount_value (exceeds 100%)
 
@@ -281,8 +281,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 400 Bad Request (flag if system silently accepts). Percent cannot exceed 100 (logical).                                  |
 | **Test Channel**    | API                                                                                                                           |
-| **Observed Result** |                                                                                                                               |
-| **Status**          |                                                                                                                               |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                               |
+| **Status**          | FAIL                                                                                                                          |
 
 ### FR17-EP-019 — Invalid expired_at (past date)
 
@@ -296,8 +296,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                              |
 | **Expected Result** | HTTP 400 Bad Request. Cannot create already-expired coupon (per BR-05).                                                      |
 | **Test Channel**    | API                                                                                                                          |
-| **Observed Result** |                                                                                                                              |
-| **Status**          |                                                                                                                              |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                              |
+| **Status**          | FAIL                                                                                                                         |
 
 ### FR17-EP-020 — Invalid expired_at (wrong format)
 
@@ -311,8 +311,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                              |
 | **Expected Result** | HTTP 400 Bad Request. Invalid date format (per FR-17).                                                                       |
 | **Test Channel**    | API                                                                                                                          |
-| **Observed Result** |                                                                                                                              |
-| **Status**          |                                                                                                                              |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                              |
+| **Status**          | FAIL                                                                                                                         |
 
 ### FR17-EP-021 — Invalid expired_at (non-date string)
 
@@ -326,8 +326,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                            |
 | **Expected Result** | HTTP 400 Bad Request. Unparseable date (per FR-17).                                                                        |
 | **Test Channel**    | API                                                                                                                        |
-| **Observed Result** |                                                                                                                            |
-| **Status**          |                                                                                                                            |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                            |
+| **Status**          | FAIL                                                                                                                       |
 
 ### FR17-EP-022 — Invalid expired_at (missing)
 
@@ -341,8 +341,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                          |
 | **Expected Result** | HTTP 400 Bad Request. Expiry date is required (per FR-17).                                                               |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                          |
+| **Status**          | FAIL                                                                                                                     |
 
 ### FR17-EP-023 — Invalid min_order_amount (negative)
 
@@ -356,8 +356,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                          |
 | **Expected Result** | HTTP 400 Bad Request. Must be >= 0 (per FR-17).                                                                          |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                          |
+| **Status**          | FAIL                                                                                                                     |
 
 ### FR17-EP-024 — Invalid min_order_amount (missing)
 
@@ -371,8 +371,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                                |
 | **Expected Result** | HTTP 400 Bad Request. Minimum order amount is required (per FR-17).                                                            |
 | **Test Channel**    | API                                                                                                                            |
-| **Observed Result** |                                                                                                                                |
-| **Status**          |                                                                                                                                |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                                |
+| **Status**          | FAIL                                                                                                                           |
 
 ### FR17-EP-025 — Invalid max_uses_per_user (zero)
 
@@ -386,8 +386,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                              |
 | **Expected Result** | HTTP 400 Bad Request. Must be >= 1 (per FR-17).                                                                              |
 | **Test Channel**    | API                                                                                                                          |
-| **Observed Result** |                                                                                                                              |
-| **Status**          |                                                                                                                              |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                              |
+| **Status**          | FAIL                                                                                                                         |
 
 ### FR17-EP-026 — Invalid max_uses_per_user (negative)
 
@@ -401,8 +401,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 400 Bad Request. Must be >= 1 (per FR-17).                                                                               |
 | **Test Channel**    | API                                                                                                                           |
-| **Observed Result** |                                                                                                                               |
-| **Status**          |                                                                                                                               |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                               |
+| **Status**          | FAIL                                                                                                                          |
 
 ### FR17-EP-027 — Invalid max_uses_per_user (missing)
 
@@ -416,8 +416,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                                     |
 | **Expected Result** | HTTP 400 Bad Request. Max uses is required (per FR-17).                                                                             |
 | **Test Channel**    | API                                                                                                                                 |
-| **Observed Result** |                                                                                                                                     |
-| **Status**          |                                                                                                                                     |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                                     |
+| **Status**          | FAIL                                                                                                                                |
 
 ### FR17-EP-028 — Invalid max_uses_per_user (float)
 
@@ -431,8 +431,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with Admin JWT and JSON body.<br>2. Observe HTTP response.                                |
 | **Expected Result** | HTTP 400 Bad Request. Must be an integer (per FR-17).                                                                          |
 | **Test Channel**    | API                                                                                                                            |
-| **Observed Result** |                                                                                                                                |
-| **Status**          |                                                                                                                                |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                                |
+| **Status**          | FAIL                                                                                                                           |
 
 ### FR17-EP-029 — Invalid DELETE ID (non-existent)
 
@@ -446,8 +446,8 @@
 | **Steps**           | 1. Send DELETE to `/api/admin/coupons/99999` with Admin JWT.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 404 Not Found (per FR-17).                                                           |
 | **Test Channel**    | API                                                                                       |
-| **Observed Result** |                                                                                           |
-| **Status**          |                                                                                           |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 404.                                           |
+| **Status**          | FAIL                                                                                      |
 
 ### FR17-EP-030 — Invalid DELETE ID (non-numeric string)
 
@@ -461,8 +461,8 @@
 | **Steps**           | 1. Send DELETE to `/api/admin/coupons/abc` with Admin JWT.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 400 Bad Request or 404. System rejects invalid ID format (per FR-17).              |
 | **Test Channel**    | API                                                                                     |
-| **Observed Result** |                                                                                         |
-| **Status**          |                                                                                         |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400 or 404.                                  |
+| **Status**          | FAIL                                                                                    |
 
 ### FR17-EP-031 — Invalid DELETE ID (zero)
 
@@ -476,8 +476,8 @@
 | **Steps**           | 1. Send DELETE to `/api/admin/coupons/0` with Admin JWT.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 400 Bad Request or 404 (per FR-17).                                              |
 | **Test Channel**    | API                                                                                   |
-| **Observed Result** |                                                                                       |
-| **Status**          |                                                                                       |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400 or 404.                                |
+| **Status**          | FAIL                                                                                  |
 
 ### FR17-EP-032 — Auth (POST no token)
 
@@ -491,8 +491,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with NO Authorization header and valid JSON body.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 401 Unauthorized (per SEC-02).                                                                                 |
 | **Test Channel**    | Role-Auth                                                                                                           |
-| **Observed Result** |                                                                                                                     |
-| **Status**          |                                                                                                                     |
+| **Observed Result** | HTTP 401 Unauthorized. Matches expected result.                                                                     |
+| **Status**          | PASS                                                                                                                |
 
 ### FR17-EP-033 — Auth (POST user token)
 
@@ -506,8 +506,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with User JWT and valid JSON body.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 403 Forbidden. Admin role required (per SEC-03).                                                |
 | **Test Channel**    | Role-Auth                                                                                            |
-| **Observed Result** |                                                                                                      |
-| **Status**          |                                                                                                      |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 403.                                                      |
+| **Status**          | FAIL                                                                                                 |
 
 ### FR17-EP-034 — Auth (POST invalid token)
 
@@ -521,8 +521,8 @@
 | **Steps**           | 1. Send POST to `/api/admin/coupons` with malformed token and valid JSON body.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 401 Unauthorized (per SEC-02).                                                                         |
 | **Test Channel**    | Role-Auth                                                                                                   |
-| **Observed Result** |                                                                                                             |
-| **Status**          |                                                                                                             |
+| **Observed Result** | Actual: HTTP 403 instead of Expected: HTTP 401.                                                             |
+| **Status**          | FAIL                                                                                                        |
 
 ### FR17-EP-035 — Auth (DELETE no token)
 
@@ -536,8 +536,8 @@
 | **Steps**           | 1. Send DELETE to `/api/admin/coupons/1` with NO Authorization header.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 401 Unauthorized (per SEC-02).                                                                 |
 | **Test Channel**    | Role-Auth                                                                                           |
-| **Observed Result** |                                                                                                     |
-| **Status**          |                                                                                                     |
+| **Observed Result** | HTTP 401 Unauthorized. Matches expected result.                                                     |
+| **Status**          | PASS                                                                                                |
 
 ### FR17-EP-036 — Auth (DELETE user token)
 
@@ -551,8 +551,8 @@
 | **Steps**           | 1. Send DELETE to `/api/admin/coupons/1` with User JWT.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 403 Forbidden. Admin role required (per SEC-03).                                |
 | **Test Channel**    | Role-Auth                                                                            |
-| **Observed Result** |                                                                                      |
-| **Status**          |                                                                                      |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 403.                                      |
+| **Status**          | FAIL                                                                                 |
 
 ### FR17-EP-037 — Auth (GET no token)
 
@@ -566,8 +566,8 @@
 | **Steps**           | 1. Send GET to `/api/coupons` with NO Authorization header.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 401 Unauthorized (per SEC-02).                                                      |
 | **Test Channel**    | Role-Auth                                                                                |
-| **Observed Result** |                                                                                          |
-| **Status**          |                                                                                          |
+| **Observed Result** | HTTP 401 Unauthorized. Matches expected result.                                          |
+| **Status**          | PASS                                                                                     |
 
 ### FR17-EP-038 — Auth (GET user token)
 
@@ -581,8 +581,8 @@
 | **Steps**           | 1. Send GET to `/api/coupons` with User JWT.<br>2. Observe HTTP response. |
 | **Expected Result** | HTTP 403 Forbidden. Admin role required (per SEC-03).                     |
 | **Test Channel**    | Role-Auth                                                                 |
-| **Observed Result** |                                                                           |
-| **Status**          |                                                                           |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 403.                           |
+| **Status**          | FAIL                                                                      |
 
 ## Part 2: BVA Test Cases
 
@@ -598,8 +598,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                           |
 | **Expected Result** | HTTP 400 Bad Request. Discount value is required (per FR-17).                                                                        |
 | **Test Channel**    | API                                                                                                                                  |
-| **Observed Result** |                                                                                                                                      |
-| **Status**          |                                                                                                                                      |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                                      |
+| **Status**          | FAIL                                                                                                                                 |
 
 ### FR17-BVA-002 — discount_value LB-1
 
@@ -613,8 +613,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                              |
 | **Expected Result** | HTTP 400 Bad Request. Discount must be > 0 (per FR-17).                                                                 |
 | **Test Channel**    | API                                                                                                                     |
-| **Observed Result** |                                                                                                                         |
-| **Status**          |                                                                                                                         |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                         |
+| **Status**          | FAIL                                                                                                                    |
 
 ### FR17-BVA-003 — discount_value LB
 
@@ -628,8 +628,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                              |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                               |
 | **Test Channel**    | API                                                                                                                     |
-| **Observed Result** |                                                                                                                         |
-| **Status**          |                                                                                                                         |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                   |
+| **Status**          | PASS                                                                                                                    |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -645,8 +645,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                              |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                               |
 | **Test Channel**    | API                                                                                                                     |
-| **Observed Result** |                                                                                                                         |
-| **Status**          |                                                                                                                         |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                   |
+| **Status**          | PASS                                                                                                                    |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -662,8 +662,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                    |
+| **Status**          | PASS                                                                                                                     |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -679,8 +679,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                    |
+| **Status**          | PASS                                                                                                                     |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -696,8 +696,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                 |
 | **Test Channel**    | API                                                                                                                       |
-| **Observed Result** |                                                                                                                           |
-| **Status**          |                                                                                                                           |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                     |
+| **Status**          | PASS                                                                                                                      |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -713,8 +713,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                |
 | **Expected Result** | HTTP 400 Bad Request. Percent discount cannot exceed 100 (flag if accepted).                                              |
 | **Test Channel**    | API                                                                                                                       |
-| **Observed Result** |                                                                                                                           |
-| **Status**          |                                                                                                                           |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                           |
+| **Status**          | FAIL                                                                                                                      |
 
 ### FR17-BVA-009 — discount_value +α
 
@@ -728,8 +728,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                    |
 | **Expected Result** | HTTP 400 Bad Request or system handles securely (per implicit DB limits).                                                     |
 | **Test Channel**    | API                                                                                                                           |
-| **Observed Result** |                                                                                                                               |
-| **Status**          |                                                                                                                               |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                               |
+| **Status**          | FAIL                                                                                                                          |
 
 ### FR17-BVA-010 — min_order_amount -α
 
@@ -743,8 +743,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                 |
 | **Expected Result** | HTTP 400 Bad Request. Minimum order amount is required (per FR-17).                                                        |
 | **Test Channel**    | API                                                                                                                        |
-| **Observed Result** |                                                                                                                            |
-| **Status**          |                                                                                                                            |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                            |
+| **Status**          | FAIL                                                                                                                       |
 
 ### FR17-BVA-011 — min_order_amount LB-1
 
@@ -758,8 +758,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                           |
 | **Expected Result** | HTTP 400 Bad Request. Must be >= 0 (per FR-17).                                                                      |
 | **Test Channel**    | API                                                                                                                  |
-| **Observed Result** |                                                                                                                      |
-| **Status**          |                                                                                                                      |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                      |
+| **Status**          | FAIL                                                                                                                 |
 
 ### FR17-BVA-012 — min_order_amount LB
 
@@ -773,8 +773,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                          |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                           |
 | **Test Channel**    | API                                                                                                                 |
-| **Observed Result** |                                                                                                                     |
-| **Status**          |                                                                                                                     |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                               |
+| **Status**          | PASS                                                                                                                |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -790,8 +790,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                          |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                           |
 | **Test Channel**    | API                                                                                                                 |
-| **Observed Result** |                                                                                                                     |
-| **Status**          |                                                                                                                     |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                               |
+| **Status**          | PASS                                                                                                                |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -807,8 +807,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                    |
+| **Status**          | PASS                                                                                                                     |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -824,8 +824,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                  |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17). Test DB limits.                                                                   |
 | **Test Channel**    | API                                                                                                                         |
-| **Observed Result** |                                                                                                                             |
-| **Status**          |                                                                                                                             |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                       |
+| **Status**          | PASS                                                                                                                        |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -841,8 +841,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                      |
 | **Expected Result** | HTTP 400 Bad Request. Max uses required (per FR-17).                                                                            |
 | **Test Channel**    | API                                                                                                                             |
-| **Observed Result** |                                                                                                                                 |
-| **Status**          |                                                                                                                                 |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                                 |
+| **Status**          | FAIL                                                                                                                            |
 
 ### FR17-BVA-017 — max_uses_per_user LB-1
 
@@ -856,8 +856,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 400 Bad Request. Must be >= 1 (per FR-17).                                                                          |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                          |
+| **Status**          | FAIL                                                                                                                     |
 
 ### FR17-BVA-018 — max_uses_per_user LB
 
@@ -871,8 +871,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                    |
+| **Status**          | PASS                                                                                                                     |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -888,8 +888,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                    |
+| **Status**          | PASS                                                                                                                     |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -905,8 +905,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                 |
 | **Test Channel**    | API                                                                                                                       |
-| **Observed Result** |                                                                                                                           |
-| **Status**          |                                                                                                                           |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                     |
+| **Status**          | PASS                                                                                                                      |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -922,8 +922,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                  |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17). Test DB limits.                                                                   |
 | **Test Channel**    | API                                                                                                                         |
-| **Observed Result** |                                                                                                                             |
-| **Status**          |                                                                                                                             |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                       |
+| **Status**          | PASS                                                                                                                        |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -939,8 +939,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                           |
 | **Expected Result** | HTTP 400 Bad Request. Expiry date required (per FR-17).                                                              |
 | **Test Channel**    | API                                                                                                                  |
-| **Observed Result** |                                                                                                                      |
-| **Status**          |                                                                                                                      |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                      |
+| **Status**          | FAIL                                                                                                                 |
 
 ### FR17-BVA-023 — expired_at LB-1
 
@@ -954,8 +954,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                       |
 | **Expected Result** | HTTP 400 Bad Request. Cannot create already-expired coupon (per BR-05).                                                          |
 | **Test Channel**    | API                                                                                                                              |
-| **Observed Result** |                                                                                                                                  |
-| **Status**          |                                                                                                                                  |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                                  |
+| **Status**          | FAIL                                                                                                                             |
 
 ### FR17-BVA-024 — expired_at LB
 
@@ -969,8 +969,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                   |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                    |
 | **Test Channel**    | API                                                                                                                          |
-| **Observed Result** |                                                                                                                              |
-| **Status**          |                                                                                                                              |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                        |
+| **Status**          | PASS                                                                                                                         |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -986,8 +986,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                      |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                       |
 | **Test Channel**    | API                                                                                                                             |
-| **Observed Result** |                                                                                                                                 |
-| **Status**          |                                                                                                                                 |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                           |
+| **Status**          | PASS                                                                                                                            |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -1003,8 +1003,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                    |
+| **Status**          | PASS                                                                                                                     |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -1020,8 +1020,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                    |
+| **Status**          | PASS                                                                                                                     |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -1037,8 +1037,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                          |
 | **Expected Result** | HTTP 400 Bad Request. Code cannot be empty (per FR-17).                                                             |
 | **Test Channel**    | API                                                                                                                 |
-| **Observed Result** |                                                                                                                     |
-| **Status**          |                                                                                                                     |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                     |
+| **Status**          | FAIL                                                                                                                |
 
 ### FR17-BVA-029 — code LB
 
@@ -1052,8 +1052,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                           |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                            |
 | **Test Channel**    | API                                                                                                                  |
-| **Observed Result** |                                                                                                                      |
-| **Status**          |                                                                                                                      |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                |
+| **Status**          | PASS                                                                                                                 |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -1069,8 +1069,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                            |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                             |
 | **Test Channel**    | API                                                                                                                   |
-| **Observed Result** |                                                                                                                       |
-| **Status**          |                                                                                                                       |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                 |
+| **Status**          | PASS                                                                                                                  |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -1086,8 +1086,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                               |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                |
 | **Test Channel**    | API                                                                                                                      |
-| **Observed Result** |                                                                                                                          |
-| **Status**          |                                                                                                                          |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                    |
+| **Status**          | PASS                                                                                                                     |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -1103,8 +1103,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                 |
 | **Test Channel**    | API                                                                                                                       |
-| **Observed Result** |                                                                                                                           |
-| **Status**          |                                                                                                                           |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                     |
+| **Status**          | PASS                                                                                                                      |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -1120,8 +1120,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                |
 | **Expected Result** | HTTP 201 Created (or 200 OK) (per FR-17).                                                                                 |
 | **Test Channel**    | API                                                                                                                       |
-| **Observed Result** |                                                                                                                           |
-| **Status**          |                                                                                                                           |
+| **Observed Result** | HTTP 200 OK. Matches expected result.                                                                                     |
+| **Status**          | PASS                                                                                                                      |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id
 
@@ -1137,8 +1137,8 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                |
 | **Expected Result** | System rejects explicitly or silently truncates (flag if truncated).                                                      |
 | **Test Channel**    | API                                                                                                                       |
-| **Observed Result** |                                                                                                                           |
-| **Status**          |                                                                                                                           |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                           |
+| **Status**          | FAIL                                                                                                                      |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id (if accepted)
 
@@ -1154,88 +1154,88 @@
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.                                 |
 | **Expected Result** | HTTP 400 Bad Request or DB truncation error (flag behavior).                                                               |
 | **Test Channel**    | API                                                                                                                        |
-| **Observed Result** |                                                                                                                            |
-| **Status**          |                                                                                                                            |
+| **Observed Result** | Actual: HTTP 200 instead of Expected: HTTP 400.                                                                            |
+| **Status**          | FAIL                                                                                                                       |
 
 > **Teardown:** [Teardown] DELETE /api/admin/coupons/:id (if accepted)
 
 ## TC Summary Table
 
-| TC ID        | Type | EC / BVA Ref           | Test Focus             | Channel     | Status |
-| ------------ | ---- | ---------------------- | ---------------------- | ----------- | ------ |
-| FR17-EP-001  | EP   | EC01, EC06...          | Happy Path             | API + State |        |
-| FR17-EP-002  | EP   | EC01, EC07...          | Happy Path (Fixed)     | API + State |        |
-| FR17-EP-003  | EP   | EC02, EC06...          | Happy Path (XSS)       | UI          |        |
-| FR17-EP-004  | EP   | EC34, EC38             | Delete existing        | API + State |        |
-| FR17-EP-005  | EP   | EC38                   | List coupons           | API         |        |
-| FR17-EP-006  | EP   | EC-DOM                 | UI elements check      | UI + DOM    |        |
-| FR17-EP-007  | EP   | EC03                   | Empty code             | API         |        |
-| FR17-EP-008  | EP   | EC04                   | Missing code           | API         |        |
-| FR17-EP-009  | EP   | EC05                   | Duplicate code         | API         |        |
-| FR17-EP-010  | EP   | EC08                   | Unknown type enum      | API         |        |
-| FR17-EP-011  | EP   | EC09                   | Uppercase type         | API         |        |
-| FR17-EP-012  | EP   | EC10                   | Empty type             | API         |        |
-| FR17-EP-013  | EP   | EC11                   | Missing type           | API         |        |
-| FR17-EP-014  | EP   | EC13                   | Zero discount          | API         |        |
-| FR17-EP-015  | EP   | EC14                   | Negative discount      | API         |        |
-| FR17-EP-016  | EP   | EC15                   | Missing discount       | API         |        |
-| FR17-EP-017  | EP   | EC16                   | String discount        | API         |        |
-| FR17-EP-018  | EP   | EC18                   | Discount > 100%        | API         |        |
-| FR17-EP-019  | EP   | EC20                   | Past date              | API         |        |
-| FR17-EP-020  | EP   | EC21                   | Wrong format           | API         |        |
-| FR17-EP-021  | EP   | EC22                   | String date            | API         |        |
-| FR17-EP-022  | EP   | EC23                   | Missing date           | API         |        |
-| FR17-EP-023  | EP   | EC26                   | Negative min order     | API         |        |
-| FR17-EP-024  | EP   | EC27                   | Missing min order      | API         |        |
-| FR17-EP-025  | EP   | EC30                   | Zero max uses          | API         |        |
-| FR17-EP-026  | EP   | EC31                   | Negative max uses      | API         |        |
-| FR17-EP-027  | EP   | EC32                   | Missing max uses       | API         |        |
-| FR17-EP-028  | EP   | EC33                   | Float max uses         | API         |        |
-| FR17-EP-029  | EP   | EC35                   | Delete non-existent    | API         |        |
-| FR17-EP-030  | EP   | EC36                   | Delete invalid format  | API         |        |
-| FR17-EP-031  | EP   | EC37                   | Delete ID=0            | API         |        |
-| FR17-EP-032  | EP   | EC39                   | Create without token   | Role-Auth   |        |
-| FR17-EP-033  | EP   | EC40                   | Create with user token | Role-Auth   |        |
-| FR17-EP-034  | EP   | EC41                   | Create malformed token | Role-Auth   |        |
-| FR17-EP-035  | EP   | EC39                   | Delete without token   | Role-Auth   |        |
-| FR17-EP-036  | EP   | EC40                   | Delete with user token | Role-Auth   |        |
-| FR17-EP-037  | EP   | EC39                   | List without token     | Role-Auth   |        |
-| FR17-EP-038  | EP   | EC40                   | List with user token   | Role-Auth   |        |
-| FR17-BVA-001 | BVA  | discount_value -α      | Missing discount       | API         |        |
-| FR17-BVA-002 | BVA  | discount_value LB-1    | Discount = 0           | API         |        |
-| FR17-BVA-003 | BVA  | discount_value LB      | Discount = 1           | API         |        |
-| FR17-BVA-004 | BVA  | discount_value LB+1    | Discount = 2           | API         |        |
-| FR17-BVA-005 | BVA  | discount_value Nominal | Discount = 50          | API         |        |
-| FR17-BVA-006 | BVA  | discount_value UB-1    | Discount = 99          | API         |        |
-| FR17-BVA-007 | BVA  | discount_value UB      | Discount = 100         | API         |        |
-| FR17-BVA-008 | BVA  | discount_value UB+1    | Discount = 101         | API         |        |
-| FR17-BVA-009 | BVA  | discount_value +α      | Discount = 9999999     | API         |        |
-| FR17-BVA-010 | BVA  | min_order_amount -α    | Missing min order      | API         |        |
-| FR17-BVA-011 | BVA  | min_order_amount LB-1  | Min order = -1         | API         |        |
-| FR17-BVA-012 | BVA  | min_order_amount LB    | Min order = 0          | API         |        |
-| FR17-BVA-013 | BVA  | min_order_amount LB+1  | Min order = 1          | API         |        |
-| FR17-BVA-014 | BVA  | min_order_amount Nom   | Min order = 500000     | API         |        |
-| FR17-BVA-015 | BVA  | min_order_amount +α    | Min order = 999999999  | API         |        |
-| FR17-BVA-016 | BVA  | max_uses_per_user -α   | Missing max uses       | API         |        |
-| FR17-BVA-017 | BVA  | max_uses_per_user LB-1 | Max uses = 0           | API         |        |
-| FR17-BVA-018 | BVA  | max_uses_per_user LB   | Max uses = 1           | API         |        |
-| FR17-BVA-019 | BVA  | max_uses_per_user LB+1 | Max uses = 2           | API         |        |
-| FR17-BVA-020 | BVA  | max_uses_per_user Nom  | Max uses = 10          | API         |        |
-| FR17-BVA-021 | BVA  | max_uses_per_user +α   | Max uses = 9999        | API         |        |
-| FR17-BVA-022 | BVA  | expired_at -α          | Missing expiry         | API         |        |
-| FR17-BVA-023 | BVA  | expired_at LB-1        | Expiry = yesterday     | API         |        |
-| FR17-BVA-024 | BVA  | expired_at LB          | Expiry = today         | API         |        |
-| FR17-BVA-025 | BVA  | expired_at LB+1        | Expiry = tomorrow      | API         |        |
-| FR17-BVA-026 | BVA  | expired_at Nominal     | Expiry = 2027-12-31    | API         |        |
-| FR17-BVA-027 | BVA  | expired_at +α          | Expiry = 9999-12-31    | API         |        |
-| FR17-BVA-028 | BVA  | code length -α         | Length = 0             | API         |        |
-| FR17-BVA-029 | BVA  | code length LB         | Length = 1             | API         |        |
-| FR17-BVA-030 | BVA  | code length LB+1       | Length = 2             | API         |        |
-| FR17-BVA-031 | BVA  | code length Nominal    | Length = 8             | API         |        |
-| FR17-BVA-032 | BVA  | code length UB-1       | Length = 49            | API         |        |
-| FR17-BVA-033 | BVA  | code length UB         | Length = 50            | API         |        |
-| FR17-BVA-034 | BVA  | code length UB+1       | Length = 51            | API         |        |
-| FR17-BVA-035 | BVA  | code length +α         | Length = 300           | API         |        |
+| TC ID        | Type | EC / BVA Ref           | Test Focus | Channel     | Status |
+| ------------ | ---- | ---------------------- | ---------- | ----------- | ------ |
+| FR17-EP-001  | EP   | EC01, EC06...          | PASS       | API + State | PASS   |
+| FR17-EP-002  | EP   | EC01, EC07...          | PASS       | API + State | PASS   |
+| FR17-EP-003  | EP   | EC02, EC06...          | PASS       | UI          | PASS   |
+| FR17-EP-004  | EP   | EC34, EC38             | PASS       | API + State | PASS   |
+| FR17-EP-005  | EP   | EC38                   | PASS       | API         | PASS   |
+| FR17-EP-006  | EP   | EC-DOM                 | FAIL       | UI + DOM    | FAIL   |
+| FR17-EP-007  | EP   | EC03                   | FAIL       | API         | FAIL   |
+| FR17-EP-008  | EP   | EC04                   | FAIL       | API         | FAIL   |
+| FR17-EP-009  | EP   | EC05                   | FAIL       | API         | FAIL   |
+| FR17-EP-010  | EP   | EC08                   | FAIL       | API         | FAIL   |
+| FR17-EP-011  | EP   | EC09                   | FAIL       | API         | FAIL   |
+| FR17-EP-012  | EP   | EC10                   | FAIL       | API         | FAIL   |
+| FR17-EP-013  | EP   | EC11                   | FAIL       | API         | FAIL   |
+| FR17-EP-014  | EP   | EC13                   | FAIL       | API         | FAIL   |
+| FR17-EP-015  | EP   | EC14                   | FAIL       | API         | FAIL   |
+| FR17-EP-016  | EP   | EC15                   | FAIL       | API         | FAIL   |
+| FR17-EP-017  | EP   | EC16                   | FAIL       | API         | FAIL   |
+| FR17-EP-018  | EP   | EC18                   | FAIL       | API         | FAIL   |
+| FR17-EP-019  | EP   | EC20                   | FAIL       | API         | FAIL   |
+| FR17-EP-020  | EP   | EC21                   | FAIL       | API         | FAIL   |
+| FR17-EP-021  | EP   | EC22                   | FAIL       | API         | FAIL   |
+| FR17-EP-022  | EP   | EC23                   | FAIL       | API         | FAIL   |
+| FR17-EP-023  | EP   | EC26                   | FAIL       | API         | FAIL   |
+| FR17-EP-024  | EP   | EC27                   | FAIL       | API         | FAIL   |
+| FR17-EP-025  | EP   | EC30                   | FAIL       | API         | FAIL   |
+| FR17-EP-026  | EP   | EC31                   | FAIL       | API         | FAIL   |
+| FR17-EP-027  | EP   | EC32                   | FAIL       | API         | FAIL   |
+| FR17-EP-028  | EP   | EC33                   | FAIL       | API         | FAIL   |
+| FR17-EP-029  | EP   | EC35                   | FAIL       | API         | FAIL   |
+| FR17-EP-030  | EP   | EC36                   | FAIL       | API         | FAIL   |
+| FR17-EP-031  | EP   | EC37                   | FAIL       | API         | FAIL   |
+| FR17-EP-032  | EP   | EC39                   | PASS       | Role-Auth   | PASS   |
+| FR17-EP-033  | EP   | EC40                   | FAIL       | Role-Auth   | FAIL   |
+| FR17-EP-034  | EP   | EC41                   | FAIL       | Role-Auth   | FAIL   |
+| FR17-EP-035  | EP   | EC39                   | PASS       | Role-Auth   | PASS   |
+| FR17-EP-036  | EP   | EC40                   | FAIL       | Role-Auth   | FAIL   |
+| FR17-EP-037  | EP   | EC39                   | PASS       | Role-Auth   | PASS   |
+| FR17-EP-038  | EP   | EC40                   | FAIL       | Role-Auth   | FAIL   |
+| FR17-BVA-001 | BVA  | discount_value -α      | FAIL       | API         | FAIL   |
+| FR17-BVA-002 | BVA  | discount_value LB-1    | FAIL       | API         | FAIL   |
+| FR17-BVA-003 | BVA  | discount_value LB      | PASS       | API         | PASS   |
+| FR17-BVA-004 | BVA  | discount_value LB+1    | PASS       | API         | PASS   |
+| FR17-BVA-005 | BVA  | discount_value Nominal | PASS       | API         | PASS   |
+| FR17-BVA-006 | BVA  | discount_value UB-1    | PASS       | API         | PASS   |
+| FR17-BVA-007 | BVA  | discount_value UB      | PASS       | API         | PASS   |
+| FR17-BVA-008 | BVA  | discount_value UB+1    | FAIL       | API         | FAIL   |
+| FR17-BVA-009 | BVA  | discount_value +α      | FAIL       | API         | FAIL   |
+| FR17-BVA-010 | BVA  | min_order_amount -α    | FAIL       | API         | FAIL   |
+| FR17-BVA-011 | BVA  | min_order_amount LB-1  | FAIL       | API         | FAIL   |
+| FR17-BVA-012 | BVA  | min_order_amount LB    | PASS       | API         | PASS   |
+| FR17-BVA-013 | BVA  | min_order_amount LB+1  | PASS       | API         | PASS   |
+| FR17-BVA-014 | BVA  | min_order_amount Nom   | PASS       | API         | PASS   |
+| FR17-BVA-015 | BVA  | min_order_amount +α    | PASS       | API         | PASS   |
+| FR17-BVA-016 | BVA  | max_uses_per_user -α   | FAIL       | API         | FAIL   |
+| FR17-BVA-017 | BVA  | max_uses_per_user LB-1 | FAIL       | API         | FAIL   |
+| FR17-BVA-018 | BVA  | max_uses_per_user LB   | PASS       | API         | PASS   |
+| FR17-BVA-019 | BVA  | max_uses_per_user LB+1 | PASS       | API         | PASS   |
+| FR17-BVA-020 | BVA  | max_uses_per_user Nom  | PASS       | API         | PASS   |
+| FR17-BVA-021 | BVA  | max_uses_per_user +α   | PASS       | API         | PASS   |
+| FR17-BVA-022 | BVA  | expired_at -α          | FAIL       | API         | FAIL   |
+| FR17-BVA-023 | BVA  | expired_at LB-1        | FAIL       | API         | FAIL   |
+| FR17-BVA-024 | BVA  | expired_at LB          | PASS       | API         | PASS   |
+| FR17-BVA-025 | BVA  | expired_at LB+1        | PASS       | API         | PASS   |
+| FR17-BVA-026 | BVA  | expired_at Nominal     | PASS       | API         | PASS   |
+| FR17-BVA-027 | BVA  | expired_at +α          | PASS       | API         | PASS   |
+| FR17-BVA-028 | BVA  | code length -α         | FAIL       | API         | FAIL   |
+| FR17-BVA-029 | BVA  | code length LB         | PASS       | API         | PASS   |
+| FR17-BVA-030 | BVA  | code length LB+1       | PASS       | API         | PASS   |
+| FR17-BVA-031 | BVA  | code length Nominal    | PASS       | API         | PASS   |
+| FR17-BVA-032 | BVA  | code length UB-1       | PASS       | API         | PASS   |
+| FR17-BVA-033 | BVA  | code length UB         | PASS       | API         | PASS   |
+| FR17-BVA-034 | BVA  | code length UB+1       | FAIL       | API         | FAIL   |
+| FR17-BVA-035 | BVA  | code length +α         | FAIL       | API         | FAIL   |
 
 **Coverage:**
 
