@@ -2,10 +2,10 @@
 
 | Metric                          | Value            |
 | ------------------------------- | ---------------- |
-| Total skill sessions logged     | 2                |
-| Total AI outputs reviewed       | 2                |
+| Total skill sessions logged     | 3                |
+| Total AI outputs reviewed       | 3                |
 | Items accepted as-is            | All (cumulative) |
-| Items modified by student       | 2                |
+| Items modified by student       | 3                |
 | Items added manually by student | 0                |
 | Items rejected                  | 0                |
 
@@ -127,3 +127,74 @@ Print the revised preview.
 | Accuracy            | 5            | The backend logic and OTP states were correct.                   |
 | Guideline adherence | 5            | Followed the skill instructions correctly.                       |
 | Items missed        | 5            | Missed the 5 UI outputs before the revision prompt.              |
+
+## Interaction [3] — equivalence-partitioning
+
+| Field             | Value                                                                    |
+| ----------------- | ------------------------------------------------------------------------ |
+| **Tool**          | Antigravity CLI (Gemini 2.5 Pro backend)                                 |
+| **Date/Time**     | 2026-06-19 01:35                                                         |
+| **Feature**       | FR-03 — Forgot Password & Reset Password (Mobile)                        |
+| **Skill Invoked** | equivalence-partitioning                                                 |
+| **Task**          | Generate Equivalence Classes and TC Optimization for all input variables |
+
+### Prompt Given
+
+```text
+/equivalence-partitioning Use the equivalence-partitioning skill.
+
+Feature: FR-03 — Forgot Password
+
+The variable list is ready at:
+qa-artifacts/domain-analysis/FR03-domain-analysis.md (Step 1 section)
+
+Apply all 4 EP Guidelines to EVERY input variable identified.
+Then apply the Combination Rule for valid classes and the Isolation Rule for invalid classes.
+
+Important — do NOT miss these for FR-03:
+Password strength (FR-01, FR-03) — must have 6 invalid classes:
+1. Length < 8
+2. No uppercase
+3. No lowercase
+4. No digit
+5. No special character from allowed set `@$!%*?&`
+6. Special character NOT in allowed set (e.g., `#`, `^`) ← AI commonly misses this
+
+OTP (FR-03) — 4 OTP classes:
+1. Correct OTP for correct email → success
+2. Wrong OTP digits → fail
+3. OTP from a different email (cross-email attack) → fail ← AI commonly misses this
+4. OTP already used (reuse attempt) → fail ← AI commonly misses this
+
+For FR-03 add:
+- OTP from a different email (cross-email attack) as a separate invalid class
+- OTP already used on a previous reset attempt as a separate invalid class
+
+Append the output as Step 2 and Step 3 to:
+qa-artifacts/domain-analysis/FR03-domain-analysis.md
+
+EDIT: You need to review Step 2+3 in FR01-domain-analysis.md to check for more EC need for email and password in FR03. Then update and print the preview again for me. Note that the order of the EC and TC must be update for consistency.
+```
+
+### AI Output Summary
+
+- Generated 34 equivalence classes and 30 optimized test cases.
+- Successfully implemented isolation rule for `newPassword` and defect masking prevention using the mirror value strategy for `confirmNewPassword`.
+- Added OTP security states as individual ECs per prompt instruction (e.g., cross-email attack, reuse attempt, expiration).
+- Successfully synchronized class depths for email and password by checking FR-01 domain analysis, adjusting B1 missing payload rules accurately for API variables but erroneously adding it to the UI-only confirmNewPassword header initially.
+
+### Student Review Notes
+
+- Accepted as-is: The AI demonstrated Senior-level QA logic, particularly with the Defect Masking prevention strategy for the password fields. The coverage of the OTP security states (SEC-07) was strictly enforced via individual ECs.
+- Modified: Instructed the AI to match the ECs with FR-01's depth for password and email fields. Subsequently requested a correction to remove a B1 (missing in API body) reference from the `confirmNewPassword` header, which is UI-only.
+- Added manually: None.
+- Rejected: None.
+
+### Interaction Quality Assessment
+
+| Criterion           | Rating (1–5) | Notes                                                                 |
+| ------------------- | ------------ | --------------------------------------------------------------------- |
+| Completeness        | 5            | Generated all requested ECs including OTP and password specific ones. |
+| Accuracy            | 4            | Erroneous +B1 header label on confirmPassword before correction.      |
+| Guideline adherence | 5            | Isolation and Combination Rules rigorously applied.                   |
+| Items missed        | 0            | Did not miss any requested classes.                                   |
