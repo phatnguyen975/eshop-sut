@@ -15,7 +15,7 @@
 | **TC ID**           | FR17-EP-001                                                                                                                           |
 | **Objective**       | Verify coupon creation with all valid inputs                                                                                          |
 | **EC Ref**          | EC01, EC06, EC12, EC19, EC25, EC28, EC38                                                                                              |
-| **Pre-condition**   | SUT is running. Admin JWT is available. Code SUMMER25 does not exist.                                                                 |
+| **Pre-condition**   | SUT is running. Admin JWT is available. Code `SUMMER25` does not exist.                                                               |
 | **Test Data**       | `code="SUMMER25", type="percent", discount_value=15, expired_at="2099-12-31", min_order_amount=200000, max_uses_per_user=1`           |
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.<br>3. Check DB state via GET /api/coupons. |
 | **Expected Result** | 1. HTTP 201 Created (or 200 OK) (per FR-17).<br>2. Response body matches spec.<br>3. DB `coupons` table contains the new record.      |
@@ -32,7 +32,7 @@
 | **TC ID**           | FR17-EP-002                                                                                                              |
 | **Objective**       | Verify coupon creation with valid fixed discount and zero minimum order                                                  |
 | **EC Ref**          | EC01, EC07, EC12, EC19, EC24, EC29, EC38                                                                                 |
-| **Pre-condition**   | SUT is running. Admin JWT is available. Code BIGDEAL01 does not exist.                                                   |
+| **Pre-condition**   | SUT is running. Admin JWT is available. Code `BIGDEAL01` does not exist.                                                 |
 | **Test Data**       | `code="BIGDEAL01", type="fixed", discount_value=50000, expired_at="2099-12-31", min_order_amount=0, max_uses_per_user=3` |
 | **Steps**           | 1. Send POST /api/admin/coupons with Admin JWT and JSON body.<br>2. Observe HTTP response.<br>3. Check DB state.         |
 | **Expected Result** | 1. HTTP 201 Created (or 200 OK) (per FR-17).<br>2. DB `coupons` table contains the new record.                           |
