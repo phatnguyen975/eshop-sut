@@ -268,8 +268,18 @@ start_tc "FR03-BVA-007"; run_and_assert "FR03-BVA-007" "400/401" "POST" "/api/re
 start_tc "FR03-BVA-008"; run_and_assert "FR03-BVA-008" "400/401" "POST" "/api/reset-password" "none" '{"email":"test@eshop.com","resetToken":"12345","newPassword":"Test@123"}'; end_tc
 
 OTP=$(get_otp "test@eshop.com")
-start_tc "FR03-BVA-009"; run_and_assert "FR03-BVA-009" "200" "POST" "/api/reset-password" "none" '{"email":"test@eshop.com","resetToken":"'"$OTP"'","newPassword":"Test@123"}'; end_tc
-sqlite3 "$DB" "UPDATE users SET password='$ORIGINAL_HASH' WHERE email='test@eshop.com';"
+start_tc "FR03-BVA-009"
+if [[ ${#OTP} -eq 6 ]]; then
+  run_and_assert "FR03-BVA-009" "200" "POST" "/api/reset-password" "none" '{"email":"test@eshop.com","resetToken":"'"$OTP"'","newPassword":"Test@123"}'
+  sqlite3 "$DB" "UPDATE users SET password='$ORIGINAL_HASH' WHERE email='test@eshop.com';"
+else
+  echo -e "${RED}[FAIL]${NC} FR03-BVA-009 — Cannot test exact LB/UB. SUT generated ${#OTP} digits instead of 6."
+  CURRENT_TC_FAIL=1
+  CURRENT_TC_DESC="Exact OTP Boundary (6)"
+  CURRENT_TC_EXP="6 chars"
+  CURRENT_TC_ACT="${#OTP} chars"
+fi
+end_tc
 
 start_tc "FR03-BVA-010"; run_and_assert "FR03-BVA-010" "400/401" "POST" "/api/reset-password" "none" '{"email":"test@eshop.com","resetToken":"1234567","newPassword":"Test@123"}'; end_tc
 
