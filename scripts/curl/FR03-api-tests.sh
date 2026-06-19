@@ -134,9 +134,18 @@ echo -e "\n${CYAN}=== FR03-EP-001: Happy Path ===${NC}"
 start_tc "FR03-EP-001"
 OTP=$(get_otp "test@eshop.com")
 if [[ -z "$OTP" ]]; then
-  echo -e "${RED}ERROR: Failed to obtain OTP for test@eshop.com${NC}"
+  echo -e "${RED}[FAIL]${NC} FR03-EP-001 — Failed to obtain OTP for test@eshop.com"
   CURRENT_TC_FAIL=1
 else
+  if [[ ${#OTP} -eq 6 ]]; then
+    echo -e "${GREEN}[PASS]${NC} FR03-EP-001-otp-length — OTP is exactly 6 digits"
+  else
+    echo -e "${RED}[FAIL]${NC} FR03-EP-001-otp-length — Expected 6 digits, got ${#OTP} digits (Value: $OTP)"
+    CURRENT_TC_FAIL=1
+    CURRENT_TC_DESC="OTP Length Check"
+    CURRENT_TC_EXP="6 digits"
+    CURRENT_TC_ACT="${#OTP} digits"
+  fi
   run_and_assert "FR03-EP-001" "200" "POST" "/api/reset-password" "none" '{"email":"test@eshop.com","resetToken":"'"$OTP"'","newPassword":"Test@123"}'
   assert_db "FR03-EP-001-db-hash" "Password is bcrypt hashed" "SELECT password FROM users WHERE email='test@eshop.com';" "BCRYPT"
   assert_db "FR03-EP-001-db-otp" "OTP marked as used or deleted" "SELECT reset_token FROM users WHERE email='test@eshop.com';" "EMPTY"

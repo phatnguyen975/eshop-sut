@@ -14,10 +14,12 @@
 
 1. Open the app and navigate to the Forgot Password screen (Step 1).
 2. Tap the Email input field.
-   - **Verify (FR03-EP-030):** The virtual keyboard that appears MUST be email-optimized (shows the `@` key by default, indicating `keyboardType="email-address"` is used).
+   - **Verify:** The virtual keyboard that appears MUST be email-optimized (shows the `@` key by default, indicating `keyboardType="email-address"` is used).
 3. Enter an email and submit to reach Step 2 (Reset Password).
 4. Tap the `newPassword` and `confirmNewPassword` fields.
-   - **Verify (FR03-EP-031):** The typed characters MUST be obscured (dots/asterisks, indicating `secureTextEntry` is properly applied).
+   - **Verify:** The typed characters MUST be obscured (dots/asterisks, indicating `secureTextEntry` is properly applied).
+   - **Verify (FR03-EP-030):** Enter `newPassword = "Test@123"`, `confirmNewPassword = "DifferentPass@1"`, all other inputs valid.
+   - **Verify (FR03-EP-031):** Enter `newPassword = "Test@123"`, `confirmNewPassword = ""`, all other inputs valid.
 
 ## Check 2: Validation Messages (SCRIPT-PARTIAL TCs)
 
