@@ -230,6 +230,15 @@ Specifically:
 
 ### Steps to Reproduce
 
+**[UI Reproduction]:**
+
+1. Open the EShop Mobile App in Expo Go.
+2. Navigate to the Forgot Password screen.
+3. Enter `invalidemail` into the Email field and submit.
+4. Observe the incorrect `"User not found"` generic popup instead of a proper format validation message.
+
+**[API Reproduction]:**
+
 1. Ensure the EShop backend is running at http://localhost:3000.
 2. Send the following request:
    ```bash
