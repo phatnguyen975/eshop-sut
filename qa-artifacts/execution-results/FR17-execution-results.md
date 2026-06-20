@@ -6,7 +6,7 @@
 **Environment:** Ubuntu (WSL), Edge (Web Browser), Windows 11  
 **SUT (Eshop):** localhost:3000 (API) | localhost:5174 (Admin UI) | SQLite  
 **Date:** 2026-06-18  
-**Session recording:** [Youtube URL]()
+**Session recording:** [Youtube URL](https://youtu.be/d1ST9Mz7LPI)
 
 ## Execution Summary
 

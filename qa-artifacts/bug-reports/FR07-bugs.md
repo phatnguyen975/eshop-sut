@@ -345,19 +345,19 @@ Specifically:
 
 ## BUG-006
 
-| Field            | Value                                                       |
-| ---------------- | ----------------------------------------------------------- |
-| **Bug ID**       | BUG-006                                                     |
-| **Feature**      | FR-07 — Shopping Cart                                       |
-| **Linked TCs**   | FR07-DOM-H1                                                 |
-| **Channel**      | DOM                                                         |
-| **Summary**      | Cart page has 0 <h1> tags instead of exactly 1 (per FR-21)  |
-| **Status**       | New                                                         |
-| **Severity**     | Cosmetic                                                    |
-| **Priority**     | Low                                                         |
-| **Reported by**  | 23127449 - Nguyến Tấn Phát                                  |
-| **Date**         | 2026-06-16                                                  |
-| **GitHub Issue** | [#16](https://github.com/phatnguyen975/eshop-sut/issues/16) |
+| Field            | Value                                                        |
+| ---------------- | ------------------------------------------------------------ |
+| **Bug ID**       | BUG-006                                                      |
+| **Feature**      | FR-07 — Shopping Cart                                        |
+| **Linked TCs**   | FR07-DOM-H1                                                  |
+| **Channel**      | DOM                                                          |
+| **Summary**      | Cart page has 0 `<h1>` tags instead of exactly 1 (per FR-21) |
+| **Status**       | New                                                          |
+| **Severity**     | Cosmetic                                                     |
+| **Priority**     | Low                                                          |
+| **Reported by**  | 23127449 - Nguyến Tấn Phát                                   |
+| **Date**         | 2026-06-16                                                   |
+| **GitHub Issue** | [#16](https://github.com/phatnguyen975/eshop-sut/issues/16)  |
 
 ### Environment
 

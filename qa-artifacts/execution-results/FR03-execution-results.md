@@ -6,7 +6,7 @@
 **Environment:** Windows 11, Node.js 24.x  
 **SUT (Eshop):** localhost:3000 (API) | Expo Go (Mobile App) | SQLite  
 **Date:** 2026-06-19  
-**Session recording:** [Youtube URL]()
+**Session recording:** [Youtube URL](https://youtu.be/fkqbDcrvHHU)
 
 ## Execution Summary
 
