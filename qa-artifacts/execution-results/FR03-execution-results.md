@@ -18,7 +18,7 @@
 | Failed    | 22     |
 | Blocked   | 0      |
 | Skipped   | 0      |
-| Pass Rate | 52,17% |
+| Pass Rate | 52.17% |
 
 ## Execution Log
 
