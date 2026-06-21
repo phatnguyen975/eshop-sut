@@ -145,8 +145,8 @@ Tại bước Checkout, người dùng có thể nhập mã giảm giá. Hệ th
 ```
                  [Admin xác nhận]          [Admin giao hàng]      [Admin hoàn tất]
   ┌──────────┐ ─────────────────► ┌───────────┐ ──────────────► ┌──────────┐ ──────────► ┌───────────┐
-  │ pending  │                    │ confirmed │                  │ shipping │             │ delivered │
-  └──────────┘                    └───────────┘                  └──────────┘             └───────────┘
+  │ pending  │                    │ confirmed │                 │ shipping │             │ delivered │
+  └──────────┘                    └───────────┘                 └──────────┘             └───────────┘
        │                               │
        │ [User/Admin hủy]              │ [User/Admin hủy]
        ▼                               ▼
