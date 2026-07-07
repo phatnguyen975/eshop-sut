@@ -11,11 +11,12 @@ eshop-sut/
 │   ├── tsconfig.json               # TypeScript config — path aliases (optional, see 8.2)
 │   ├── .env                        # Runtime credentials & base URLs (GITIGNORED)
 │   ├── .env.example                # Template for .env — committed to version control
-│   ├── .gitignore                  # Excludes: auth/, reports/, node_modules/, .env
+│   ├── .gitignore                  # Excludes: .auth/, node_modules/, .env
+│   │
 │   ├── global-setup.ts             # Runs once before all tests — authenticates roles, saves storageState
 │   ├── global-teardown.ts          # Runs once after all tests — cleans up dynamically created test data
 │   │
-│   ├── auth/                       # Saved browser authentication states (GITIGNORED)
+│   ├── .auth/                      # Saved browser authentication states (GITIGNORED)
 │   │   ├── user.json               # storageState for standard user (test@eshop.com)
 │   │   └── admin.json              # storageState for admin user (admin@eshop.com)
 │   │
@@ -27,18 +28,22 @@ eshop-sut/
 │   ├── fixtures/                   # Custom Playwright fixtures via test.extend()
 │   │   └── index.ts                # Barrel export — single import point for all fixtures
 │   │
-│   ├── helpers/                    # Pure utility functions — API wrappers, faker generators
+│   ├── utils/                      # Pure utility functions — no assertions, no fixtures
+│   │                               # api.ts    → API call wrappers (create when first needed)
+│   │                               # faker.ts  → Test data generators (create when first needed)
+│   │                               # Add one file per concern; keep functions pure and reusable
 │   │
-│   ├── test-data/                  # Static input files — CSV, JSON seed data
+│   ├── test-data/                  # Static input files committed to version control
+│   │                               # csv/ → CSV files for FR-16 product import tests
+│   │                               # Create files here when implementing scenarios that require file uploads
 │   │
-│   ├── tests/                      # Test spec files organized by domain
-│   │   ├── web/                    # E2E UI tests for Frontend Web
-│   │   ├── admin/                  # E2E UI tests for Web Admin
-│   │   ├── api/                    # API-only tests — no browser
-│   │   └── smoke/                  # Critical path smoke suite — target < 2 minutes
-│   │
-│   └── reports/                    # Generated test output (GITIGNORED)
-│       └── html/                   # Playwright HTML report and junit.xml
+│   └── tests/                      # Test spec files organized by domain
+│       ├── web/                    # E2E UI tests for Frontend Web
+│       ├── admin/                  # E2E UI tests for Web Admin
+│       ├── api/                    # API-only tests — no browser
+│       └── smoke/                  # Critical path smoke suite — target < 2 minutes
+│           ├── web/                # Smoke tests for Frontend Web critical path
+│           └── admin/              # Smoke tests for Web Admin critical path
 │
 ├── .agents/
 │   ├── skills/                     # Custom WAT skill definitions (wat- prefix)
@@ -56,7 +61,7 @@ eshop-sut/
 ├── docs/
 │   ├── sut/                        # SUT references
 │   │   ├── srs.md                  # SRS / Business Requirements (SOURCE OF TRUTH — DO NOT MODIFY)
-│   │   ├── api-specìication.md     # API Contract (SOURCE OF TRUTH — DO NOT MODIFY)
+│   │   ├── api-specification.md    # API Contract (SOURCE OF TRUTH — DO NOT MODIFY)
 │   │   └── setup-guide.md          # Setup Guide (DO NOT MODIFY)
 │   │
 │   ├── test-scope.md               # Overall scope document — output of /wat-scope

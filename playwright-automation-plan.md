@@ -495,7 +495,7 @@ Example fixture pattern used in this project:
 export const test = base.extend<{ userPage: Page; adminPage: Page }>({
   userPage: async ({ browser }, use) => {
     const context = await browser.newContext({
-      storageState: "auth/user.json",
+      storageState: ".auth/user.json",
     });
     const page = await context.newPage();
     await use(page);
@@ -503,7 +503,7 @@ export const test = base.extend<{ userPage: Page; adminPage: Page }>({
   },
   adminPage: async ({ browser }, use) => {
     const context = await browser.newContext({
-      storageState: "auth/admin.json",
+      storageState: ".auth/admin.json",
     });
     const page = await context.newPage();
     await use(page);
@@ -550,7 +550,7 @@ Playwright supports multiple simultaneous reporters:
 | `list`   | Console output with test names and results                    | Local development                                        |
 | `dot`    | Minimal console dots (`.` for pass, `F` for fail)             | CI pipelines with low output verbosity                   |
 
-Configuration for this project: `reporter: [['html'], ['junit', { outputFile: 'reports/junit.xml' }]]`
+Configuration for this project: `reporter: [['html'], ['list']]`
 
 #### 6.2.10 Authentication State Reuse (`storageState`)
 
@@ -558,13 +558,13 @@ Playwright can serialize the entire browser authentication state (cookies, `loca
 
 ```typescript
 // In global-setup.ts — runs once before all tests
-await page.context().storageState({ path: "auth/user.json" });
+await page.context().storageState({ path: ".auth/user.json" });
 
 // In playwright.config.ts — applied to all tests in a project
 projects: [
   {
     name: "authenticated-web",
-    use: { storageState: "auth/user.json" },
+    use: { storageState: ".auth/user.json" },
   },
 ];
 ```
@@ -692,56 +692,25 @@ The `playwright-skill` (from `https://github.com/testdino-hq/playwright-skill`, 
 
 ### 6.6 Common Playwright CLI Commands
 
-```bash
-# Install dependencies (run once after setup)
-npm install
-
-# Install Playwright browsers (run once after npm install)
-npx playwright install
-
-# Run all tests
-npx playwright test
-
-# Run a specific test file
-npx playwright test tests/web/auth/login.spec.ts
-
-# Run tests matching a title pattern
-npx playwright test -g "TC-AUTH-01"
-
-# Run only the smoke suite
-npx playwright test tests/smoke/
-
-# Run only web E2E tests
-npx playwright test tests/web/
-
-# Run only admin E2E tests
-npx playwright test tests/admin/
-
-# Run only API tests (no browser)
-npx playwright test tests/api/
-
-# Run in headed mode (visible browser)
-npx playwright test --headed
-
-# Run with a specific browser engine
-npx playwright test --project=chromium
-npx playwright test --project=firefox
-
-# Run in debug mode (Playwright Inspector opens)
-npx playwright test tests/web/auth/login.spec.ts --debug
-
-# Run with slow motion for demo (500ms delay between actions)
-npx playwright test tests/smoke/smoke.spec.ts --headed --project=chromium
-
-# Open the HTML report after a run
-npx playwright show-report
-
-# Open a specific trace file in the Trace Viewer
-npx playwright show-trace reports/html/data/some-test-trace.zip
-
-# Record a new test using Codegen
-npx playwright codegen http://localhost:5173
-```
+| Goal                                                     | Command                                                                                       |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Install Playwright browsers (run once after npm install) | `npx playwright install`                                                                      |
+| Run all tests (all projects, all browsers)               | `npx playwright test`                                                                         |
+| Run web E2E — Chromium only                              | `npx playwright test --project=web-chromium`                                                  |
+| Run web E2E — all 3 browsers                             | `npx playwright test --project=web-chromium --project=web-firefox --project=web-webkit`       |
+| Run admin E2E — Chromium only                            | `npx playwright test --project=admin-chromium`                                                |
+| Run admin E2E — all 3 browsers                           | `npx playwright test --project=admin-chromium --project=admin-firefox --project=admin-webkit` |
+| Run API tests only                                       | `npx playwright test --project=api`                                                           |
+| Run smoke suite (web)                                    | `npx playwright test --project=smoke-web`                                                     |
+| Run smoke suite (admin)                                  | `npx playwright test --project=smoke-admin`                                                   |
+| Run all smoke suites                                     | `npx playwright test --project=smoke-web --project=smoke-admin`                               |
+| Run one spec file (Chromium, headed)                     | `npx playwright test {file} --headed --project=web-chromium`                                  |
+| Run one spec file (API, no browser)                      | `npx playwright test {file} --project=api`                                                    |
+| Run tests matching a title pattern                       | `npx playwright test -g "TC-AUTH-01"`                                                         |
+| Run in debug mode (Playwright Inspector)                 | `npx playwright test {file} --debug`                                                          |
+| Open last HTML report                                    | `npx playwright show-report`                                                                  |
+| Open a trace file                                        | `npx playwright show-trace`                                                                   |
+| Record a new test (Codegen)                              | `npx playwright codegen http://localhost:5173`                                                |
 
 ---
 
@@ -825,11 +794,12 @@ eshop-sut/
 │   ├── tsconfig.json               # TypeScript config — path aliases (optional, see 8.2)
 │   ├── .env                        # Runtime credentials & base URLs (GITIGNORED)
 │   ├── .env.example                # Template for .env — committed to version control
-│   ├── .gitignore                  # Excludes: auth/, reports/, node_modules/, .env
+│   ├── .gitignore                  # Excludes: .auth/, node_modules/, .env
+│   │
 │   ├── global-setup.ts             # Runs once before all tests — authenticates roles, saves storageState
 │   ├── global-teardown.ts          # Runs once after all tests — cleans up dynamically created test data
 │   │
-│   ├── auth/                       # Saved browser authentication states (GITIGNORED)
+│   ├── .auth/                      # Saved browser authentication states (GITIGNORED)
 │   │   ├── user.json               # storageState for standard user (test@eshop.com)
 │   │   └── admin.json              # storageState for admin user (admin@eshop.com)
 │   │
@@ -841,18 +811,22 @@ eshop-sut/
 │   ├── fixtures/                   # Custom Playwright fixtures via test.extend()
 │   │   └── index.ts                # Barrel export — single import point for all fixtures
 │   │
-│   ├── helpers/                    # Pure utility functions — API wrappers, faker generators
+│   ├── utils/                      # Pure utility functions — no assertions, no fixtures
+│   │                               # api.ts    → API call wrappers (create when first needed)
+│   │                               # faker.ts  → Test data generators (create when first needed)
+│   │                               # Add one file per concern; keep functions pure and reusable
 │   │
-│   ├── test-data/                  # Static input files — CSV, JSON seed data
+│   ├── test-data/                  # Static input files committed to version control
+│   │                               # csv/ → CSV files for FR-16 product import tests
+│   │                               # Create files here when implementing scenarios that require file uploads
 │   │
-│   ├── tests/                      # Test spec files organized by domain
-│   │   ├── web/                    # E2E UI tests for Frontend Web
-│   │   ├── admin/                  # E2E UI tests for Web Admin
-│   │   ├── api/                    # API-only tests — no browser
-│   │   └── smoke/                  # Critical path smoke suite — target < 2 minutes
-│   │
-│   └── reports/                    # Generated test output (GITIGNORED)
-│       └── html/                   # Playwright HTML report and junit.xml
+│   └── tests/                      # Test spec files organized by domain
+│       ├── web/                    # E2E UI tests for Frontend Web
+│       ├── admin/                  # E2E UI tests for Web Admin
+│       ├── api/                    # API-only tests — no browser
+│       └── smoke/                  # Critical path smoke suite — target < 2 minutes
+│           ├── web/                # Smoke tests for Frontend Web critical path
+│           └── admin/              # Smoke tests for Web Admin critical path
 │
 ├── .agents/
 │   ├── skills/                     # Custom WAT skill definitions (wat- prefix)
@@ -870,7 +844,7 @@ eshop-sut/
 ├── docs/
 │   ├── sut/                        # SUT references
 │   │   ├── srs.md                  # SRS / Business Requirements (SOURCE OF TRUTH — DO NOT MODIFY)
-│   │   ├── api-specìication.md     # API Contract (SOURCE OF TRUTH — DO NOT MODIFY)
+│   │   ├── api-specification.md    # API Contract (SOURCE OF TRUTH — DO NOT MODIFY)
 │   │   └── setup-guide.md          # Setup Guide (DO NOT MODIFY)
 │   │
 │   ├── test-scope.md               # Overall scope document — output of /wat-scope
@@ -892,7 +866,7 @@ eshop-sut/
 | `tests/api/` as a separate domain                                            | API tests run without a browser and significantly faster — enables API-only validation runs                                                                  |
 | `tests/smoke/` dedicated suite                                               | ~10–15 critical tests covering core paths in under 2 minutes — used as a pre-regression CI gate                                                              |
 | `fixtures/` instead of `beforeAll` hooks                                     | Playwright's fixture system provides cleaner dependency injection and avoids shared mutable state                                                            |
-| `auth/` state files (gitignored)                                             | `storageState` files contain live session tokens — must never be committed to version control                                                                |
+| `.auth/` state files (gitignored)                                            | `storageState` files contain live session tokens — must never be committed to version control                                                                |
 | `test-data/` committed static files                                          | CSV and JSON input files committed so tests are reproducible across machines and CI                                                                          |
 | `docs/scenarios/{scenario-id}/` subfolder per scenario                       | Each scenario produces multiple artifacts (spec, review-notes) — per-scenario subfolders keep them co-located and avoid naming collisions as the suite grows |
 | `docs/audit/` separate subfolder                                             | Audit log is a compliance artifact distinct from test design artifacts — separation makes it easier to locate and share independently                        |
@@ -921,7 +895,7 @@ The `tsconfig.json` below is **optional but recommended** if you want path alias
     "paths": {
       "@pages/*": ["pages/*"],
       "@fixtures/*": ["fixtures/*"],
-      "@helpers/*": ["helpers/*"],
+      "@utils/*": ["utils/*"],
       "@test-data/*": ["test-data/*"],
     },
   },
@@ -934,17 +908,17 @@ Path aliases (`@pages/`, `@fixtures/`) allow clean imports like `import { LoginP
 
 ### 8.3 Playwright Configuration Key Settings (`playwright.config.ts`)
 
-| Setting          | Recommended Value                                            | Rationale                                                                                        |
-| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `fullyParallel`  | `true`                                                       | Run individual tests within a file in parallel, not just across files                            |
-| `retries`        | `2` (CI), `0` (local)                                        | Surface flakiness in CI; fail fast locally for developer feedback                                |
-| `workers`        | `4` (CI), `undefined` (local)                                | Controlled parallelism in CI; local defaults to 50% of CPU cores                                 |
-| `reporter`       | `[['html'], ['junit', { outputFile: 'reports/junit.xml' }]]` | HTML for interactive debugging; JUnit XML for CI pipeline integration                            |
-| `use.trace`      | `'on-first-retry'`                                           | Capture trace only when a test fails and is retried — balances debugging value with storage cost |
-| `use.screenshot` | `'only-on-failure'`                                          | Capture screenshot only on test failure                                                          |
-| `use.video`      | `'retain-on-failure'`                                        | Record video but discard it for passing tests                                                    |
-| `globalSetup`    | `'./global-setup.ts'`                                        | Runs once before the suite — authenticates both roles, saves `storageState` files                |
-| `globalTeardown` | `'./global-teardown.ts'`                                     | Runs once after the suite — cleans up dynamically created test data                              |
+| Setting          | Recommended Value             | Rationale                                                                                        |
+| ---------------- | ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| `fullyParallel`  | `true`                        | Run individual tests within a file in parallel, not just across files                            |
+| `retries`        | `2` (CI), `0` (local)         | Surface flakiness in CI; fail fast locally for developer feedback                                |
+| `workers`        | `4` (CI), `undefined` (local) | Controlled parallelism in CI; local defaults to 50% of CPU cores                                 |
+| `reporter`       | `[['html'], ['list']]`        | HTML for interactive debugging                                                                   |
+| `use.trace`      | `'on-first-retry'`            | Capture trace only when a test fails and is retried — balances debugging value with storage cost |
+| `use.screenshot` | `'only-on-failure'`           | Capture screenshot only on test failure                                                          |
+| `use.video`      | `'retain-on-failure'`         | Record video but discard it for passing tests                                                    |
+| `globalSetup`    | `'./global-setup.ts'`         | Runs once before the suite — authenticates both roles, saves `storageState` files                |
+| `globalTeardown` | `'./global-teardown.ts'`      | Runs once after the suite — cleans up dynamically created test data                              |
 
 > **Note:** `testDir` is omitted from global config because each project below defines its own test scope via `testMatch`. This avoids redundancy and makes each project's scope explicit.
 
@@ -957,7 +931,7 @@ projects: [
     use: {
       ...devices["Desktop Chrome"],
       baseURL: "http://localhost:5173",
-      storageState: "auth/user.json", // created by global-setup.ts
+      storageState: ".auth/user.json", // created by global-setup.ts
     },
     testMatch: "tests/web/**/*.spec.ts",
   },
@@ -966,7 +940,7 @@ projects: [
     use: {
       ...devices["Desktop Chrome"],
       baseURL: "http://localhost:5174",
-      storageState: "auth/admin.json", // created by global-setup.ts
+      storageState: ".auth/admin.json", // created by global-setup.ts
     },
     testMatch: "tests/admin/**/*.spec.ts",
   },
@@ -983,7 +957,7 @@ projects: [
 
 ### 8.4 Setup Procedure (Step-by-Step)
 
-1. **Ensure all SUT services are running** (refer to `setup_guide.md`):
+1. **Ensure all SUT services are running** (refer to `docs/sut/setup-guide.md`):
    - **Backend API:** Verify with `curl http://localhost:3000/api/products` — expect HTTP 200.
    - **Frontend Web:** Open `http://localhost:5173` and confirm product listing renders.
    - **Web Admin:** Open `http://localhost:5174` and confirm the admin login page loads.
@@ -1008,13 +982,12 @@ projects: [
 5. **Replace the generated `playwright.config.ts`** with the multi-project configuration.
 6. **Add `.gitignore`** inside `e2e/` with at minimum:
    ```bash
-   auth/
-   reports/
+   .auth/
    node_modules/
    .env
    ```
-7. **Implement `global-setup.ts`** to authenticate as both roles and save `storageState` files to `auth/user.json` and `auth/admin.json`.
-8. **Create the folder structure** for `pages/`, `fixtures/`, `helpers/`, `test-data/`, `tests/`, and `docs/`.
+7. **Implement `global-setup.ts`** to authenticate as both roles and save `storageState` files to `.auth/user.json` and `.auth/admin.json`.
+8. **Create the folder structure** for `pages/`, `fixtures/`, `utils/`, `test-data/`, `tests/`, and `docs/`.
 9. **Validate the setup** — at this point no tests exist yet, so verify the framework initializes correctly:
    ```bash
    npx playwright test --list
@@ -1145,7 +1118,7 @@ Skills are reusable instruction sets that the AI Agent loads to perform specific
 #### `wat-scope`
 
 **Location:** `eshop-sut/.agents/skills/wat-scope/`  
-**Core content:** Instructs the AI to read `docs/sut/srs.md` and `docs/sut/api-specification.md`, map every FR and SEC requirement to its appropriate test layer (UI E2E / API / both), identify the full set of E2E scenarios needed to achieve adequate coverage, assign priorities, and output a structured scope document. Each scenario in the output is named and scoped at a high level only — detailed flow design is deferred to `wat-spec`. This skill is invoked **once** at project start, not per scenario.
+**Core content:** Instructs the AI to read `docs/sut/srs.md` and `docs/sut/api-specification.md`, map every FR and SEC requirement to its appropriate test layer (UI E2E / API / both), identify the full set of E2E scenarios needed to achieve adequate coverage, assign priorities, and output a structured scope document. Each scenario in the output is named and scoped at a high level only — detailed flow design is deferred to `wat-spec`. This skill is invoked **once** at project start, not per scenario. Output `docs/test-scope.md` with: scenario ID, name, covered FRs, test layer, priority.
 
 #### `wat-spec`
 
@@ -1207,7 +1180,7 @@ Each command invokes one or more skills. **Always** = loaded unconditionally. **
 | ----------- | ---------- | ------------------------------------------------------------ |
 | `wat-scope` | Always     | Core driver — FR mapping, scenario list, priority assignment |
 
-**Human gate:** Review `docs/test-scope.md` — confirm scenario list and priorities are complete and correct before proceeding to `/wat-spec`.  
+**Human gate:** Review `docs/test-scope.md` — confirm scenario list and priorities are complete and correct before proceeding to `/wat-spec`.
 
 ---
 
@@ -1225,7 +1198,7 @@ Each command invokes one or more skills. **Always** = loaded unconditionally. **
 | `functional-test-design` | Always     | Ensures correct technique is selected and applied at each step   |
 | `playwright-skill`       | Always     | Determines which steps are testable at UI vs. API layer          |
 
-**Human gate:** Review spec against `docs/sut/srs.md` and `docs/sut/api-specification.md`. Approve, request corrections, or reject before running `/wat-build`.  
+**Human gate:** Review spec against `docs/sut/srs.md` and `docs/sut/api-specification.md`. Approve, request corrections, or reject before running `/wat-build`.
 
 ---
 
@@ -1242,7 +1215,7 @@ Each command invokes one or more skills. **Always** = loaded unconditionally. **
 | `wat-build`        | Always     | Core driver — implementation order, POM pattern, single-piece-at-a-time rule |
 | `playwright-skill` | Always     | Authoritative reference for all Playwright API usage and Golden Rules        |
 
-**Human gate (per piece):** After each POM class, fixture, or test file — run `npx playwright test {file} --headed` and report result. If fail, report error to AI for correction before the next piece.  
+**Human gate (per piece):** After each POM class, fixture, or test file — run `npx playwright test {file} --headed` and report result. If fail, report error to AI for correction before the next piece.
 
 > **Note:** The agent determines the implementation order internally (POM → fixture → test file). No separate task planning step or human approval of task order is required.
 
@@ -1262,7 +1235,7 @@ Each command invokes one or more skills. **Always** = loaded unconditionally. **
 | `playwright-skill`       | Always     | Validates Golden Rule conformance                                |
 | `functional-test-design` | Always     | Verifies technique coverage against what spec required           |
 
-**Human gate:** Read `review-notes.md`, mark each finding as Confirmed or Dismissed with reasoning. Zero Blocking findings → scenario done. Blocking findings exist → run `/wat-fix`.  
+**Human gate:** Read `review-notes.md`, mark each finding as Confirmed or Dismissed with reasoning. Zero Blocking findings → scenario done. Blocking findings exist → run `/wat-fix`.
 
 ---
 
@@ -1280,7 +1253,7 @@ Each command invokes one or more skills. **Always** = loaded unconditionally. **
 | `playwright-skill`       | Always                                  | Ensures fixes follow Playwright best practices               |
 | `functional-test-design` | Conditional: Coverage Gap findings only | Determines which missing technique or scenario branch to add |
 
-**Human gate:** Re-run affected tests to confirm fixes pass. Update finding status to Resolved. New Blocking findings → `/wat-review` again. All resolved → scenario done.  
+**Human gate:** Re-run affected tests to confirm fixes pass. Update finding status to Resolved. New Blocking findings → `/wat-review` again. All resolved → scenario done.
 
 ---
 
