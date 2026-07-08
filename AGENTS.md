@@ -219,7 +219,7 @@ Static test input files committed to `e2e/test-data/`. Created when first needed
 
 1. Read the relevant FR sections from `docs/sut/srs.md` for the target scenario.
 2. Read the relevant endpoint contracts from `docs/sut/api-specification.md`.
-3. Apply Scenario Testing approach: design the complete E2E flow as a sequence of user actions and system responses, reflecting how a real user would accomplish the scenario's goal across multiple features.
+3. Apply **Scenario Testing approach** to design the complete E2E flow as a sequence of user actions and system responses, reflecting how a real user would accomplish the scenario's goal across multiple features — this is scenario _design_ (defining steps within a known scenario), distinct from scenario _identification_ which was done in `wat-scope`.
 4. For each step, specify: action, precondition, expected system response, and test layer (UI or API).
 5. Write the E2E flow draft into `docs/scenarios/{scenario-id}/spec.md` (Phase 1 section only — steps, preconditions, expected outcomes, test layer per step, no test data yet). Then stop and instruct the human:
    > "Phase 1 complete. E2E flow written to `docs/scenarios/{scenario-id}/spec.md`. Please review the flow against `docs/sut/srs.md`. Reply **APPROVED** to proceed to Phase 2 (test data design), or **REJECTED** with your feedback to revise the flow."
