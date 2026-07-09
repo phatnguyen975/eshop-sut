@@ -142,11 +142,12 @@ Static test input files committed to `e2e/test-data/`. Created when first needed
 
 ### External Skills (managed globally — do not modify)
 
-| Skill                    | Type            | Purpose                                                                                       |
-| ------------------------ | --------------- | --------------------------------------------------------------------------------------------- |
-| `playwright-skill`       | Reference skill | 70 Playwright guides, locator strategy, Golden Rules, API testing patterns                    |
-| `functional-test-design` | Reference skill | Domain Testing (EP + BVA), Decision Table, State Transition, Use Case Testing, Error Guessing |
-| `ai-audit`               | Utility skill   | Generate structured AI interaction audit log entries                                          |
+| Skill                    | Type            | Purpose                                                                                                   |
+| ------------------------ | --------------- | --------------------------------------------------------------------------------------------------------- |
+| `playwright-skill`       | Reference skill | 70 Playwright guides, locator strategy, Golden Rules, API testing patterns                                |
+| `functional-test-design` | Reference skill | Domain Testing (EP + BVA), Decision Table, State Transition, Use Case Testing, Error Guessing             |
+| `scenario-test-design`   | Reference skill | 6-step scenario design process, 16 generation techniques, scenario type classification (HP/NEG/EC/ER/SEC) |
+| `ai-audit`               | Utility skill   | Generate structured AI interaction audit log entries                                                      |
 
 ## 5. Workflow & Skill Specifications
 
@@ -183,48 +184,62 @@ Static test input files committed to `e2e/test-data/`. Created when first needed
 
 ### `wat-scope` — Define Overall Test Scope
 
-**Invokes:** _(no other skills)_  
+**Invokes:** `scenario-test-design` skill (silently — for scenario identification only)  
 **Runs:** Once at project start  
-**Output:** `docs/test-scope.md`
+**Output:** `docs/test-scope.md` (detailed output format is defined in the `wat-scope` skill)
 
 **Steps the AI must perform:**
 
 1. Read `docs/sut/srs.md` in full — identify all FR-01 to FR-24 and SEC-01 to SEC-07.
-2. Read `docs/sut/api-specification.md` — note which FRs have API endpoints.
-3. For each FR, determine the appropriate test layer:
+2. Read `docs/sut/api-specification.md` — note which FRs have API endpoints and which have server-side validation separate from UI.
+3. For each FR and SEC requirement, determine the appropriate test layer:
    - `UI E2E` — behavior must be verified through the browser
    - `API` — behavior must be verified via direct HTTP calls
    - `UI E2E + API` — both layers required
-4. Group related FRs into high-level E2E scenarios based on business domain and natural user journey continuity — no flow detail at this stage, only grouping.
-5. Assign a priority to each scenario: Critical / High / Medium.
-6. Output a structured scope document saved to `docs/test-scope.md` — covering scenario inventory, FR mapping, test layer assignment, and priority for each scenario. Detailed output format is defined in the `wat-scope` skill.
+4. Invoke `scenario-test-design` **silently** to generate a comprehensive scenario list — do not print analysis, technique walkthroughs, or intermediate reasoning. Apply at minimum Techniques 2 (Actor Analysis), 3 (Disfavored Users), 7 (Specific Transactions), 4 (System Events), and 16 (Sequence Analysis). Extract from the output only: scenario name, type, primary FR coverage, and actor. The scenario list must include scenarios of multiple types — Happy Path, Negative, Error Recovery, and Security & Misuse — never only Happy Path.
+5. Assign a unique `SC-{NN}` ID and a priority (Critical / High / Medium) to each scenario.
+6. Output a structured scope document saved to `docs/test-scope.md`.
 
 **Human gate:** Write the scope document to `docs/test-scope.md`, then instruct the human:
 
-> "Scope analysis complete. Scenario inventory written to `docs/test-scope.md`. Please review the scenario list, FR mapping, and priorities against `docs/sut/srs.md`. Reply **APPROVED** to finalize the scope, or **REJECTED** with your feedback to revise."
+> "Scope analysis complete. Scenario inventory written to `docs/test-scope.md`. Please review:
+>
+> - Does the scenario list include Happy Path, Negative, Error Recovery, and Security & Misuse types where applicable?
+> - Does the scenario list cover all in-scope FRs from `docs/sut/srs.md`?
+> - Is the FR-to-layer mapping correct?
+> - Are the priorities appropriate?
+> - Are any important user journeys missing?
+>
+> Reply **APPROVED** to finalize the scope, or **REJECTED** with your feedback to revise."
 
 - If **APPROVED** → scope is finalized; ready for `wat-spec`
-- If **REJECTED** → revise based on feedback, update `docs/test-scope.md`, and present this gate again until APPROVED
+- If **REJECTED** → revise based on feedback, update `docs/test-scope.md`, and present this gate again until `APPROVED`
 
 ### `wat-spec` — Design One Scenario Specification
 
 **Invokes:** `functional-test-design` skill (for input value sets only — see note below)  
 **Invokes:** `playwright-skill` skill (to determine UI vs. API testability of each step)  
 **Input:** One scenario ID from approved `docs/test-scope.md`  
-**Output:** `docs/scenarios/{scenario-id}/spec.md`
+**Output:** `docs/scenarios/{scenario-id}/spec.md` (detailed output format is defined in the `wat-spec` skill)
 
 **Steps the AI must perform:**
 
-**Phase 1 — E2E Flow Design (Scenario Testing approach):**
+**Phase 1 — E2E Flow Design:**
 
-1. Read the relevant FR sections from `docs/sut/srs.md` for the target scenario.
-2. Read the relevant endpoint contracts from `docs/sut/api-specification.md`.
-3. Apply **Scenario Testing approach** to design the complete E2E flow as a sequence of user actions and system responses, reflecting how a real user would accomplish the scenario's goal across multiple features — this is scenario _design_ (defining steps within a known scenario), distinct from scenario _identification_ which was done in `wat-scope`.
-4. For each step, specify: action, precondition, expected system response, and test layer (UI or API).
-5. Write the E2E flow draft into `docs/scenarios/{scenario-id}/spec.md` (Phase 1 section only — steps, preconditions, expected outcomes, test layer per step, no test data yet). Then stop and instruct the human:
-   > "Phase 1 complete. E2E flow written to `docs/scenarios/{scenario-id}/spec.md`. Please review the flow against `docs/sut/srs.md`. Reply **APPROVED** to proceed to Phase 2 (test data design), or **REJECTED** with your feedback to revise the flow."
+1. Read the target scenario entry from `docs/test-scope.md` — extract: Name, Type, Actor, Primary FR Coverage, Objective. The **Type** field is critical: it determines how the flow is designed.
+2. Read the relevant FR sections from `docs/sut/srs.md` for the target scenario.
+3. Read the relevant endpoint contracts from `docs/sut/api-specification.md`.
+4. Design the complete E2E flow using the approach determined by the scenario Type:
+   - **Happy Path:** Primary success flow — valid data, all preconditions met, system responds correctly at every step.
+   - **Negative:** Multi-step journey ending in correct system rejection — the flow must include the specific step where the business rule is violated, the system's rejection response, and any subsequent state the SRS defines.
+   - **Error Recovery:** Journey where user encounters an error mid-flow and recovers within the same session — include both the error step and the recovery path.
+   - **Security & Misuse:** Multi-step attack sequence from a disfavored actor — steps simulate realistic attack patterns; most steps are API layer; flow ends with the attack defeated and system in correct state.
+   - **Edge Case:** Journey reaching a boundary condition — valid inputs at extreme values.
+5. For each step, specify: action, actor, precondition, expected system response (derived from SRS only — never assumed), and test layer (UI E2E / API / UI E2E + API).
+6. Write the E2E flow draft into `docs/scenarios/{scenario-id}/spec.md` (Phase 1 section only — steps, no test data yet). Then stop and instruct the human:
+   > "Phase 1 complete. E2E flow written to `docs/scenarios/{scenario-id}/spec.md`. Please review the flow against `docs/sut/srs.md`. For Negative/Security scenarios: does the flow simulate a realistic journey ending in correct system rejection? Reply **APPROVED** to proceed to Phase 2 (test data design), or **REJECTED** with your feedback to revise the flow."
    - If **APPROVED** → proceed to Phase 2
-   - If **REJECTED** → revise the flow based on feedback, update `spec.md`, and present Gate A again until APPROVED
+   - If **REJECTED** → revise the flow based on feedback, update `spec.md`, and present Gate A again until `APPROVED`
 
 **Phase 2 — Test Data Design (`functional-test-design` techniques):**
 
@@ -232,16 +247,17 @@ Static test input files committed to `e2e/test-data/`. Created when first needed
    - Input fields with valid/invalid ranges → **Domain Testing (EP + BVA)**
    - Steps with multiple independent conditions affecting outcome → **Decision Table Testing**
    - Steps involving a stateful workflow → **State Transition Testing**
-   - Security-sensitive steps and integration boundaries → **Error Guessing**
-     > **Note on `functional-test-design` invocation:** When invoking `functional-test-design`, perform the analysis silently — do not print intermediate steps, technique walkthroughs, or per-FR breakdowns to the screen. Only surface the final extracted input value set attached to each applicable step. This keeps the output focused and readable when multiple FRs are involved in a single scenario.
-7. For each technique applied, extract only the **input value set** — not full test cases. **Selection rule:** one representative value per equivalence class (EP), boundary values for numeric constraints (BVA), one combination per condition flip (Decision Table), one trigger per state transition (State Transition). Steps and expected outcomes are already defined in Phase 1 — the technique only contributes the data variants.
+   - Security boundaries, auth checks, and integration points where components may make incorrect trust assumptions → **Error Guessing**
+     > **Note on `functional-test-design` invocation:** Perform the analysis silently — do not print intermediate steps, technique walkthroughs, or per-FR breakdowns. Only surface the final extracted input value set attached to each applicable step.
+     >
+     > - **For Negative scenarios:** Apply EP to the rejection-triggering step to identify the exact invalid class that causes rejection and its boundary values.
+     > - **For Security scenarios:** Error Guessing is the primary technique — cover all auth boundaries (no token → 401, wrong role → 403) and all client-supplied values the server should recompute or reject.
+7. For each technique applied, extract only the **input value set** — not full test cases. **Selection rule:** one representative value per equivalence class (EP), boundary values for numeric constraints (BVA), one combination per condition flip (Decision Table), one trigger per state transition (State Transition), one variant per attack vector (Error Guessing).
 8. Attach the resulting test data matrix to each applicable step in the spec.
-9. Update `docs/scenarios/{scenario-id}/spec.md` with the complete test data matrix attached to each applicable step. Then stop and instruct the human:
+9. Update `docs/scenarios/{scenario-id}/spec.md` with the complete test data matrix. Then stop and instruct the human:
    > "Phase 2 complete. Full spec updated in `docs/scenarios/{scenario-id}/spec.md`. Please review the test data matrix against `docs/sut/srs.md`. Reply **APPROVED** to proceed to `wat-build`, or **REJECTED** with your feedback to revise the data design."
    - If **APPROVED** → spec is finalized; ready for `wat-build`
-   - If **REJECTED** → revise based on feedback, update `spec.md`, and present Gate B again until APPROVED
-
-**Output:** `docs/scenarios/{scenario-id}/spec.md`. Detailed output format and template are defined in the `wat-spec` skill.
+   - If **REJECTED** → revise based on feedback, update `spec.md`, and present Gate B again until `APPROVED`
 
 ### `wat-build` — Implement Test Code
 

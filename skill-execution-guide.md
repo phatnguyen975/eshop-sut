@@ -2,7 +2,7 @@
 
 > **Purpose:** Step-by-step workflow guide for using the five `wat-*` skills to complete web automation testing for EShop SUT. Follow this guide in order — each skill depends on the output of the previous one.  
 > **Audience:** All team members working on this project.  
-> **Prerequisites:** SUT services running, `e2e/` project initialized, `.env` configured, all five `wat-*` skills installed, plus the three external skills (`playwright-skill`, `functional-test-design`, `ai-audit`) available globally or in `.agents/skills/`.
+> **Prerequisites:** SUT services running, `e2e/` project initialized, `.env` configured, all five `wat-*` skills installed, plus the four external skills (`playwright-skill`, `functional-test-design`, `scenario-test-design`, `ai-audit`) available globally or in `.agents/skills/`.
 
 ---
 
@@ -17,7 +17,7 @@
 7. [Skill 5: wat-fix — Fix Confirmed Findings](#7-skill-5-wat-fix)
 8. [Audit Logging — ai-audit](#8-audit-logging)
 9. [Workflow Diagram](#9-workflow-diagram)
-10. [Quick Reference — All Prompts](#10-quick-reference)
+10. [Quick Reference — All Prompts](#10-quick-reference--all-prompts)
 11. [Common Mistakes](#11-common-mistakes)
 
 ---
@@ -79,11 +79,12 @@ cat e2e/.env                              # all 7 keys present
 .agents/skills/wat-fix/SKILL.md
 ```
 
-And the three external skills are available (globally or in `.agents/skills/`):
+And the four external skills are available (globally or in `.agents/skills/`):
 
 ```
 playwright-skill/
 functional-test-design/
+scenario-test-design/
 ai-audit/
 ```
 
