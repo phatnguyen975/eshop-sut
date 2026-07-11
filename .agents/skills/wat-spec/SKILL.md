@@ -2,35 +2,35 @@
 name: wat-spec
 description: >
   Web Automation Testing — Scenario Specification command skill. Invoke this skill when
-  the user provides a scenario ID from an approved test scope document and wants to produce
-  a detailed E2E scenario specification including flow design and test data matrix. This
+  the user provides a scenario ID from an approved scope document and wants to produce
+  a detailed scenario specification including flow design and test data matrix. This
   skill is invoked once per scenario, after wat-scope is APPROVED. Trigger phrases:
-  "wat-spec", "/wat-spec", "design scenario", "spec SC-XX", "write test specification",
-  "design E2E flow for", "create spec for scenario".
+  "wat-spec", "/wat-spec", "design scenario", "spec SC-XX", "write specification",
+  "design flow for", "create spec for scenario".
 ---
 
 # wat-spec — E2E Scenario Specification Design
 
 ## Purpose
 
-Produce a complete, implementation-ready specification for one E2E scenario from the approved scope document. The specification defines:
+Produce a complete, implementation-ready specification for one scenario from the approved scope document. The specification defines:
 
-- The full E2E flow as a sequence of user actions and system responses — shaped by the scenario's type (Happy Path, Negative, Error Recovery, Security & Misuse, etc.)
-- The expected outcome at each step
-- The test layer (UI or API) for each step
+- The complete scenario flow as a sequence of user actions and system responses, shaped by the scenario's coverage label
+- The expected outcome at each step, derived from the SRS
+- The test layer (UI / API) for each step
 - The test data matrix — input value sets derived from functional test design techniques
 
-The output (`spec.md`) is the **implementation contract** for `wat-build`. No test code may be written without an `APPROVED` spec.
+The output (`spec.md`) is the **implementation contract** for `wat-build`. No test code may be written for a scenario without an `APPROVED` spec.
 
 ## Input
 
-| Source                            | Location                        | Purpose                                                             |
-| --------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
-| Approved scope document           | `docs/test-scope.md`            | Scenario ID, type, FRs, actor, objective                            |
-| System Requirements Specification | `docs/sut/srs.md`               | Expected behavior, validation rules, state machines, error messages |
-| API Contract                      | `docs/sut/api-specification.md` | Endpoint details for API-layer steps                                |
+| Source                  | Location                        | Purpose                                                                   |
+| ----------------------- | ------------------------------- | ------------------------------------------------------------------------- |
+| Approved scope document | `docs/test-scope.md`            | Scenario ID, coverage label, FRs, actor, objective                        |
+| SRS                     | `docs/sut/srs.md`               | Expected behavior, validation rules, state machines, exact error messages |
+| API Contract            | `docs/sut/api-specification.md` | Endpoint details, authentication requirements, response shapes            |
 
-**Required before starting:** `docs/test-scope.md` must have status `APPROVED`. If it is still `DRAFT`, stop and instruct the human to complete `wat-scope` first.
+**Required:** `docs/test-scope.md` must have status `APPROVED` before starting.
 
 ## Output
 
@@ -40,121 +40,92 @@ The output (`spec.md`) is the **implementation contract** for `wat-build`. No te
 
 ## External Skills Invoked
 
-| Skill                    | When                                               | What to extract                                                                        |
-| ------------------------ | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `playwright-skill`       | Phase 1 — when assigning test layer per step       | Confirms whether a behavior is testable via UI locators or requires APIRequestContext. |
-| `functional-test-design` | Phase 2 — for each step with input, rule, or state | Input value sets only — never full test cases. Perform analysis silently.              |
+| Skill                    | When                                          | How                                                                                 |
+| ------------------------ | --------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `playwright-skill`       | Phase 1 — when assigning test layer per step  | Confirms whether a behavior requires browser interaction or HTTP-level verification |
+| `functional-test-design` | Phase 2 — per step with input, rule, or state | Silently. Extract input value sets only. Never print analysis or walkthroughs.      |
 
 ## Theoretical Foundations
 
-### Phase 1: Scenario Flow Design by Scenario Type
+### Scenario Flow Design
 
-The scenario type from `docs/test-scope.md` determines how the E2E flow is designed. Never design all scenarios as if they were happy paths.
+A scenario specification translates a high-level scenario story into a concrete, step-by-step flow that can be directly implemented as automation. The flow must:
 
-#### Happy Path (HP)
+- Reflect the **coverage label** from the scope document — different labels require different flow structures (see below)
+- Follow the **natural sequence** a real actor would take — never inject state artificially or skip steps a user would actually perform
+- Maintain **state continuity** — each step builds on state from the previous step within a single browser session or API client session
+- Produce **observable outcomes** at every step — each step ends with a system response that can be asserted
+- Keep **error recovery within the same flow** — if a realistic user journey involves encountering an error and recovering within the same session, that recovery is part of the main flow, not a separate scenario
 
-Design the primary success flow: valid data, all preconditions met, system responds correctly at every step. This is the baseline journey the SRS describes as the intended behavior.
+### Flow Structure by Coverage Label
 
-Flow characteristics:
+The coverage label from `docs/test-scope.md` determines the flow structure:
 
-- Starts from user's entry point with all preconditions satisfied
-- Every system response is the expected success response
-- Ends with the business goal achieved and assertable
+#### Happy Path
 
-#### Negative (NEG)
+The primary success flow: valid inputs, all preconditions satisfied, system responds correctly at every step. The journey delivers the stated business benefit end to end.
 
-Design a multi-step journey where a business rule violation or constraint is encountered and the system correctly rejects the action. This is NOT a single-step validation check — it is a realistic user journey that ends in correct rejection.
+Structure:
 
-Flow characteristics:
+- **Entry point:** realistic starting state for the actor
+- **Each step:** valid action → expected success response
+- **Exit:** business goal achieved, assertable outcome
 
-- User begins a legitimate journey (e.g., attempts to login)
-- At a specific step, a business constraint is violated (e.g., 3rd consecutive wrong password)
-- The system responds with the correct rejection behavior (lockout, error message, redirect)
-- Subsequent steps may include recovery (e.g., OTP flow) as part of the same journey
-- Ends with the system in the correct post-rejection state (assertable)
+#### Negative
 
-**Example:** Account lockout scenario
+A multi-step journey where a business rule or constraint is violated at a specific step, and the system correctly rejects or blocks the action. This is a **journey**, not a single-step validation check. The scenario begins with a legitimate intent, reaches a rejection point, and may continue to show what the system state is after rejection.
 
-```
-Step 1: Navigate to login page
-Step 2: Submit wrong password (attempt 1) → system increments failure counter
-Step 3: Submit wrong password (attempt 2) → system increments failure counter
-Step 4: Submit wrong password (attempt 3) → system locks account, shows lockout message
-Step 5: Verify lockout message does not over-disclose failure reason
-Step 6: Attempt login again within 30 seconds → system rejects with lockout error
-Step 7: Wait 30 seconds, attempt login with correct password → system allows access
-```
+Structure:
 
-#### Error Recovery (ER)
+- **Entry:** actor begins a legitimate journey
+- **Violation step:** specific constraint is violated
+- **Rejection:** system responds with the correct rejection behavior per the SRS
+- **Post-rejection:** verify the system is in the correct state (no partial commit, correct error message, correct counter state, etc.)
 
-Design a journey where the user encounters an error mid-flow and successfully recovers within the same session. The error is part of the realistic user experience, not a test of an error state in isolation.
+#### Error Recovery
 
-Flow characteristics:
+A journey where an error occurs mid-flow — due to invalid input, system event, or temporary condition — and the actor recovers and completes the goal within the same session. Both the error occurrence and the recovery are part of the same flow.
 
-- Journey starts normally (happy path entry)
-- An error occurs at a specific step (wrong coupon, failed validation, session issue)
-- System responds correctly to the error
-- User corrects the input or takes the recovery path
-- Journey resumes and completes successfully
-- Ends with the business goal achieved
+Structure:
 
-#### Security & Misuse (SEC)
+- **Entry:** actor begins normally
+- **Error point:** error occurs (wrong input, timeout, invalid state)
+- **System response:** correct error handling behavior per the SRS
+- **Recovery:** actor corrects the condition
+- **Completion:** goal achieved
 
-Design a multi-step attack scenario from the perspective of a disfavored user who deliberately attempts to bypass access controls, escalate privileges, or manipulate data.
+#### Security & Misuse
 
-Flow characteristics:
+A multi-step attack or misuse sequence from the perspective of a disfavored actor who deliberately attempts to bypass controls, escalate privileges, or manipulate data. Most steps in this type of flow are at the API layer — direct HTTP calls crafted to probe for vulnerabilities.
 
-- Actor is an attacker or a user acting outside their role
-- Steps simulate a realistic attack sequence (obtain token → craft request → attempt bypass)
-- System correctly rejects each unauthorized action
-- Ends with the attack defeated and system in correct state (no data leaked, no privilege granted)
+Structure:
 
-**Example:** Role escalation scenario
+- **Entry:** disfavored actor establishes initial position (may involve obtaining a valid session to then misuse)
+- **Attack sequence:** multiple attempts to exploit the system
+- **System defense:** each attempt is correctly rejected per the SRS and security requirements
+- **Exit:** confirm the system is in correct state (no privilege granted, no data leaked, no unauthorized modification)
 
-```
-Step 1: Login as standard user, obtain user-role JWT token
-Step 2: Call GET /api/admin/users with user token → expect 403
-Step 3: Call DELETE /api/admin/users/:id with user token → expect 403
-Step 4: Attempt to modify own role via PUT /api/users/me with role=admin in body → expect rejection
-Step 5: Verify user's role remains unchanged in subsequent GET /api/users/me
-```
+### Step Anatomy
 
-#### Edge Case (EC)
+Every step in the flow must specify all five elements:
 
-Design a journey where a boundary condition or unusual but valid system state is reached. The user's actions are legitimate, but the data or state is at an extreme value.
+| Element               | Description                                                     |
+| --------------------- | --------------------------------------------------------------- |
+| **Action**            | What the actor or system does at this step                      |
+| **Actor**             | Who performs this action: Customer / Admin / Attacker / System  |
+| **Precondition**      | What must be true immediately before this step executes         |
+| **Expected Response** | The system's response — derived from SRS, never assumed         |
+| **Test Layer**        | `UI` (browser) / `API` (HTTP) / `UI + API` (both independently) |
 
-#### Core Flow Design Principles (All Types)
+**Test layer per step:**
 
-1. **Type-driven design** — The scenario type determines the journey structure. Read the Type and Objective from `docs/test-scope.md` before designing any step.
-2. **User goal orientation** — Every scenario starts from a user's goal (or an attacker's objective) and ends when that goal is achieved, rejected, or defeated.
-3. **Realistic sequencing** — Steps follow the natural order a real user or attacker would take. Do not inject state artificially.
-4. **State continuity** — Each step builds on the state left by the previous step. A single browser context (or API session) is used throughout.
-5. **Observable outcomes** — Every step ends with a system response that can be asserted.
-6. **Error paths within the journey** — Errors that a real user would encounter and recover from within the same session belong inside the main flow, not as separate scenarios. Separate scenarios are for journeys with distinct start states or objectives.
+| Assign `UI` when                                      | Assign `API` when                                                 |
+| ----------------------------------------------------- | ----------------------------------------------------------------- |
+| Behavior is visible in the browser                    | Behavior is enforced server-side                                  |
+| Step involves user interaction with rendered elements | Step verifies authorization, role check, or server-computed value |
+| Assertion requires a rendered DOM element             | Step verifies HTTP status code, response body, or header          |
 
-#### Step Anatomy
-
-Each step in the E2E flow must specify all five elements:
-
-| Element               | Description                          |
-| --------------------- | ------------------------------------ |
-| **Action**            | What the user/attacker/system does   |
-| **Actor**             | Customer / Admin / Attacker / System |
-| **Precondition**      | What must be true before this step   |
-| **Expected Response** | What the system does in response     |
-| **Test Layer**        | UI E2E / API / UI E2E + API          |
-
-#### Test Layer Assignment per Step
-
-Use `playwright-skill` to confirm testability when uncertain.
-
-| Assign UI E2E when…                                                        | Assign API when…                                                                                    |
-| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Behavior is visible in the browser (redirect, toast, badge, error message) | Behavior is enforced server-side regardless of UI (auth check, data recomputation, role validation) |
-| The step involves user interaction (fill, click, navigate)                 | The step verifies a security constraint (unauthorized access returns 403)                           |
-| The assertion requires a rendered DOM element                              | The step verifies response schema, status code, or header                                           |
-
-For Security scenarios: most steps are API layer — direct HTTP calls without the UI.
+A single step may have both `UI` and `API` when the UI shows feedback AND the server must independently enforce the rule — these become separate assertions in implementation.
 
 ### Phase 2: Test Data Design
 
@@ -180,9 +151,9 @@ For each step in the approved Phase 1 flow, determine whether a technique applie
 
 Multiple techniques may apply to a single step. Apply all that are relevant.
 
-For **Negative scenarios:** The primary test data is the specific condition that triggers rejection. EP identifies the invalid class; BVA refines the boundary.
+**For Negative scenarios:** Focus EP on the step where the constraint is violated — identify the exact invalid equivalence class and its boundary value.
 
-For **Security scenarios:** Error Guessing is the primary technique — craft inputs that a disfavored user would attempt (manipulated tokens, wrong roles, injected values).
+**For Security & Misuse scenarios:** Error Guessing is the primary technique — enumerate attack vectors: no auth token, wrong role token, manipulated client-supplied values, injection payloads.
 
 #### Input Value Set Selection Rules
 
@@ -240,7 +211,7 @@ Apply after all systematic techniques. Focus on:
 
 ### Step 1 — Verify Prerequisites
 
-Check that `docs/test-scope.md` exists and has status `APPROVED`. If not, stop:
+Check that `docs/test-scope.md` exists and has status `APPROVED`. If not:
 
 > "The scope document at `docs/test-scope.md` is not yet `APPROVED`. Please complete `wat-scope` before running `wat-spec`."
 
@@ -248,19 +219,17 @@ Check that `docs/test-scope.md` exists and has status `APPROVED`. If not, stop:
 
 From `docs/test-scope.md`, extract for the target scenario ID:
 
-- Name, Type, Actor, Primary FR Coverage, Dependency FRs, Test Layer, Objective
+- Name, Coverage Label, Actor, Primary FR Coverage, GUI Requirements Verified, Dependency FRs, Test Layer, Objective
 
-**The Type field is critical** — it determines how the flow is designed in Phase 1.
+The **Coverage Label** is the most important field — it determines the flow structure designed in Phase 1.
 
 ### Step 3 — Read SRS and API Spec
 
-Read all FR sections listed as primary coverage. Extract:
+Read all requirement sections listed in the scenario's Primary FR Coverage. Extract from the SRS: required behaviors, validation rules, state machine definitions, exact error messages, and UI text. Read endpoint contracts for all relevant endpoints.
 
-- Required behaviors, validation rules, state machine definitions
-- Explicit error messages, redirects, and UI text from `docs/sut/srs.md`
-- Endpoint contracts from `docs/sut/api-specification.md`
+All expected responses in the spec must be derived from this reading — never from observation of the SUT or assumption.
 
-### Phase 1 — E2E Flow Design
+### Phase 1 — Scenario Flow Design
 
 ### Step 4 — Design the Flow
 
@@ -270,45 +239,43 @@ Use `playwright-skill` when uncertain about UI vs API testability.
 
 ### Step 5 — Write Phase 1 to `spec.md`
 
-Create `docs/scenarios/{scenario-id}/spec.md`. Write Phase 1 section only (flow steps, no test data). Use the **Output Format** defined below.
+Create `docs/scenarios/{scenario-id}/spec.md`. Write Phase 1 section only (flow table and notes, no test data). Use the **Output Format** defined below.
 
 ### Step 6 — Human Gate A
 
-> "Phase 1 complete. E2E flow written to `docs/scenarios/{scenario-id}/spec.md`. Please review the flow against `docs/sut/srs.md`:
+> "Phase 1 complete. Scenario flow written to `docs/scenarios/{scenario-id}/spec.md`. Please review the flow against `docs/sut/srs.md`:
 >
-> - Is the scenario type ({type}) correctly reflected in the flow design?
-> - For Negative/Security scenarios: does the flow simulate a realistic journey ending in correct system rejection?
-> - Is every FR listed as primary coverage tested by at least one step?
-> - Are expected responses derived from the SRS — not assumed?
-> - Are test layers assigned correctly per step?
+> - Does the flow structure match the coverage label ({coverage label})?
+> - For Negative scenarios: is the violation step present with the correct rejection response per the SRS?
+> - For Security & Misuse scenarios: does the flow simulate a realistic attack sequence?
+> - Does every requirement in Primary FR Coverage have at least one step testing it?
+> - Are all expected responses derived from the SRS?
 >
-> Reply **APPROVED** to proceed to Phase 2 (test data design), or **REJECTED** with specific feedback so I can revise the flow."
+> Reply **APPROVED** to proceed to Phase 2, or **REJECTED** with specific feedback."
 
 - If **APPROVED** → proceed to Phase 2
-- If **REJECTED** → revise, update `spec.md` Phase 1, repeat Gate A until `APPROVED`
+- If **REJECTED** → revise the flow, update Phase 1 in `spec.md`, repeat Gate A
 
 ### Phase 2 — Test Data Design
 
 ### Step 7 — Identify Technique-Applicable Steps
 
-For each step, determine which techniques apply using the rules in **Theoretical Foundations** section.
-
-- **For Negative scenarios:** Focus on the step where the business rule is violated — apply EP/BVA to identify the exact invalid class and boundary values.
-- **For Security scenarios:** Apply Error Guessing to every step involving an auth check, role check, or data the server should not trust from the client.
+For each step in the approved Phase 1 flow, determine which technique applies using the technique selection table in **Theoretical Foundations**.
 
 ### Step 8 — Apply Techniques Silently
 
-Invoke `functional-test-design` silently. Extract only the final input value sets per the selection rules. Do not print analysis.
+Invoke `functional-test-design` silently. Apply the appropriate technique per step. Extract only the final input value sets — do not print analysis.
 
 ### Step 9 — Build the Test Data Matrix
 
-Produce the variant table for each technique-applicable step. Verify:
+For each technique-applicable step, produce a variant table. Verify before writing:
 
-- Every invalid class has exactly one representative
-- Every boundary has an on-point and off-point value
-- Decision Table has N+1 combinations
-- State Transition covers all valid, invalid, and terminal-state transitions
+- No equivalence class has more than one representative
+- Decision Table has exactly N+1 combinations for N conditions
+- State Transition covers valid transitions, invalid transitions, and terminal states
 - Error Guessing covers all attack vectors relevant to this scenario type
+
+Steps with no applicable technique get a note: "No technique applicable — step is fully specified by Phase 1."
 
 ### Step 10 — Update `spec.md` with Phase 2
 
@@ -318,15 +285,15 @@ Add the test data matrix to the Phase 2 section of `spec.md`. Do not modify the 
 
 > "Phase 2 complete. Full spec updated in `docs/scenarios/{scenario-id}/spec.md`. Please review the test data matrix against `docs/sut/srs.md`:
 >
-> - Are the technique selections appropriate for each step?
-> - For Negative scenarios: does the data matrix cover the specific condition that triggers rejection and its boundary values?
-> - For Security scenarios: does Error Guessing cover all relevant attack vectors?
+> - Is the technique selection correct for each step?
+> - For Negative scenarios: does the matrix cover the specific constraint that triggers rejection and its boundary value?
+> - For Security & Misuse scenarios: does Error Guessing cover all relevant attack vectors?
 > - Are Decision Table combinations complete for multi-condition rules?
 > - Are State Transition triggers aligned with the state machine in the SRS?
 >
-> Reply **APPROVED** to finalize the spec and proceed to `wat-build`, or **REJECTED** with specific feedback so I can revise the data design."
+> Reply **APPROVED** to finalize the spec and proceed to `wat-build`, or **REJECTED** with specific feedback."
 
-- If **APPROVED** → update document status to `APPROVED`, confirm readiness for `wat-build`
+- If **APPROVED** → update status to `APPROVED`; spec is ready for `wat-build`
 - If **REJECTED** → revise Phase 2, repeat Gate B until `APPROVED`
 
 ## Output Format — `docs/scenarios/{scenario-id}/spec.md`
@@ -335,8 +302,8 @@ Add the test data matrix to the Phase 2 section of `spec.md`. Do not modify the 
 # Scenario Specification: {Scenario Name}
 
 **Scenario ID:** SC-XX  
-**Type:** Happy Path / Negative / Edge Case / Error Recovery / Security & Misuse  
-**Actor:** Customer / Admin / Attacker  
+**Coverage Label:** Happy Path / Negative / Error Recovery / Security & Misuse  
+**Actor:** {actor from scope document}  
 **Project:** {Project Name}  
 **Created:** {YYYY-MM-DD}  
 **Last Updated:** {YYYY-MM-DD}  
@@ -345,17 +312,18 @@ Add the test data matrix to the Phase 2 section of `spec.md`. Do not modify the 
 
 ## 1. Scenario Overview
 
-| Field                   | Value                                       |
-| ----------------------- | ------------------------------------------- |
-| **Scenario ID**         | SC-XX                                       |
-| **Name**                | {Descriptive name: verb + object + context} |
-| **Type**                | {type}                                      |
-| **Actor**               | {actor}                                     |
-| **Objective**           | {One sentence from test-scope.md}           |
-| **Primary FR Coverage** | FR-XX, FR-YY, SEC-ZZ                        |
-| **Dependency FRs**      | FR-AA (precondition)                        |
-| **Test Layer**          | UI E2E + API                                |
-| **Priority**            | Critical / High / Medium                    |
+| Field                         | Value                                         |
+| ----------------------------- | --------------------------------------------- |
+| **Scenario ID**               | SC-XX                                         |
+| **Name**                      | {Descriptive name}                            |
+| **Coverage Label**            | {label}                                       |
+| **Actor**                     | {actor}                                       |
+| **Objective**                 | {One sentence from scope document}            |
+| **Primary FR Coverage**       | {functional requirements}                     |
+| **GUI Requirements Verified** | {GUI/UX requirements — additional assertions} |
+| **Dependency FRs**            | {precondition requirements}                   |
+| **Test Layer**                | UI / API / UI + API                           |
+| **Priority**                  | Critical / High / Medium                      |
 
 ## 2. Preconditions
 
@@ -365,115 +333,116 @@ List all conditions that must be true before the scenario begins:
 - {Condition 2}
 - ...
 
-## 3. E2E Flow
+## 3. Scenario Flow
 
 > **Phase 1 Status:** DRAFT | APPROVED (Gate A)
 
-| Step | Action   | Actor   | Precondition    | Expected Response   | Test Layer   |
-| ---- | -------- | ------- | --------------- | ------------------- | ------------ |
-| 1    | {action} | {actor} | {precondition}  | {response from SRS} | UI E2E       |
-| 2    | {action} | {actor} | Step 1 complete | {response}          | API          |
-| 3    | {action} | {actor} | Step 2 complete | {response}          | UI E2E + API |
-| ...  |          |         |                 |                     |              |
+| Step | Action   | Actor   | Precondition    | Expected Response     | Test Layer |
+| ---- | -------- | ------- | --------------- | --------------------- | ---------- |
+| 1    | {action} | {actor} | {precondition}  | {response — from SRS} | UI         |
+| 2    | {action} | {actor} | Step 1 complete | {response — from SRS} | API        |
+| 3    | {action} | {actor} | Step 2 complete | {response — from SRS} | UI + API   |
+| ...  |          |         |                 |                       |            |
 
 **Notes:**
 
-- {SRS-derived constraints not captured in the table}
-- {Exact UI text or error messages from SRS}
-- {For Negative/Security: which step triggers the rejection and why}
+- {SRS-derived text, constraints, or state rules not captured in the table}
+- {For Negative: which step is the violation step and what the SRS says about the response}
+- {For Security & Misuse: which step is the critical defense point}
 
 ## 4. Test Data Matrix
 
 > **Phase 2 Status:** DRAFT | APPROVED (Gate B)
 
-### Step {N} — {Step Title} [{techniques applied}]
+### Step {N} — {Step Title} [{technique(s)}]
 
-| Variant ID | Technique               | Input / Trigger | Expected Outcome          |
-| ---------- | ----------------------- | --------------- | ------------------------- |
-| S{N}.V1    | EP (valid)              | {value}         | {outcome}                 |
-| S{N}.V2    | EP (invalid — {reason}) | {value}         | {error response from SRS} |
-| S{N}.V3    | BVA (on-point)          | {value}         | {outcome}                 |
-| S{N}.V4    | BVA (off-point)         | {value}         | {error response}          |
+| Variant ID | Technique               | Input / Trigger | Expected Outcome   |
+| ---------- | ----------------------- | --------------- | ------------------ |
+| S{N}.V1    | EP (valid)              | {value}         | {outcome from SRS} |
+| S{N}.V2    | EP (invalid — {reason}) | {value}         | {error from SRS}   |
+| S{N}.V3    | BVA (on-point)          | {value}         | {outcome}          |
+| S{N}.V4    | BVA (off-point)         | {value}         | {error}            |
 
 ### Step {M} — {Step Title} [Decision Table — {N} conditions]
 
-| Variant ID | C1: {condition} | C2: {condition} | Expected Outcome        |
-| ---------- | --------------- | --------------- | ----------------------- |
-| S{M}.V1    | TRUE            | TRUE            | {full success}          |
-| S{M}.V2    | FALSE           | TRUE            | {failure — C1 violated} |
-| S{M}.V3    | TRUE            | FALSE           | {failure — C2 violated} |
+| Variant ID | C1: {condition} | C2: {condition} | Expected Outcome |
+| ---------- | --------------- | --------------- | ---------------- |
+| S{M}.V1    | TRUE            | TRUE            | {success}        |
+| S{M}.V2    | FALSE           | TRUE            | {failure — C1}   |
+| S{M}.V3    | TRUE            | FALSE           | {failure — C2}   |
 
 ### Step {P} — {Step Title} [State Transition]
 
-| Variant ID | Current State    | Trigger       | Expected Next State | Valid?  |
-| ---------- | ---------------- | ------------- | ------------------- | ------- |
-| S{P}.V1    | {state}          | {trigger}     | {next state}        | Valid   |
-| S{P}.V2    | {state}          | {trigger}     | Rejected            | Invalid |
-| S{P}.V3    | {terminal state} | {any trigger} | Rejected — terminal | Invalid |
+| Variant ID | Current State | Trigger       | Expected Next State | Valid?  |
+| ---------- | ------------- | ------------- | ------------------- | ------- |
+| S{P}.V1    | {state}       | {trigger}     | {next state}        | Valid   |
+| S{P}.V2    | {state}       | {trigger}     | Rejected            | Invalid |
+| S{P}.V3    | {terminal}    | {any trigger} | Rejected — terminal | Invalid |
 
-### Step {Q} — {Step Title} [Error Guessing — Security/Integration]
+### Step {Q} — {Step Title} [Error Guessing]
 
-| Variant ID | Attack Vector            | Input / Trigger                      | Expected Defense             |
-| ---------- | ------------------------ | ------------------------------------ | ---------------------------- |
-| S{Q}.V1    | No auth token            | Request without Authorization header | 401 Unauthorized             |
-| S{Q}.V2    | Wrong role               | User token on admin endpoint         | 403 Forbidden                |
-| S{Q}.V3    | Manipulated client value | {crafted value}                      | Server rejects or recomputes |
-| S{Q}.V4    | Script injection         | {script input}                       | HTML escaped, no execution   |
+| Variant ID | Attack Vector            | Input / Trigger                      | Expected Defense          |
+| ---------- | ------------------------ | ------------------------------------ | ------------------------- |
+| S{Q}.V1    | No auth token            | Request without Authorization header | 401 per SRS               |
+| S{Q}.V2    | Wrong role               | User token on privileged endpoint    | 403 per SRS               |
+| S{Q}.V3    | Manipulated client value | {crafted value}                      | Server rejects/recomputes |
 
 ## 5. Implementation Notes
 
-{Optional: locator hints, known SUT quirks per SRS, isolation considerations}
+{Optional: locator hints, known SRS-documented SUT behaviors, isolation considerations}
 ```
 
 ## Quality Checklist
 
 ### Before Gate A (Phase 1)
 
-- [ ] Scenario type from `docs/test-scope.md` is reflected in the flow design.
-- [ ] For Negative scenarios: the flow includes the specific step where rejection occurs and verifies the correct system response per the SRS.
-- [ ] For Security scenarios: the flow simulates a realistic attack sequence with HTTP-layer verification steps.
-- [ ] For Error Recovery scenarios: the flow includes both the error occurrence and the recovery path within the same session.
-- [ ] Every FR in Primary FR Coverage has at least one step testing it.
-- [ ] All expected responses are derived from SRS — no invented values.
-- [ ] Every step has all five elements (Action, Actor, Precondition, Response, Layer).
-- [ ] Steps that require server-side verification have API in their test layer.
-- [ ] All contents are in English and follow the specified markdown structure.
+- [ ] Coverage label from scope document is reflected in the flow structure.
+- [ ] For Negative: the violation step is present with the SRS-specified rejection response.
+- [ ] For Error Recovery: both error occurrence and recovery are in the same flow.
+- [ ] For Security & Misuse: flow simulates a realistic attack sequence.
+- [ ] Every requirement in Primary FR Coverage has at least one step testing it.
+- [ ] Every expected response is derived from the SRS — no invented or assumed values.
+- [ ] Every step has all five elements.
+- [ ] Steps requiring server-side verification have `API` in their test layer.
+- [ ] Phase 1 section is complete; Phase 2 section is absent.
 
 ### Before Gate B (Phase 2)
 
-- [ ] Technique selection matches the step characteristics.
-- [ ] For Negative scenarios: the rejection-triggering step has EP applied to identify the exact invalid class that causes rejection.
-- [ ] For Security scenarios: Error Guessing covers all auth boundaries, role checks, and client-supplied values the server should recompute.
-- [ ] EP: one value per class — no redundant representatives.
+- [ ] Technique selection matches each step's characteristics.
+- [ ] For Negative: EP covers the specific invalid class that triggers rejection and its boundary.
+- [ ] For Security & Misuse: Error Guessing covers all auth boundaries and trust violations.
+- [ ] EP: exactly one value per class — no redundant representatives.
 - [ ] BVA: on-point and off-point for every numeric boundary.
 - [ ] Decision Table: N+1 combinations for N conditions.
 - [ ] State Transition: valid, invalid, and terminal-state triggers all present.
-- [ ] All variant expected outcomes are derived from SRS.
-- [ ] All contents are in English and follow the specified markdown structure.
+- [ ] Every variant's expected outcome is derived from the SRS.
+- [ ] Steps with no applicable technique have an explicit "No technique applicable" note.
 
 ## Completion Criteria
 
-1. `spec.md` exists with status `APPROVED`
-2. Both Gate A and Gate B have received explicit `APPROVED` from the human
-3. Every step has either a technique-driven data matrix or a note that no technique applies
+1. `docs/scenarios/{scenario-id}/spec.md` has status `APPROVED`
+2. Both Gate A and Gate B received explicit `APPROVED` responses
+3. Every step has either a variant table or an explicit no-technique note
 4. Human informed that spec is ready for `wat-build`
 
 ## Constraints
 
 **MUST do:**
 
-- Read Type and Objective from `docs/test-scope.md` before designing the flow.
-- Design flow according to the scenario type — not all scenarios are happy paths.
-- Derive all expected values from `docs/sut/srs.md`.
-- Invoke `functional-test-design` silently in Phase 2.
-- Write Phase 1 before presenting Gate A.
-- Update `spec.md` with Phase 2 before presenting Gate B.
+- Read the Coverage Label from the scope document before designing any step
+- Read the SRS and API spec before designing the flow
+- Design flow structure according to the coverage label
+- Invoke `functional-test-design` silently in Phase 2
+- Derive all expected values from the SRS
+- Write Phase 1 before presenting Gate A
+- Update `spec.md` with Phase 2 before presenting Gate B
+- Stop at each gate and wait for explicit `APPROVED` or `REJECTED`
 
 **MUST NOT do:**
 
-- Design a Negative or Security scenario as a happy path with a single failing step.
-- Print `functional-test-design` analysis.
-- Invent expected values not in `docs/sut/srs.md`.
-- Mark document as `APPROVED`.
-- Proceed past any gate without explicit `APPROVED`.
-- Reference `playwright-automation-plan.md`.
+- Design a Negative or Security scenario as a happy path with one failing step
+- Print `functional-test-design` analysis
+- Invent expected values not in the SRS
+- Mark the document as `APPROVED`
+- Proceed past any gate without explicit `APPROVED`
+- Reference `playwright-automation-plan.md`

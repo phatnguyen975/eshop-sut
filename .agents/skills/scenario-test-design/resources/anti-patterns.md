@@ -1,4 +1,4 @@
-# Scenario Testing — Anti-Patterns
+# Scenario Test Design — Anti-Patterns
 
 Common design mistakes that undermine the value of a scenario suite. Recognize and avoid these in every engagement.
 
@@ -53,10 +53,10 @@ Steps:
 
 ```
 Split into independent scenarios:
-  - SC-01: New user registers an account successfully (Happy Path)
-  - SC-02: Customer purchases a single item with a valid coupon code (Happy Path)
-  - SC-03: Customer tracks an order after placement (Happy Path)
-  - SC-04: Customer submits a product review after delivery (Happy Path)
+  - SC-01: New user registers an account successfully
+  - SC-02: Customer purchases a single item with a valid coupon code
+  - SC-03: Customer tracks an order after placement
+  - SC-04: Customer submits a product review after delivery
 ```
 
 **Why it fails:** When a long scenario fails at step 7, the defective feature cannot be identified. When any one feature changes, the entire mega-scenario must be updated.
@@ -77,12 +77,12 @@ Scenarios for "Login":
 ✅ Correct:
 
 ```
-- SC-01: User logs in successfully with valid credentials (Happy Path)
-- SC-02: Login rejected with an incorrect password (Negative)
-- SC-03: Login rejected with an email address that does not exist (Negative)
-- SC-04: Login rejected for a suspended account (Negative)
-- SC-05: Account is locked after 5 consecutive failed login attempts (Edge Case)
-- SC-06: Login behavior when an active session already exists (Edge Case)
+- SC-01: User logs in successfully with valid credentials
+- SC-02: Login rejected with an incorrect password
+- SC-03: Login rejected with an email address that does not exist
+- SC-04: Login rejected for a suspended account
+- SC-05: Account is locked after 5 consecutive failed login attempts
+- SC-06: Login behavior when an active session already exists
 ```
 
 **Why it fails:** The majority of defects are found in negative cases and edge cases. Happy paths are typically the most thoroughly tested by developers themselves.
@@ -185,14 +185,14 @@ Expected Result:
 ❌ Wrong:
 
 ```
-SC-01: Create an order (Happy Path) → produces order_id = 12345
+SC-01: Create an order → produces order_id = 12345
 SC-02: Cancel the order → Precondition: order_id 12345 from SC-01
 ```
 
 ✅ Correct:
 
 ```
-SC-01: Create an order (Happy Path) → fully self-contained preconditions
+SC-01: Create an order → fully self-contained preconditions
 SC-02: Cancel an order → Precondition: order ACC-99999 already exists in the test environment (set up independently via fixture or test data script)
 ```
 
@@ -206,17 +206,17 @@ SC-02: Cancel an order → Precondition: order ACC-99999 already exists in the t
 
 ```
 Scenarios for "Payment":
-  - Payment completes successfully (Happy Path)
-  - Payment rejected — card declined (Negative)
+  - Payment completes successfully
+  - Payment rejected — card declined
   [No scenario for payment gateway timeout]
 ```
 
 ✅ Correct:
 
 ```
-- SC-15: System handles payment gateway timeout gracefully — displays error message, does not deduct funds (Error Recovery)
-- SC-16: User successfully retries payment after the gateway recovers (Error Recovery)
-- SC-17: Transaction is recorded as successful even when the email notification service is unavailable at the moment of confirmation (Error Recovery)
+- SC-15: System handles payment gateway timeout gracefully — displays error message, does not deduct funds
+- SC-16: User successfully retries payment after the gateway recovers
+- SC-17: Transaction is recorded as successful even when the email notification service is unavailable at the moment of confirmation
 ```
 
 **Why it fails:** Partial failure states — where money is deducted but an order is not created — are among the most severe and damaging defects in financial and e-commerce systems.

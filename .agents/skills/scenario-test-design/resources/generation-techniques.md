@@ -1,4 +1,4 @@
-# Scenario Testing — 16 Scenario Generation Techniques
+# Scenario Test Design — 16 Scenario Generation Techniques
 
 Apply these techniques in **Step 3** to ensure comprehensive scenario coverage. Not all 16 need to be applied in every engagement, but a minimum of 5 must be used, and Techniques 2, 3, and 7 are mandatory for every feature.
 
@@ -13,12 +13,12 @@ Order lifecycle:
   Created → Submitted → Under Review → Approved / Rejected → Shipped → Delivered / Returned
 
 Scenarios derived from this lifecycle:
-  - Create an order with valid data (Happy Path)
-  - Submit an existing draft order (Happy Path)
-  - Approve an order in the Under Review state (Happy Path)
-  - Reject an order with a stated reason (Happy Path)
-  - Attempt to cancel an order that has already shipped (Negative — business rule: not allowed)
-  - Return an order after delivery (Edge Case)
+  - Create an order with valid data
+  - Submit an existing draft order
+  - Approve an order in the Under Review state
+  - Reject an order with a stated reason
+  - Attempt to cancel an order that has already shipped
+  - Return an order after delivery
 ```
 
 **When to apply:** Any feature where primary objects have multiple states or a defined lifecycle (orders, tickets, accounts, documents, contracts).
@@ -31,16 +31,16 @@ Scenarios derived from this lifecycle:
 Actor: Individual customer
   Objective: Transfer funds to a family member
   Scenarios derived:
-    - Transfer to an account at the same bank (Happy Path)
-    - Transfer to an account at another bank (Happy Path)
-    - Transfer to a saved payee (Happy Path)
-    - Attempt a transfer without a registered OTP number (Negative)
+    - Transfer to an account at the same bank
+    - Transfer to an account at another bank
+    - Transfer to a saved payee
+    - Attempt a transfer without a registered OTP number
 
 Actor: Accounting staff
   Objective: Reconcile and verify transactions
   Scenarios derived:
-    - View transaction history for a specified date range (Happy Path)
-    - Export transaction report to Excel (Happy Path)
+    - View transaction history for a specified date range
+    - Export transaction report to Excel
 ```
 
 **When to apply:** Always. Every actor must have at least one scenario.
@@ -95,15 +95,15 @@ Special event scenarios:
 
 ## Technique 6: Benefits-Based Validation
 
-**Question:** What business benefit does this feature deliver? Which scenario validates that benefit end to end?
+**Question:** What business benefit does this feature deliver? Which scenario validates that benefit through a complete user journey?
 
 ```
 Stated benefit: "Users save time by completing transfers quickly"
-  → E2E scenario: Open app → select payee → enter amount → confirm OTP → transaction complete
+  → Complete journey scenario: Open app → select payee → enter amount → confirm OTP → transaction complete
   → Measure: Full flow completes in ≤ 30 seconds
 
 Stated benefit: "Sales staff can generate quotes from anywhere"
-  → E2E scenario: Login on mobile → create quote → send PDF by email → customer can open it
+  → Complete journey scenario: Login on mobile → create quote → send PDF by email → customer can open it
 ```
 
 **When to apply:** Smoke tests, critical path tests, and acceptance criteria validation.
@@ -141,14 +141,14 @@ Transaction: "Open a bank account"
 ```
 Document: Loan application form
   Operations:
-    - Create a new application (Happy Path)
-    - Save a draft (Happy Path)
-    - Edit a saved draft (Happy Path)
-    - Submit the application (Happy Path)
-    - View a submitted application (read-only) (Happy Path)
-    - Download the application as PDF (Happy Path)
-    - Cancel an application under review (Negative — not permitted by business rule)
-    - Edit a submitted application (Negative — not permitted)
+    - Create a new application
+    - Save a draft
+    - Edit a saved draft
+    - Submit the application
+    - View a submitted application (read-only)
+    - Download the application as PDF
+    - Cancel an application under review
+    - Edit a submitted application
 ```
 
 **When to apply:** Features involving complex multi-step forms or documents with a defined lifecycle.
@@ -227,17 +227,17 @@ Data migration from the predecessor system:
 Mock business: Retail store using a point-of-sale system
 
 Start of day:
-  - Open the register and enter the opening float (Happy Path)
+  - Open the register and enter the opening float
 
 During the day:
-  - Standard sale transaction (Happy Path)
-  - Attempt to sell an item with zero stock (Edge Case)
-  - Process a customer return (Happy Path)
-  - Mid-shift handover from one staff member to another (Edge Case)
+  - Standard sale transaction
+  - Attempt to sell an item with zero stock
+  - Process a customer return
+  - Mid-shift handover from one staff member to another
 
 End of day:
-  - Perform end-of-day reconciliation (Happy Path)
-  - Cash drawer total does not match system total (Negative)
+  - Perform end-of-day reconciliation
+  - Cash drawer total does not match system total
 ```
 
 **When to apply:** Complex features with many states, or when rich and realistic test data scenarios are needed.
@@ -248,10 +248,10 @@ End of day:
 
 ```
 Data migration scenarios:
-  - Source record is missing a field that is mandatory in the target system (Negative)
-  - Source field value exceeds the maximum length in the target system (Negative)
+  - Source record is missing a field that is mandatory in the target system
+  - Source field value exceeds the maximum length in the target system
   - Character encoding mismatch (UTF-8 vs. Latin-1) causes special characters to be corrupted
-  - Duplicate records are present in the source data (Negative)
+  - Duplicate records are present in the source data
   - Source record references another record that has been deleted (orphaned reference)
   - Date format mismatch between source (DD/MM/YYYY) and target (ISO 8601)
 ```

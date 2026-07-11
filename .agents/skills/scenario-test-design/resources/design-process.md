@@ -1,4 +1,4 @@
-# Scenario Testing — Design Process
+# Scenario Test Design — Design Process
 
 ## Step 1 — Input Analysis
 
@@ -49,7 +49,7 @@ If there is no one to ask, document each assumption with an explicit **[ASSUMPTI
 
 ### 2.1 Identify All Actors
 
-List every actor — human (user, admin, etc.) or external system — that interacts with the feature:
+List every actor — human or external system — that interacts with the feature:
 
 | Actor           | Type            | Role / Permissions      | Key Characteristics                       |
 | --------------- | --------------- | ----------------------- | ----------------------------------------- |
@@ -93,8 +93,8 @@ Read [`generation-techniques.md`](generation-techniques.md) and apply at least *
 
 - **Technique 2:** Actor-based analysis
 - **Technique 3:** Disfavored users
-- **Technique 7:** Specific transactions (happy path flows)
 - **Technique 4:** System events (negative cases and error handling)
+- **Technique 7:** Specific transactions (happy path flows)
 - **Technique 16:** Sequence analysis (common orderings and interruptions)
 
 **Apply additionally** based on context:
@@ -104,19 +104,21 @@ Read [`generation-techniques.md`](generation-techniques.md) and apply at least *
 - **Technique 6:** End-to-end benefit validation
 - **Technique 13:** Mock business data simulation
 
-### 3.2 Classify Scenarios
+### 3.2 Tag Scenarios for Coverage Visibility (Optional but Recommended)
 
-Once the raw list is generated, classify every scenario by type:
+Kaner's original technique does not define scenario types — a scenario is a story, judged by whether it is motivating, credible, complex, and easy to evaluate. However, tagging scenarios with coverage labels is a useful way to spot gaps at a glance: "do we have any scenarios for disfavored users?" or "have we covered what happens when an external system fails?"
 
-| Type                    | Description                                            | Example                                                  |
-| ----------------------- | ------------------------------------------------------ | -------------------------------------------------------- |
-| Happy Path (HP)         | Primary success flow with valid data                   | Transfer completes successfully with sufficient balance  |
-| Negative (NEG)          | Invalid input, missing data, or violated business rule | Transfer rejected due to insufficient balance            |
-| Edge Case (EC)          | Boundary condition or unusual but valid state          | Transfer amount equals the exact remaining balance       |
-| Boundary (BND)          | At or just beyond a defined limit value                | Transfer of exactly the maximum allowed amount           |
-| Error Recovery (ER)     | System behavior when an external dependency fails      | OTP delivery timeout; retry after payment gateway error  |
-| Concurrent (CON)        | Multiple actors operating simultaneously               | Two users transferring from the same low-balance account |
-| Security & Misuse (SEC) | Disfavored user attempting to exploit the system       | Replaying a completed transaction request                |
+The following labels map directly to Kaner's generation techniques and are appropriate for scenario testing:
+
+| Label                 | Maps to Kaner Technique                      | What it signals                                                                                                             |
+| --------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Happy Path**        | T6 — benefits-based validation               | Primary success flow that delivers the intended system benefit end to end                                                   |
+| **Negative**          | T4 — system events                           | Actor violates a business rule or provides invalid input; system must respond correctly without crashing or corrupting data |
+| **Error Recovery**    | T4 — system events (infrastructure failures) | An external dependency fails; system must handle it gracefully and preserve data integrity                                  |
+| **Concurrent**        | T5 — special events                          | Multiple actors act simultaneously on shared state; system must handle contention correctly                                 |
+| **Security & Misuse** | T3 — disfavored users                        | A disfavored user attempts to exploit, bypass, or abuse the system                                                          |
+
+> **On single-BR/FR scenarios:** A scenario covering only one requirement is not prohibited. It is acceptable if it reads as a credible user story that a stakeholder would find meaningful. If it cannot be told as such a story, it is likely better handled by a more focused technique. The strength of scenario testing is in discovering interaction defects — problems that only appear when multiple features, roles, or data conditions are exercised together.
 
 ### 3.3 Deduplicate and Prioritize
 
@@ -132,29 +134,32 @@ Remove any scenarios that test the same condition. Assign a priority to each:
 ```markdown
 ## Raw Scenario List
 
-| #     | Scenario Name | Type       | Priority | Source BR/FR |
-| ----- | ------------- | ---------- | -------- | ------------ |
-| SC-01 | ...           | Happy Path | P1       | BR-01, FR-02 |
-| SC-02 | ...           | Negative   | P2       | BR-01        |
+| #     | Scenario Name | Coverage Label | Priority | Source BR/FR |
+| ----- | ------------- | -------------- | -------- | ------------ |
+| SC-01 | ...           | Happy Path     | P1       | BR-01, FR-02 |
+| SC-02 | ...           | Negative       | P2       | BR-01        |
+| SC-03 | ...           | Error Recovery | P1       | FR-03        |
 ```
 
 ## Step 4 — Scenario Design
 
 **Objective:** Write a complete, detailed scenario card for each identified scenario.
 
+> **Terminology note:** In Cem Kaner's original definition, a _scenario_ is a high-level narrative describing a user's goal and context. A _scenario-based test case_ is the concrete realization of that narrative: specific preconditions, ordered steps, and measurable expected results. Step 4 produces scenario-based test cases — scenarios developed to the level of detail needed for direct execution or use as automation specifications. The term "scenario" is commonly used in teams to mean either; what matters is that every card produced here is grounded in a realistic user journey, not derived from an implementation detail or isolated function.
+
 ### 4.1 Scenario Card Template
 
 ```markdown
 ## [SC-XX] [Scenario Name]
 
-| Field            | Value                                                                                            |
-| ---------------- | ------------------------------------------------------------------------------------------------ |
-| **ID**           | SC-XX                                                                                            |
-| **Name**         | [Full descriptive name following: verb + object + context]                                       |
-| **Type**         | [Happy Path / Negative / Edge Case / Boundary / Error Recovery / Concurrent / Security & Misuse] |
-| **Priority**     | [P1 / P2 / P3 / P4]                                                                              |
-| **Actor**        | [Who performs this scenario]                                                                     |
-| **Traced BR/FR** | [BR-xx, FR-xx — at least one reference required]                                                 |
+| Field              | Value                                                                     |
+| ------------------ | ------------------------------------------------------------------------- |
+| **ID**             | SC-XX                                                                     |
+| **Name**           | [Full descriptive name following: verb + object + context]                |
+| **Coverage Label** | [Happy Path / Negative / Error Recovery / Concurrent / Security & Misuse] |
+| **Priority**       | [P1 / P2 / P3 / P4]                                                       |
+| **Actor**          | [Who performs this scenario]                                              |
+| **Traced BR/FR**   | [BR-xx, FR-xx — at least one reference required]                          |
 
 ### Preconditions
 
@@ -220,16 +225,17 @@ Any BR/FR with no ✅ must have a new scenario added before proceeding.
 
 Every scenario must trace back to at least one BR/FR. Any scenario with no requirement reference should be either removed or have its scope formally added to the requirements.
 
-### 5.3 Scenario Type Balance Check
+### 5.3 Coverage Label Balance Check
 
-| Type            | Count | Expected                                         |
-| --------------- | ----- | ------------------------------------------------ |
-| Happy Path      | X     | Must cover all identified primary flows          |
-| Negative        | Y     | Typically more numerous than happy paths         |
-| Edge / Boundary | Z     | Proportional to the complexity of business rules |
-| Error Recovery  | W     | At least one per external system dependency      |
+If coverage labels were applied in Step 3.2, use them to identify obvious gaps:
 
-A suite with zero Negative, Edge, or Boundary scenarios almost certainly has coverage gaps.
+| Label             | Signal when missing or zero                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| Happy Path        | Primary success flows have not been designed — start here                                                |
+| Negative          | No scenarios test system rejection behavior — almost always a gap                                        |
+| Error Recovery    | No scenarios cover external dependency failures — required for any feature with third-party integrations |
+| Security & Misuse | Disfavored user paths not considered — required for features handling sensitive data or access control   |
+| Concurrent        | Worth reviewing if the feature involves shared state or resource contention                              |
 
 ## Step 6 — Quality Self-Check
 

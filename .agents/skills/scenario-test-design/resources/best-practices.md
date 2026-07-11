@@ -1,4 +1,4 @@
-# Scenario Testing — Best Practices
+# Scenario Test Design — Best Practices
 
 ## BP-01: Apply Generation Techniques Systematically
 
@@ -76,9 +76,9 @@ Example — document approval workflow:
 [Closed] → (terminal state — no further transitions)
 
 Scenarios derived from this diagram:
-  - Each valid state transition (Happy Path)
-  - Each invalid transition (Negative): Submit from Closed; Approve from Draft
-  - Terminal state enforcement (Negative): Attempt to reopen a Closed document
+  - Each valid state transition
+  - Each invalid transition: Submit from Closed; Approve from Draft
+  - Terminal state enforcement: Attempt to reopen a Closed document
 ```
 
 ## BP-06: Always Include Disfavored User Scenarios
@@ -127,7 +127,7 @@ Before beginning test execution, walk through the scenario overview table (not n
 
 - **BA / Product Owner:** Confirm that scenarios correctly reflect the stated business requirements
 - **Development team:** Confirm that known technical edge cases are represented
-- **User representative** (if available): Confirm that scenarios reflect realistic usage patterns
+- **User representative (if available):** Confirm that scenarios reflect realistic usage patterns
 
 **Output of the review:** Formal sign-off, or a list of gaps to be addressed before execution begins.
 
@@ -141,12 +141,12 @@ Every scenario must reference at least one BR/FR. Every BR/FR must be covered by
 - When scope must be reduced, the team knows exactly which requirements lose coverage.
 - For audit and compliance purposes, it provides evidence that every requirement was tested.
 
-## BP-11: Use Scenario Chains for Long End-to-End Flows
+## BP-11: Use Scenario Chains for Long Multi-Step Journeys
 
-Rather than building one very long scenario, design a chain of shorter independent scenarios that together represent the full flow. Each scenario in the chain stands alone.
+Rather than building one very long scenario, design a chain of shorter independent scenarios that together represent the full user journey. Each scenario in the chain stands alone.
 
 ```
-End-to-end flow: Employee applies → Manager approves → HR confirms → Welcome email sent
+Multi-step journey: Employee applies → Manager approves → HR confirms → Welcome email sent
 
 Chain design:
   SC-01: New employee submits registration with complete information
@@ -168,13 +168,11 @@ Each scenario in the chain can be executed independently using appropriate fixtu
 Never silently assume. Every assumption must appear in the output in a structured, visible form.
 
 ```
-## Assumptions
+Assumptions:
+  - [ASSUMPTION-01] The default daily transfer limit is $50,000.00. BR-03 does not state the specific value; this figure is assumed based on industry norms.
+  - [ASSUMPTION-02] OTP validity is 5 minutes. FR-07 states that OTPs expire but does not specify the duration; 5 minutes is assumed based on common implementation practice.
 
-[ASSUMPTION-01] The default daily transfer limit is $50,000.00. BR-03 does not state the specific value; this figure is assumed based on industry norms.
-[ASSUMPTION-02] OTP validity is 5 minutes. FR-07 states that OTPs expire but does not specify the duration; 5 minutes is assumed based on common implementation practice.
-
-## Open Questions
-
-[OQ-01] After a gateway timeout, can the user retry immediately, or must they wait? → Needs confirmation from the BA before SC-14 can be finalized.
-[OQ-02] Is there a maximum number of OTP retries per transaction? → Needs confirmation from the Security team before SC-09 can be finalized.
+Open Questions:
+  - [OQ-01] After a gateway timeout, can the user retry immediately, or must they wait? → Needs confirmation from the BA before SC-14 can be finalized.
+  - [OQ-02] Is there a maximum number of OTP retries per transaction? → Needs confirmation from the Security team before SC-09 can be finalized.
 ```

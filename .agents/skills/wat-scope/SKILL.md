@@ -2,11 +2,11 @@
 name: wat-scope
 description: >
   Web Automation Testing — Scope Analysis command skill. Invoke this skill when the user
-  wants to analyze a System Requirements Specification (SRS) and produce a structured test
-  scope document defining all E2E scenarios, FR-to-layer mapping, and priorities before any
-  test specification or implementation begins. This skill runs ONCE at project start.
+  wants to analyze project requirements and produce a structured test scope document
+  defining all automation scenarios, requirement-to-layer mapping, and priorities before
+  any test specification or implementation begins. This skill runs ONCE at project start.
   Trigger phrases: "wat-scope", "/wat-scope", "analyze test scope", "define test scenarios",
-  "identify what to test", "produce scope document", "map requirements to test scenarios".
+  "identify what to test", "produce scope document", "map requirements to scenarios".
 ---
 
 # wat-scope — Web Automation Testing Scope Analysis
@@ -15,70 +15,87 @@ description: >
 
 Analyze the project's SRS and API specification to produce a **single authoritative scope document** (`docs/test-scope.md`) that defines:
 
-- Every E2E scenario the automation suite must cover, classified by type
+- Every scenario the automation suite must cover, with coverage label and execution mode
 - Which functional requirements each scenario covers
-- Which test layer (UI E2E / API / both) applies to each scenario
+- Which test layer (UI / API / both) applies to each scenario
 - The priority of each scenario
 
-This document is the **entry point for all subsequent `wat-spec` invocations**. No scenario specification or test implementation may begin without an `APPROVED` scope document.
+This document is the **entry point for all subsequent `wat-spec` invocations**. No scenario specification or implementation may begin without an APPROVED scope document.
 
 ## Input
 
-| Source                            | Location                        | Purpose                                         |
-| --------------------------------- | ------------------------------- | ----------------------------------------------- |
-| System Requirements Specification | `docs/sut/srs.md`               | Source of truth for all testable requirements   |
-| API Contract                      | `docs/sut/api-specification.md` | Identifies which FRs have backend API endpoints |
+| Source                            | Location                        | Purpose                                                                          |
+| --------------------------------- | ------------------------------- | -------------------------------------------------------------------------------- |
+| System Requirements Specification | `docs/sut/srs.md`               | Source of truth for all testable requirements                                    |
+| API Contract                      | `docs/sut/api-specification.md` | Identifies which requirements have backend endpoints and server-side constraints |
 
-Read both files in full before beginning analysis.
+Read both files in full before beginning any analysis.
 
 ## Output
 
-| Artifact            | Location             | Status                |
-| ------------------- | -------------------- | --------------------- |
-| Test scope document | `docs/test-scope.md` | Created by this skill |
+| Artifact            | Location             | Status on Creation           |
+| ------------------- | -------------------- | ---------------------------- |
+| Test scope document | `docs/test-scope.md` | `DRAFT` until human approves |
 
 ## External Skills Invoked
 
-| Skill                  | When                             | How                                                                                                                                             |
-| ---------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scenario-test-design` | Step 4 — scenario identification | Invoke silently. Do not print analysis, technique walkthroughs, or intermediate steps. Extract only the final scenario list classified by type. |
+| Skill                  | When                             | How                                                                                                                                                         |
+| ---------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scenario-test-design` | Step 3 — scenario identification | Invoke silently. Do not print analysis, technique walkthroughs, or intermediate steps to screen. Extract only the final scenario list with coverage labels. |
 
 ## Theoretical Foundations
 
-### Scenario Types
+### What Makes a Valid Automation Scenario
 
-Every E2E scenario must be classified by type. This classification drives how `wat-spec` will later design the flow for that scenario.
+In web automation testing, a scenario represents a **complete user journey** — a connected sequence of actions spanning multiple functional areas that a real actor would perform to accomplish a business goal. This reflects how defects actually occur in web applications: most bugs manifest at the **integration point between features**, not within a single feature in isolation.
 
-| Type                        | Description                                                                                                                 | Example                                                           |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| **Happy Path (HP)**         | Primary success flow with valid data and normal conditions                                                                  | Customer completes checkout successfully                          |
-| **Negative (NEG)**          | Invalid input, violated business rule, or system rejection that is part of a realistic user journey spanning multiple steps | Account lockout after 3 failed logins → OTP recovery → re-login   |
-| **Edge Case (EC)**          | Boundary condition or unusual but valid state                                                                               | Checkout with order total exactly at coupon minimum threshold     |
-| **Error Recovery (ER)**     | User encounters an error mid-journey and recovers within the same session                                                   | Wrong coupon entered → corrected → checkout succeeds              |
-| **Security & Misuse (SEC)** | Disfavored user attempting to exploit the system across multiple steps                                                      | User-role token calling admin endpoints → role escalation attempt |
+**A valid automation scenario must:**
 
-**Important:** Negative, Error Recovery, and Security scenarios are **independent scenarios** with their own journeys — they are NOT alternative flows or branches within a happy path scenario. Each has its own start state, sequence, and verifiable outcome.
+1. **Span multiple functional features** — involve at least two distinct functional capabilities. A scenario covering only one functional capability is a unit or integration test, not a user journey scenario. The exception is a single-feature scenario where that feature itself has a rich multi-step stateful workflow (for example, an order state machine with multiple transitions, retries, and terminal states) — provided a stakeholder would recognize it as a meaningful user story.
+2. **Reflect realistic user behavior** — steps follow the natural sequence a real actor would take. State carries forward from step to step within the same session.
+3. **Have a verifiable business outcome** — ends with an assertable system state that confirms the goal was achieved, correctly rejected, or correctly blocked.
+4. **Be independently executable** — requires no output from another scenario to run.
+5. **Be told as a user story** — Cem Kaner's original criterion: if a scenario cannot be told as a credible story that a stakeholder would find meaningful, it is not a scenario — it is a checklist item.
 
-### What Makes a Good E2E Scenario
+### GUI/UX Standards Are Cross-Cutting Requirements
 
-An E2E scenario represents a **complete, realistic user journey** through the system. It must satisfy all of the following criteria:
+The SRS includes GUI/UX requirements that apply across the system. These are **cross-cutting concerns**, not functional features. They do not contribute to forming a scenario — they are verified as additional assertions within scenarios designed around functional features.
 
-1. **Business goal oriented** — The scenario accomplishes something meaningful from a user or business perspective (e.g., "a customer successfully purchases a product").
-2. **Cross-feature** — It spans at least two distinct functional areas or FR groups. A scenario that tests only one FR in isolation is not an E2E scenario — it is a unit or integration test.
-3. **Realistic sequence** — The steps follow the natural order a real user would take. Preconditions are implicit in the journey, not artificially injected.
-4. **Verifiable outcome** — It ends with a system state that can be asserted (order created, email sent, status updated, access denied).
-5. **Independently executable** — Each scenario can run without depending on the output of another scenario.
-6. **Single primary flow** — The scenario does not combine multiple independent journeys.
+When a scenario naturally exercises a functional feature that has GUI/UX requirements associated with it, those GUI/UX requirements are noted in the scenario's "GUI Requirements Verified" field — they are not listed as primary coverage.
 
-### Test Layer Assignment Rules
+### Coverage Labels
 
-| Layer          | When to Assign                                                                                                                  | Rationale                                                                                              |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `UI E2E`       | FR describes user-visible behavior, visual feedback, navigation, form interaction, or UI state                                  | These behaviors can only be verified through a real browser rendering the UI                           |
-| `API`          | FR describes authorization rules, data validation enforced at server, business logic independent of UI, or security constraints | These behaviors must be verified at the HTTP layer because the UI cannot be trusted to enforce them    |
-| `UI E2E + API` | FR has both user-visible behavior AND server-side enforcement that must be independently verified                               | The UI test verifies the happy path; the API test verifies the security/validation constraint directly |
+Scenarios are tagged with coverage labels to make gaps visible at a glance. These labels map to the generation techniques used to discover them:
 
-**Key principle:** If a requirement says the backend MUST enforce something, assign `API` regardless of whether it also has a UI flow. Server-side enforcement is only testable at the API layer.
+| Coverage Label        | What It Signals                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Happy Path**        | Primary success flow delivering the intended business benefit end to end                                |
+| **Negative**          | Actor violates a business rule or constraint; system must respond correctly across a multi-step journey |
+| **Error Recovery**    | An error occurs mid-journey; user recovers and completes the goal within the same session               |
+| **Security & Misuse** | A disfavored actor attempts to exploit, bypass, or abuse the system across a multi-step sequence        |
+
+A suite with zero Negative or Security & Misuse scenarios almost certainly has coverage gaps regardless of scenario count.
+
+### Execution Mode
+
+Not every scenario identified by `scenario-test-design` is a candidate for automation. Evaluate each scenario against these criteria:
+
+| Automate when                                                         | Keep as Manual when                                                        |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Deterministic flow with clear pass/fail criteria                      | Pass/fail depends on subjective human judgment                             |
+| High regression risk — run frequently                                 | Executed rarely; automation cost exceeds value                             |
+| Multi-step stateful flow where scripted assertions provide confidence | Exploratory or usability testing requiring human creativity                |
+| Security scenarios with exact HTTP-level assertions                   | Requires real external system interaction impractical to reproduce in test |
+
+Only Automation scenarios are included in the scope document. Manual scenarios may be noted in a separate section for reference.
+
+### Test Layer Assignment
+
+| Layer      | When to Assign                                                                                                  |
+| ---------- | --------------------------------------------------------------------------------------------------------------- |
+| `UI`       | Behavior is verified through a real browser — visual feedback, navigation, form interaction, rendered DOM state |
+| `API`      | Behavior is enforced server-side — authorization, role validation, server-computed values, security constraints |
+| `UI + API` | The scenario has both user-visible behavior AND server-side enforcement that must be independently verified     |
 
 ### Priority Assignment Rules
 
@@ -94,81 +111,73 @@ When in doubt between Critical and High: ask "Would this defect stop a user from
 
 ## Workflow
 
-### Step 1 — Read and Parse the SRS
+### Step 1 — Read and Understand the SRS
 
-Read `docs/sut/srs.md` in full. Extract every FR and SEC requirement with:
+Read `docs/sut/srs.md` in full. Identify and classify every requirement into:
 
-- Feature name
-- Which actor performs it (customer, admin, system)
-- Whether behavior is user-facing, server-enforced, or both
-- Dependencies on other FRs
+- **Functional features:** Requirements that describe distinct capabilities actors can use. These are the building blocks of scenarios.
+- **Cross-cutting GUI/UX requirements:** Requirements that apply to the presentation layer across all features. These are verified within scenarios but do not form scenarios on their own.
+- **Security requirements:** Requirements that drive Security & Misuse scenarios and API-layer test assignments.
+- **Out-of-scope requirements:** Requirements that cannot be covered by the chosen automation tool (e.g., mobile features requiring a different framework).
+
+Note all actors, their roles, their permissions, and the key system objects with lifecycle states.
 
 ### Step 2 — Read and Cross-Reference the API Spec
 
 Read `docs/sut/api-specification.md`. For each endpoint, note:
 
-- Which FR it implements
-- Whether the endpoint has authentication requirements
-- Whether it has server-side validation that is separate from UI validation
+- Which functional requirement it implements
+- Whether authentication is required
+- Whether there is server-side validation separate from UI validation
 
-Any FR that has a corresponding API endpoint with authentication or validation logic is a candidate for `UI E2E + API` or `API` layer assignment.
+Any functional requirement with authentication enforcement or server-side validation is a candidate for `API` or `UI + API` layer assignment.
 
-### Step 3 — Map Each FR to a Test Layer
+### Step 3 — Identify Scenarios Using `scenario-test-design`
 
-For every FR and SEC requirement, assign a test layer using the rules in the **Theoretical Foundations** section above. Document the rationale for each non-obvious assignment.
+Invoke `scenario-test-design` silently to generate a comprehensive raw scenario list. Do not print any analysis.
 
-Special handling:
+The invocation must apply at minimum: Technique 2 (Actor Analysis), Technique 3 (Disfavored Users), Technique 7 (Specific Transactions), Technique 4 (System Events), and Technique 16 (Sequence Analysis). Apply Technique 1 (Object Life History) for any requirement with a defined state machine.
 
-- **GUI Requirements (FR-21 to FR-24):** Always `UI E2E` — these are visual and interaction standards that cannot be verified via API.
-- **Security Requirements (SEC-01 to SEC-07):** Always include `API` layer — security constraints must be verified at the HTTP layer regardless of UI behavior.
-- **Out-of-scope items:** Explicitly list any FR marked out of scope and state the reason.
+After receiving the output, apply the following **automation-specific refinement rules** before proceeding:
 
-### Step 4 — Identify All Scenarios Using `scenario-test-design`
+- **Rule 1 — Enforce multi-feature coverage.** Every scenario must span at least two distinct functional features, or represent a single feature with a rich multi-step stateful workflow (as described in Theoretical Foundations). If `scenario-test-design` produces a scenario spanning only one functional feature without a stateful workflow, either expand it to include the adjacent natural next step in the user journey, or merge it with a related scenario.
+- **Rule 2 — Separate GUI/UX requirements from primary coverage.** If a scenario's only connection to a second "feature" is a GUI/UX requirement, it does not qualify as multi-feature. Move that GUI/UX requirement to the "GUI Requirements Verified" field and expand the scenario to include a genuine second functional feature.
+- **Rule 3 — Filter for automation suitability.** Apply the Execution Mode criteria. Remove scenarios that are not suitable for automation. Note them separately if needed.
+- **Rule 4 — Assign coverage labels.** Every scenario must have exactly one coverage label: Happy Path, Negative, Error Recovery, or Security & Misuse.
 
-Invoke `scenario-test-design` silently to generate a comprehensive scenario list. Do not print any analysis, technique application steps, or intermediate reasoning.
+### Step 4 — Assign Test Layers
 
-The silent invocation must:
+For each scenario, assign a test layer based on the rules in Theoretical Foundations. Consider the scenario as a whole: if any step in the scenario requires server-side verification, the scenario gets `UI + API` or `API`.
 
-1. Apply at minimum Techniques 2 (Actor Analysis), 3 (Disfavored Users), 7 (Specific Transactions), 4 (System Events), and 16 (Sequence Analysis) from the 16 generation techniques
-2. Additionally apply Technique 1 (Object Life History) for any FR with a defined state machine
-3. Produce scenarios of all relevant types: Happy Path, Negative, Edge Case, Error Recovery, and Security & Misuse
-4. Ensure every FR has at least one scenario covering it as a primary target
+### Step 5 — Assign Priorities and IDs
 
-Extract from the `scenario-test-design` output only:
+Assign `SC-{NN}` IDs (two-digit zero-padded). Assign priority:
 
-- Scenario name
-- Scenario type (HP / NEG / EC / ER / SEC)
-- Primary FR/SEC coverage
-- Actor
-
-Then format these into the `wat-scope` output structure below.
-
-> **Note:** `scenario-test-design` may produce a more granular scenario list than needed for this scope document. Apply deduplication and grouping: if two scenarios test the same journey from the same actor with overlapping FR coverage, merge them. The scope document represents the implementation units for `wat-spec`, not every possible test case.
-
-### Step 5 — Assign Scenario IDs and Priorities
-
-Assign `SC-{NN}` IDs (two-digit zero-padded). Assign priority per the rules above. **Verify consistency:** no scenario that is a precondition for a Critical scenario should be lower than High.
+- **Critical** — failure blocks core business function or exposes a security vulnerability
+- **High** — failure significantly degrades user experience or breaks an important feature
+- **Medium** — failure affects a secondary feature; core flows remain functional
 
 ### Step 6 — Write `docs/test-scope.md`
 
-Write the complete scope document using the **Output Format** section below.
+Write the complete scope document using the **Output Format** defined below.
 
 ### Step 7 — Human Gate
 
-After writing the file, present the following message exactly:
+After writing the file, present this message exactly:
 
 > "Scope analysis complete. Scenario inventory written to `docs/test-scope.md`. Please review:
 >
-> - Does the scenario list include Happy Path, Negative, Error Recovery, and Security scenario types where applicable?
-> - Does the scenario list cover all in-scope FRs from `docs/sut/srs.md`?
-> - Is the FR-to-layer mapping correct?
+> - Does each scenario span multiple functional features, or have a compelling multi-step stateful workflow if single-feature?
+> - Does the list include Happy Path, Negative, Error Recovery, and Security & Misuse scenarios where applicable?
+> - Are the test layer assignments correct?
 > - Are the priorities appropriate?
+> - Are the execution modes correct (Automation vs Manual)?
 > - Are any important user journeys missing?
 >
 > Reply **APPROVED** to finalize the scope and proceed to `wat-spec`, or **REJECTED** with specific feedback so I can revise."
 
-- If **APPROVED** → update document status to `APPROVED`, confirm readiness for `wat-spec`
-- If **REJECTED** → revise, update `docs/test-scope.md`, repeat Step 7 until APPROVED
+- If **APPROVED** → update status to `APPROVED`; scope is ready for `wat-spec`
+- If **REJECTED** → revise based on feedback, update `docs/test-scope.md`, repeat until `APPROVED`
 
 ## Output Format — `docs/test-scope.md`
 
@@ -194,51 +203,52 @@ After writing the file, present the following message exactly:
 | ------ | -------- |
 | {item} | {reason} |
 
-## 2. FR-to-Layer Mapping
+## 2. Requirement-to-Layer Mapping
 
-| FR / SEC ID | Feature Name       | Test Layer   | Notes                                 |
-| ----------- | ------------------ | ------------ | ------------------------------------- |
-| FR-01       | {Feature Name}     | UI E2E + API | {rationale if non-obvious}            |
-| SEC-01      | {Requirement Name} | API          | Security constraint — HTTP layer only |
-| ...         |                    |              |                                       |
+| Requirement ID | Feature / Requirement Name | Test Layer | Notes                                           |
+| -------------- | -------------------------- | ---------- | ----------------------------------------------- |
+| {FR-XX}        | {Feature Name}             | UI + API   | {rationale if non-obvious}                      |
+| {SEC-XX}       | {Security Requirement}     | API        | Server-side constraint — HTTP layer only        |
+| {GUI-REQ}      | {GUI/UX Requirement}       | UI         | Cross-cutting — verified within other scenarios |
+| ...            |                            |            |                                                 |
 
 ## 3. Scenario Inventory
 
 ### SC-01 — {Scenario Name}
 
-| Field                   | Value                                                                  |
-| ----------------------- | ---------------------------------------------------------------------- |
-| **Scenario ID**         | SC-01                                                                  |
-| **Name**                | {Descriptive name: verb + object + context}                            |
-| **Type**                | Happy Path / Negative / Edge Case / Error Recovery / Security & Misuse |
-| **Actor**               | Customer / Admin / Attacker                                            |
-| **Primary FR Coverage** | FR-XX, FR-YY, SEC-ZZ                                                   |
-| **Dependency FRs**      | FR-AA (precondition — not primary target)                              |
-| **Test Layer**          | UI E2E + API                                                           |
-| **Priority**            | Critical / High / Medium                                               |
-| **Objective**           | {One sentence: what this scenario proves or disproves}                 |
+| Field                         | Value                                                            |
+| ----------------------------- | ---------------------------------------------------------------- |
+| **Scenario ID**               | SC-01                                                            |
+| **Name**                      | {Descriptive name: verb + object + context}                      |
+| **Coverage Label**            | Happy Path / Negative / Error Recovery / Security & Misuse       |
+| **Execution Mode**            | Automation                                                       |
+| **Actor**                     | {Customer / Admin / Attacker}                                    |
+| **Primary FR Coverage**       | {Functional feature requirements only}                           |
+| **GUI Requirements Verified** | {GUI/UX requirements verified as additional assertions — if any} |
+| **Dependency FRs**            | {Precondition requirements — not primary coverage targets}       |
+| **Test Layer**                | UI / API / UI + API                                              |
+| **Priority**                  | Critical / High / Medium                                         |
+| **Objective**                 | {One sentence: what this scenario proves or disproves}           |
 
-**E2E Scenario Description:** {Chain of events, user actions, and system responses. This is a high-level description, not a step-by-step test case.}
-
-### SC-XX — {Scenario Name}
+**Scenario Description:** {Describe the scenario as a user story, including the sequence of steps, and separate the steps with bullet points.}
 
 {Repeat for each scenario}
 
 ## 4. Coverage Matrix
 
-| FR / SEC ID | Feature   | Covered By Scenario(s)  | Test Layer   |
-| ----------- | --------- | ----------------------- | ------------ |
-| FR-01       | {Feature} | SC-01 (HP), SC-02 (NEG) | UI E2E + API |
-| FR-02       | {Feature} | SC-01 (HP), SC-03 (SEC) | UI E2E + API |
-| ...         |           |                         |              |
+| Requirement ID | Feature              | Covered By                   | Test Layer |
+| -------------- | -------------------- | ---------------------------- | ---------- |
+| {FR-XX}        | {Feature}            | SC-01 (HP), SC-04 (NEG)      | UI + API   |
+| {GUI-REQ}      | {GUI/UX Requirement} | SC-01, SC-03, SC-05 (within) | UI         |
+| ...            |                      |                              |            |
 
 ## 5. Execution Order Recommendation
 
-| Order | Scenario ID | Name   | Type | Priority | Reason                                     |
-| ----- | ----------- | ------ | ---- | -------- | ------------------------------------------ |
-| 1     | SC-XX       | {Name} | HP   | Critical | Entry point; precondition for SC-YY        |
-| 2     | SC-YY       | {Name} | SEC  | Critical | No UI dependency; fast API-only validation |
-| ...   |             |        |      |          |                                            |
+| Order | Scenario ID | Name   | Coverage Label    | Priority | Rationale                                         |
+| ----- | ----------- | ------ | ----------------- | -------- | ------------------------------------------------- |
+| 1     | SC-XX       | {Name} | Happy Path        | Critical | Precondition for multiple downstream scenarios    |
+| 2     | SC-YY       | {Name} | Security & Misuse | Critical | API-only; no browser dependency; fast to validate |
+| ...   |             |        |                   |          |                                                   |
 
 ## 6. Scenario Discovery Heuristics — Results
 
@@ -259,56 +269,62 @@ Record which generation techniques were applied and what they produced:
 
 Before presenting the human gate, verify every item:
 
+**Scenario structure:**
+
+- [ ] Every scenario spans at least two distinct functional features, OR is a single-feature scenario with a demonstrably rich multi-step stateful workflow.
+- [ ] No scenario's second "feature" is solely a GUI/UX requirement.
+- [ ] GUI/UX requirements appear in the "GUI Requirements Verified" field, not in "Primary FR Coverage".
+- [ ] API-only scenarios cover a multi-step business or security journey — not a single endpoint call.
+- [ ] Every scenario has exactly one coverage label assigned.
+
 **Coverage completeness:**
 
-- [ ] Every FR from `docs/sut/srs.md` appears in the FR-to-Layer Mapping table.
-- [ ] Every SEC requirement appears in the FR-to-Layer Mapping table.
-- [ ] Every FR appears in at least one scenario's Primary FR Coverage.
+- [ ] Every functional feature requirement appears in at least one scenario's Primary FR Coverage.
+- [ ] Every security requirement is covered by at least one Security & Misuse scenario.
+- [ ] GUI/UX requirements appear in the Coverage Matrix with multiple scenarios listed.
 - [ ] Out-of-scope items are explicitly listed with reasons.
 
-**Scenario type balance:**
+**Coverage label balance:**
 
-- [ ] At least one Happy Path scenario exists for each primary business flow.
-- [ ] At least one Negative scenario exists for each significant validation rule or business constraint that spans multiple steps.
-- [ ] At least one Security & Misuse scenario exists for features with access control or sensitive data.
-- [ ] Zero Negative or Security scenarios is a red flag — stop and re-apply techniques.
+- [ ] At least one Happy Path scenario per major business domain.
+- [ ] At least one Negative scenario for each significant business rule.
+- [ ] At least one Security & Misuse scenario for any feature with access control or sensitive data.
+- [ ] Absence of Negative or Security & Misuse scenarios triggers re-examination.
 
-**Scenario quality:**
+**Execution mode:**
 
-- [ ] Each scenario name follows `verb + object + context` pattern.
-- [ ] Each scenario has a Type assigned.
-- [ ] Each scenario has a single clear Objective.
-- [ ] Each scenario covers at least two FRs.
-- [ ] Scenarios are independently executable.
+- [ ] Every scenario has Execution Mode = `Automation`.
+- [ ] Any scenario unsuitable for automation has been removed from the main inventory.
 
 **Layer assignment:**
 
-- [ ] All server-side enforcement requirements have `API` in their test layer.
-- [ ] All GUI/visual requirements are assigned `UI E2E`.
+- [ ] All server-side enforcement requirements have `API` in the scenario's test layer.
+- [ ] All visual-only requirements are `UI`.
 
-**Document format:**
+**Document:**
 
 - [ ] All contents are in English and follow the specified markdown structure.
 - [ ] Status is `DRAFT`.
-- [ ] Section 6 (Heuristics Results) is populated — not left blank.
-- [ ] Coverage Matrix shows which scenario types cover each FR.
+- [ ] Execution Order table is complete.
 
 ## Constraints
 
 **MUST do:**
 
-- Read `docs/sut/srs.md` and `docs/sut/api-specification.md` in full before any output.
-- Invoke `scenario-test-design` silently in Step 4.
-- Produce scenarios of multiple types — never only Happy Path.
-- Write the output to `docs/test-scope.md` before presenting the human gate.
-- Set document status to `DRAFT`.
+- Read both SRS and API spec in full before producing any output
+- Invoke `scenario-test-design` silently
+- Apply all four refinement rules after extracting from `scenario-test-design`
+- Treat GUI/UX requirements as cross-cutting — never as primary coverage
+- Write output to `docs/test-scope.md` before presenting the human gate
+- Set status to `DRAFT`
 
 **MUST NOT do:**
 
-- Print `scenario-test-design` analysis or technique walkthroughs.
-- Begin scenario flow design — that is `wat-spec`'s responsibility.
-- Define test steps, test data, or expected outcomes.
-- Invent requirements not in `docs/sut/srs.md`.
-- Mark the document as `APPROVED`.
-- Produce a scope with only Happy Path scenarios.
-- Reference `playwright-automation-plan.md`.
+- Print `scenario-test-design` analysis or intermediate steps
+- Create scenarios that span only one functional feature unless it has a rich multi-step stateful workflow
+- List GUI/UX requirements in "Primary FR Coverage"
+- Begin scenario flow design — that belongs to `wat-spec`
+- Define test steps, test data, or expected outcomes
+- Mark the document as `APPROVED`
+- Produce a scope with only Happy Path scenarios
+- Reference `playwright-automation-plan.md`

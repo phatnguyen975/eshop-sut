@@ -110,8 +110,8 @@ No additional input required. The skill reads the SRS and API spec automatically
 
 1. Read both SRS and API spec files in full
 2. Map every FR and SEC requirement to a test layer (UI E2E / API / both)
-3. Group FRs into high-level E2E scenarios
-4. Assign Critical / High / Medium priority to each scenario
+3. Invoke `scenario-test-design` silently to generate a comprehensive scenario list covering multiple types: Happy Path, Negative, Error Recovery, Security & Misuse
+4. Assign `SC-{NN}` IDs and Critical / High / Medium priority to each scenario
 5. Write `docs/test-scope.md`
 6. Stop and ask for your approval
 
@@ -123,9 +123,11 @@ When the AI presents the scope document, open `docs/test-scope.md` and check:
 - [ ] Every SEC requirement is present.
 - [ ] Out-of-scope items (e.g., FR-20 Mobile) are explicitly listed.
 - [ ] Scenario names describe user journeys, not FR numbers.
-- [ ] Each scenario covers at least two FRs.
+- [ ] Each scenario is a meaningful multi-step journey — not a single-action validation check.
 - [ ] Priority assignments make sense for your project context.
 - [ ] No important user journey is missing.
+- [ ] Scenario list includes multiple types — Happy Path, Negative, Error Recovery, and Security & Misuse where applicable (not only Happy Path).
+- [ ] Each scenario has a Type assigned (HP / NEG / EC / ER / SEC).
 
 ### How to respond
 
@@ -177,7 +179,11 @@ Replace `SC-01` with the scenario ID from `docs/test-scope.md`.
 1. Read the target scenario from `docs/test-scope.md`
 2. Read all relevant FR sections from `docs/sut/srs.md`
 3. Read relevant endpoint contracts from `docs/sut/api-specification.md`
-4. Design the complete E2E flow as numbered steps (action, precondition, expected response, test layer per step)
+4. Design the complete E2E flow based on the scenario's **Type**:
+   - **Happy Path:** primary success flow with valid data and correct system responses
+   - **Negative:** multi-step journey ending in correct system rejection — includes the specific step where the business rule is violated and the rejection response
+   - **Error Recovery:** journey where user encounters an error mid-flow and recovers within the same session
+   - **Security & Misuse:** multi-step attack sequence from a disfavored actor — most steps are API layer; flow ends with the attack defeated
 5. Write Phase 1 to `docs/scenarios/SC-01/spec.md`
 6. Stop at Gate A — ask you to review the flow
 
@@ -197,7 +203,11 @@ Open `docs/scenarios/SC-01/spec.md` and check the E2E flow:
 - [ ] Every FR listed as primary coverage has at least one step.
 - [ ] Expected responses are derived from the SRS — not invented.
 - [ ] Steps that need server-side verification have API in the test layer column.
-- [ ] Error paths that a real user would encounter are included (not just happy path).
+- [ ] The scenario Type from `docs/test-scope.md` is correctly reflected in the flow:
+  - **Negative:** the specific rejection step is present with the correct system response.
+  - **Security:** the flow simulates a realistic attack sequence with API-layer verification.
+  - **Error Recovery:** both the error occurrence and recovery path are in the same flow.
+- [ ] Error paths within a realistic user journey are inside the main flow (not as separate scenarios)
 - [ ] The flow starts from a realistic entry point (login page, homepage — not mid-flow).
 
 ### How to respond at Gate A

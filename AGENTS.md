@@ -117,6 +117,8 @@ Static test input files committed to `e2e/test-data/`. Created when first needed
 | `docs/scenarios/{id}/spec.md`         | Output of `wat-spec` — detailed E2E flow, steps, expected outcomes, test data, techniques applied                                | Before each `wat-build` invocation. This is the implementation contract.                                                                     |
 | `docs/scenarios/{id}/review-notes.md` | Output of `wat-review` — findings classified as Blocking / Non-blocking / Coverage Gap                                           | Before `wat-fix` invocation. Only process human-confirmed findings.                                                                          |
 
+> **Note on GUI/UX requirements:** The SRS contains GUI/UX standards that apply across the entire system. These are cross-cutting concerns — they are not functional features and must not be used to form scenarios. They are verified as additional assertions within scenarios designed around functional features, and are recorded in the "GUI Requirements Verified" field of each scenario card in `docs/test-scope.md`.
+
 ### Quick Lookup
 
 | I want to know…                                 | Read…                                      |
@@ -161,7 +163,7 @@ Static test input files committed to `e2e/test-data/`. Created when first needed
 [For each scenario in docs/test-scope.md]
           │
     wat-spec (SC-XX)
-        ├── [HUMAN GATE A] Approve E2E flow before applying techniques
+        ├── [HUMAN GATE A] Approve scenario flow before applying techniques
         └── [HUMAN GATE B] Approve test data matrix after techniques applied
           │
     wat-build (SC-XX) — repeats per implementation piece
@@ -190,25 +192,19 @@ Static test input files committed to `e2e/test-data/`. Created when first needed
 
 **Steps the AI must perform:**
 
-1. Read `docs/sut/srs.md` in full — identify all FR-01 to FR-24 and SEC-01 to SEC-07.
-2. Read `docs/sut/api-specification.md` — note which FRs have API endpoints and which have server-side validation separate from UI.
-3. For each FR and SEC requirement, determine the appropriate test layer:
-   - `UI E2E` — behavior must be verified through the browser
-   - `API` — behavior must be verified via direct HTTP calls
-   - `UI E2E + API` — both layers required
-4. Invoke `scenario-test-design` **silently** to generate a comprehensive scenario list — do not print analysis, technique walkthroughs, or intermediate reasoning. Apply at minimum Techniques 2 (Actor Analysis), 3 (Disfavored Users), 7 (Specific Transactions), 4 (System Events), and 16 (Sequence Analysis). Extract from the output only: scenario name, type, primary FR coverage, and actor. The scenario list must include scenarios of multiple types — Happy Path, Negative, Error Recovery, and Security & Misuse — never only Happy Path.
-5. Assign a unique `SC-{NN}` ID and a priority (Critical / High / Medium) to each scenario.
-6. Output a structured scope document saved to `docs/test-scope.md`.
+1. Read `docs/sut/srs.md` in full — classify every requirement into: functional features, cross-cutting GUI/UX requirements, security requirements, and out-of-scope requirements. Note all actors and key system objects with lifecycle states.
+2. Read `docs/sut/api-specification.md` — identify which functional requirements have server-side enforcement separate from UI behavior.
+3. Invoke `scenario-test-design` **silently** to generate a comprehensive raw scenario list. Do not print any analysis. Extract only the final scenario list with coverage labels (Happy Path / Negative / Error Recovery / Security & Misuse).
+4. Apply automation-specific refinement: (a) ensure every scenario spans multiple functional features or has a rich multi-step stateful workflow; (b) move any GUI/UX requirement to "GUI Requirements Verified" — never "Primary FR Coverage"; (c) filter for automation suitability; (d) assign exactly one coverage label per scenario.
+5. Assign test layers, priorities, and SC-XX IDs. Produce `docs/test-scope.md`.
 
 **Human gate:** Write the scope document to `docs/test-scope.md`, then instruct the human:
 
 > "Scope analysis complete. Scenario inventory written to `docs/test-scope.md`. Please review:
 >
-> - Does the scenario list include Happy Path, Negative, Error Recovery, and Security & Misuse types where applicable?
-> - Does the scenario list cover all in-scope FRs from `docs/sut/srs.md`?
-> - Is the FR-to-layer mapping correct?
-> - Are the priorities appropriate?
-> - Are any important user journeys missing?
+> - Does each scenario span multiple functional features?
+> - Does the list include Happy Path, Negative, Error Recovery, and Security & Misuse scenarios where applicable?
+> - Are execution modes and test layers correct?
 >
 > Reply **APPROVED** to finalize the scope, or **REJECTED** with your feedback to revise."
 
@@ -224,20 +220,15 @@ Static test input files committed to `e2e/test-data/`. Created when first needed
 
 **Steps the AI must perform:**
 
-**Phase 1 — E2E Flow Design:**
+**Phase 1 — Scenario Flow Design:**
 
 1. Read the target scenario entry from `docs/test-scope.md` — extract: Name, Type, Actor, Primary FR Coverage, Objective. The **Type** field is critical: it determines how the flow is designed.
 2. Read the relevant FR sections from `docs/sut/srs.md` for the target scenario.
 3. Read the relevant endpoint contracts from `docs/sut/api-specification.md`.
-4. Design the complete E2E flow using the approach determined by the scenario Type:
-   - **Happy Path:** Primary success flow — valid data, all preconditions met, system responds correctly at every step.
-   - **Negative:** Multi-step journey ending in correct system rejection — the flow must include the specific step where the business rule is violated, the system's rejection response, and any subsequent state the SRS defines.
-   - **Error Recovery:** Journey where user encounters an error mid-flow and recovers within the same session — include both the error step and the recovery path.
-   - **Security & Misuse:** Multi-step attack sequence from a disfavored actor — steps simulate realistic attack patterns; most steps are API layer; flow ends with the attack defeated and system in correct state.
-   - **Edge Case:** Journey reaching a boundary condition — valid inputs at extreme values.
-5. For each step, specify: action, actor, precondition, expected system response (derived from SRS only — never assumed), and test layer (UI E2E / API / UI E2E + API).
-6. Write the E2E flow draft into `docs/scenarios/{scenario-id}/spec.md` (Phase 1 section only — steps, no test data yet). Then stop and instruct the human:
-   > "Phase 1 complete. E2E flow written to `docs/scenarios/{scenario-id}/spec.md`. Please review the flow against `docs/sut/srs.md`. For Negative/Security scenarios: does the flow simulate a realistic journey ending in correct system rejection? Reply **APPROVED** to proceed to Phase 2 (test data design), or **REJECTED** with your feedback to revise the flow."
+4. Read the scenario's **Coverage Label** from `docs/test-scope.md`. Design the complete scenario flow according to the structure defined by that label — the `wat-spec` skill defines the flow structure for each coverage label in detail.
+5. For each step, specify: action, actor, precondition, expected system response (derived from SRS only — never assumed), and test layer (UI / API / UI + API).
+6. Write the scenario flow draft into `docs/scenarios/{scenario-id}/spec.md` (Phase 1 section only — steps, no test data yet). Then stop and instruct the human:
+   > "Phase 1 complete. Scenario flow written to `docs/scenarios/{scenario-id}/spec.md`. Please review the flow against `docs/sut/srs.md`. Reply **APPROVED** to proceed to Phase 2 (test data design), or **REJECTED** with your feedback to revise the flow."
    - If **APPROVED** → proceed to Phase 2
    - If **REJECTED** → revise the flow based on feedback, update `spec.md`, and present Gate A again until `APPROVED`
 
