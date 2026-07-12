@@ -45,7 +45,7 @@
 ### Prompt
 
 ```prompt
-APPROVED
+/wat-scope
 ```
 
 ### Output
