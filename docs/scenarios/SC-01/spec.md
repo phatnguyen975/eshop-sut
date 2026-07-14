@@ -34,7 +34,7 @@
 
 ## 3. Scenario Flow
 
-> **Phase 1 Status:** DRAFT (Gate A)
+> **Phase 1 Status:** APPROVED (Gate A)
 
 | Step | Action                                                                                                                                                                                                                                               | Actor        | Precondition                                                        | Expected Response                                                                                                                                                                                                                                                                                                           | Test Layer |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -61,7 +61,7 @@
 
 ## 4. Test Data Matrix
 
-> **Phase 2 Status:** DRAFT (Gate B)
+> **Phase 2 Status:** APPROVED (Gate B)
 
 > **Cross-feature E2E flow rule:** The main E2E flow test (Steps 1–11) always uses fully valid data at every step. All variant groups below belong in **separate validation specs**, not in the E2E flow test.
 
@@ -169,12 +169,12 @@
 
 #### Test Data Matrix (Complete test cases)
 
-| Variant ID | Technique / Invalid Field    | Search Keyword Input                                 | Expected Outcome                                                                                 |
-| ---------- | ---------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| S9.V1      | EP (Valid — results found)   | First 3 characters of a known product (e.g., `"Áo"`) | Products whose name contains the keyword are displayed in the grid. (FR-05)                      |
-| S9.V2      | EP (Valid — no results)      | `xyzzy_nosuchproduct_12345`                          | Empty state: icon/illustration and friendly message displayed. (FR-05, FR-24)                    |
-| S9.V3      | Error Guessing (XSS payload) | `<script>alert(1)</script>`                          | Search keyword is rendered as escaped plain text in the UI; no alert fires. (SEC-04)             |
-| S9.V4      | EP (Invalid — empty)         | `""` (empty)                                         | Search does not execute or returns all default products, depending on UI implementation. (FR-05) |
+| Variant ID | Technique / Invalid Field    | Search Keyword Input                                     | Expected Outcome                                                                                 |
+| ---------- | ---------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| S9.V1      | EP (Valid — results found)   | First 3 characters of a known product (e.g., `"iPhone"`) | Products whose name contains the keyword are displayed in the grid. (FR-05)                      |
+| S9.V2      | EP (Valid — no results)      | `xyzzy_nosuchproduct_12345`                              | Empty state: icon/illustration and friendly message displayed. (FR-05, FR-24)                    |
+| S9.V3      | Error Guessing (XSS payload) | `<script>alert(1)</script>`                              | Search keyword is rendered as escaped plain text in the UI; no alert fires. (SEC-04)             |
+| S9.V4      | EP (Invalid — empty)         | `""` (empty)                                             | Search does not execute or returns all default products, depending on UI implementation. (FR-05) |
 
 ### Steps 3 & 6 — API Registration & Login Verification
 

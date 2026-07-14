@@ -183,7 +183,7 @@ expect(await page.url()).toBe("http://localhost:5173/dashboard");
 - Placed in a dedicated `-validation.spec.ts` file per feature domain
 - Implements variants from Phase 2 data matrix in `spec.md`
 - Implementation pattern is determined by the annotation on each variant group in `spec.md`:
-  - **`[data-driven]`** → use `test.each()` — all variants share the same flow, only input/expected differ
+  - **`[data-driven]`** → use `for...of` loop over an array of variants to generate `test()` blocks — all variants share the same flow, only input/expected differ
   - **`[separate-test]`** → use individual `test()` blocks — variants need different setup or cause state changes
 
 **E2E flow structure template:**
@@ -214,7 +214,7 @@ test("TC-{MODULE}-01: {scenario goal}", async ({ userPage, seededProduct }) => {
 **Data-driven validation test template (`[data-driven]` annotation):**
 
 ```typescript
-// One test.each block for all EP/BVA variants of the same input field
+// One loop block for all EP/BVA variants of the same input field
 // All variants: same form, same assertion point, only input + expected change
 const couponVariants = [
   {
@@ -243,14 +243,16 @@ const couponVariants = [
   },
 ];
 
-test.each(couponVariants)(
-  "TC-COUPON-$id: coupon field — $desc",
-  async ({ page, seededCartWithProduct }, { input, expected }) => {
+for (const { id, input, desc, expected } of couponVariants) {
+  test(`TC-COUPON-${id}: coupon field — ${desc}`, async ({
+    page,
+    seededCartWithProduct,
+  }) => {
     await checkoutPage.navigate("/checkout");
     await checkoutPage.applyCoupon(input);
     await expect(checkoutPage.couponMessage).toHaveText(expected);
-  },
-);
+  });
+}
 ```
 
 **Separate test blocks template (`[separate-test]` annotation):**
@@ -286,13 +288,14 @@ const authVariants = [
   },
 ];
 
-test.each(authVariants)(
-  "TC-SEC-$id: GET /api/admin/orders — $label",
-  async ({ request }, { headers, expectedStatus }) => {
+for (const { id, label, headers, expectedStatus } of authVariants) {
+  test(`TC-SEC-${id}: GET /api/admin/orders — ${label}`, async ({
+    request,
+  }) => {
     const response = await request.get("/api/admin/orders", { headers });
     expect(response.status()).toBe(expectedStatus);
-  },
-);
+  });
+}
 ```
 
 ### Data & Teardown Management
@@ -359,16 +362,23 @@ test('TC-REG-01: register new user', async ({ page, cleanup, request }) => {
   await registerPage.navigate('/register');
   await registerPage.register(email, 'ValidPass1!');
 
-  // Register cleanup immediately — runs even if subsequent assertions fail
+  // Register cleanup immediately — runs AFTER the entire test finishes
+  // It does NOT execute immediately; the data remains available for subsequent steps (e.g., login).
   cleanup.add(async () => {
     const adminCtx = await request.newContext({ ... });
     await adminCtx.delete(`/api/users/${encodeURIComponent(email)}`).catch(() => {});
     await adminCtx.dispose();
   });
 
-  await expect(page).toHaveURL('/dashboard');
+  await test.step('Login with new user', async () => {
+    // Data is still available here!
+    await loginPage.navigate('/login');
+    // ...
+  });
 });
 ```
+
+> **Note on `cleanup.add()`:** Calling `add()` only pushes a function into an array. It does **not** execute the deletion immediately. Playwright executes the code _after_ the `await use()` statement only when the test has completely finished. This guarantees your data is available for all subsequent test steps, while ensuring it is always deleted even if one of those steps fails.
 
 **Decision rule — which teardown pattern to use:**
 
@@ -504,15 +514,15 @@ Run before presenting each human gate.
 - [ ] Test ID follows `TC-{MODULE}-{NUMBER}` format.
 - [ ] All assertions use web-first form.
 - [ ] No `waitForTimeout()` or `sleep()` anywhere.
-- [ ] No `test.each()` used in E2E flow tests.
+- [ ] No `for...of` loop generating tests used in E2E flow tests.
 - [ ] All contents in English, including comments.
 
 ### Test Spec Checklist (Validation Tests)
 
-- [ ] Every variant group annotated `[data-driven]` in `spec.md` is implemented as a single `test.each()` block.
-- [ ] Every variant group annotated `[separate-test]` in `spec.md` is implemented as individual `test()` blocks.
-- [ ] `test.each()` is used only when all variants share identical flow and differ only in input + expected outcome.
-- [ ] No `test.each()` is used when variants require different fixture state or cause irreversible state changes.
+- [ ] Every variant group annotated `[data-driven]` in `spec.md` is implemented as a single `for...of` loop generating individual `test()` blocks.
+- [ ] Every variant group annotated `[separate-test]` in `spec.md` is implemented as individual, explicitly written `test()` blocks.
+- [ ] `for...of` loops are used only when all variants share identical flow and differ only in input + expected outcome.
+- [ ] No `for...of` loop is used when variants require different fixture state or cause irreversible state changes.
 - [ ] Variant array entries include an `id` field so test names are unique and traceable to the spec.
 - [ ] Tests are in a dedicated `-validation.spec.ts` file.
 - [ ] All contents in English, including comments.
@@ -523,7 +533,7 @@ Run before presenting each human gate.
 - [ ] Auth header set correctly (`Authorization: Bearer {token}`).
 - [ ] Asserts HTTP status code explicitly (`expect(response.status()).toBe(200)`).
 - [ ] Asserts response body shape where relevant.
-- [ ] Security variants (401, 403) annotated `[data-driven]` in spec are implemented as `test.each()` blocks.
+- [ ] Security variants (401, 403) annotated `[data-driven]` in spec are implemented as a `for...of` loop generating `test()` blocks.
 - [ ] All contents in English, including comments.
 
 ### Teardown Checklist (applies to all spec types)
@@ -556,7 +566,7 @@ Run before presenting each human gate.
 - Derive all expected values and UI text from `docs/sut/srs.md`.
 - Apply the Failure Diagnosis Protocol before fixing any reported error.
 - Read the `[data-driven]` / `[separate-test]` annotation in `spec.md` Phase 2 before implementing each variant group.
-- Use `test.each()` for `[data-driven]` variant groups; use individual `test()` blocks for `[separate-test]` groups.
+- Use a `for...of` loop for `[data-driven]` variant groups; use individual explicitly written `test()` blocks for `[separate-test]` groups.
 - Implement the cleanup registry fixture (`cleanup`) if any test in the scenario creates data as part of its own action.
 - Add teardown code after every `await use(...)` call in every fixture — no exceptions.
 
@@ -574,7 +584,7 @@ Run before presenting each human gate.
 - Write direct database queries.
 - Reference `playwright-automation-plan.md` — that file is for human reference only.
 - Proceed to the next piece without explicit `PASSED` response.
-- Use `test.each()` in E2E flow tests — the main journey is always a single `test()` block.
+- Use a loop to generate tests in E2E flow tests — the main journey is always a single, flat `test()` block.
 - Build a cross-feature data matrix — variants from different features must be tested separately, not combined into one parameterised flow.
 - Leave any fixture without teardown code, even if teardown is only a `.catch(() => {})` guard.
 - Create data inside a test body without registering a `cleanup.add()` call immediately after.

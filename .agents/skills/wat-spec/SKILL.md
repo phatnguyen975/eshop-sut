@@ -209,18 +209,18 @@ Apply after all systematic techniques. Focus on:
 
 #### Test Case Payload Completeness
 
-When defining variants (especially for Domain Testing and Error Guessing), the input cannot just be the isolated value being tested. Every variant in the matrix **must specify the complete, executable test payload** required to trigger the action. 
+When defining variants (especially for Domain Testing and Error Guessing), the input cannot just be the isolated value being tested. Every variant in the matrix **must specify the complete, executable test payload** required to trigger the action.
 
-For example, if testing the validation of an "Email" field in a registration form, the variant must specify not only the invalid email value but also the valid baseline values for the "Password" and "Confirm Password" fields required to submit the form. This complete payload is necessary for `wat-build` to correctly construct the `test.each()` data array.
+For example, if testing the validation of an "Email" field in a registration form, the variant must specify not only the invalid email value but also the valid baseline values for the "Password" and "Confirm Password" fields required to submit the form. This complete payload is necessary for `wat-build` to correctly construct the `for...of` data array.
 
 #### Data-Driven Implementation Annotation
 
 After building the variant table for each step, annotate each variant group with exactly one of the following labels. This annotation is the contract for `wat-build` — it determines which Playwright implementation pattern must be used.
 
-| Annotation            | Definition                                                                                                                                       | `wat-build` pattern                                      |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| **`[data-driven]`**   | All variants share the **same test flow** and differ only in input value and expected output. Preconditions are identical across all variants.   | Single `test.each()` block in the validation or API spec |
-| **`[separate-test]`** | Variants require **different setup**, different preconditions, different navigation paths, or cause irreversible state changes between variants. | One `test()` block per variant                           |
+| Annotation            | Definition                                                                                                                                       | `wat-build` pattern                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| **`[data-driven]`**   | All variants share the **same test flow** and differ only in input value and expected output. Preconditions are identical across all variants.   | `for...of` loop generating a `test()` block |
+| **`[separate-test]`** | Variants require **different setup**, different preconditions, different navigation paths, or cause irreversible state changes between variants. | One `test()` block per variant              |
 
 **Selection rules:**
 
@@ -385,14 +385,14 @@ List all conditions that must be true before the scenario begins:
 
 ### Step {N} — {Step Title} [Domain Testing — EP + BVA] `[data-driven]`
 
-> **Implementation annotation:** `[data-driven]` — all variants share the same form submission flow; implement as one `test.each()` block in the validation spec.
+> **Implementation annotation:** `[data-driven]` — all variants share the same form submission flow; implement as a `for...of` loop in the validation spec.
 
 | Variant ID | Technique               | Test Payload (All required fields) | Expected Outcome   |
 | ---------- | ----------------------- | ---------------------------------- | ------------------ |
 | S{N}.V1    | EP (valid)              | {full valid payload}               | {outcome from SRS} |
-| S{N}.V2    | EP (invalid — {reason}) | {value}         | {error from SRS}   |
-| S{N}.V3    | BVA (on-point)          | {value}         | {outcome}          |
-| S{N}.V4    | BVA (off-point)         | {value}         | {error}            |
+| S{N}.V2    | EP (invalid — {reason}) | {value}                            | {error from SRS}   |
+| S{N}.V3    | BVA (on-point)          | {value}                            | {outcome}          |
+| S{N}.V4    | BVA (off-point)         | {value}                            | {error}            |
 
 ### Step {M} — {Step Title} [Decision Table — {N} conditions] `[separate-test]`
 
@@ -416,7 +416,7 @@ List all conditions that must be true before the scenario begins:
 
 ### Step {Q} — {Step Title} [Error Guessing] `[data-driven]`
 
-> **Implementation annotation:** `[data-driven]` — all auth-boundary variants target the same endpoint with different Authorization headers; implement as one `test.each()` block in the API spec.
+> **Implementation annotation:** `[data-driven]` — all auth-boundary variants target the same endpoint with different Authorization headers; implement as a `for...of` loop in the API spec.
 
 | Variant ID | Attack Vector            | Test Payload (All required fields)   | Expected Defense          |
 | ---------- | ------------------------ | ------------------------------------ | ------------------------- |

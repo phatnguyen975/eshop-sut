@@ -36,6 +36,7 @@ type EShopFixtures = {
   adminApiRequest: APIRequestContext;
   seededProduct: { id: number; name: string; price: number };
   seededOrder: { id: number };
+  cleanup: { add: (fn: () => Promise<void>) => void };
 };
 
 // ---------------------------------------------------------------------------
@@ -189,6 +190,24 @@ export const test = base.extend<EShopFixtures>({
     // Teardown — cancel order; silently skip if already in terminal state
     await userCtx.put(`/api/orders/${orderId}/cancel`).catch(() => {});
     await userCtx.dispose();
+  },
+
+  // ---------------------------------------------------------------------------
+  // cleanup — Registry fixture for teardown of data created within tests
+  // Tests can call cleanup.add(async () => { ... }) immediately after creating data.
+  // Scope: 'test' (default)
+  // ---------------------------------------------------------------------------
+  cleanup: async ({}, use) => {
+    const tasks: Array<() => Promise<void>> = [];
+    await use({
+      add: (fn: () => Promise<void>) => tasks.push(fn),
+    });
+    // Teardown: execute all registered cleanup tasks in reverse order
+    for (const task of tasks.reverse()) {
+      await task().catch((err) =>
+        console.warn(`[cleanup] Task failed: ${err.message}`),
+      );
+    }
   },
 });
 
