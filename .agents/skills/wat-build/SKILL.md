@@ -174,15 +174,17 @@ expect(await page.url()).toBe("http://localhost:5173/dashboard");
 
 - One `test()` block per scenario's primary user journey
 - Each logical phase wrapped in `test.step()` for named reporting
-- Includes error paths that are part of the realistic journey
+- Always uses **fully valid data** at every step — never inject invalid or variant inputs into the E2E flow
+- Includes error paths that are part of the realistic journey (e.g., wrong coupon → retry with valid coupon)
 - Named with the scenario ID and goal: `TC-ORDER-01: complete checkout with coupon`
 
-**Validation test** (separate `test()` block):
+**Validation test** (data-driven or separate `test()` blocks):
 
-- One `test()` block per isolated input validation check
-- No `test.step()` needed — single action + single assertion
-- Placed in a separate `-validation.spec.ts` file
-- Named with specific behavior: `TC-AUTH-03: rejects password shorter than 8 characters`
+- Placed in a dedicated `-validation.spec.ts` file per feature domain
+- Implements variants from Phase 2 data matrix in `spec.md`
+- Implementation pattern is determined by the annotation on each variant group in `spec.md`:
+  - **`[data-driven]`** → use `test.each()` — all variants share the same flow, only input/expected differ
+  - **`[separate-test]`** → use individual `test()` blocks — variants need different setup or cause state changes
 
 **E2E flow structure template:**
 
@@ -193,7 +195,7 @@ test("TC-{MODULE}-01: {scenario goal}", async ({ userPage, seededProduct }) => {
 
   await test.step("Navigate and authenticate", async () => {
     await loginPage.navigate("/login");
-    await loginPage.login(email, password);
+    await loginPage.login(process.env.USER_EMAIL!, process.env.USER_PASS!);
     await expect(userPage).not.toHaveURL("/login");
   });
 
@@ -209,39 +211,172 @@ test("TC-{MODULE}-01: {scenario goal}", async ({ userPage, seededProduct }) => {
 });
 ```
 
-### Test Isolation Rules
-
-Consult `core/fixtures-and-hooks.md` and `core/test-data-management.md` for patterns.
-
-- Every test must be independently executable — no dependency on execution order
-- Dynamic test data (created during test) must be cleaned up in fixture teardown
-- Static preconditions (existing products, default accounts) must be verified before use, not assumed
-- Each test that modifies shared state (cart, orders) must either reset it in teardown or use isolated accounts/contexts
-
-### Fixture Design Rules
+**Data-driven validation test template (`[data-driven]` annotation):**
 
 ```typescript
-// CORRECT — teardown always runs via use() pattern
+// One test.each block for all EP/BVA variants of the same input field
+// All variants: same form, same assertion point, only input + expected change
+const couponVariants = [
+  {
+    id: "V1",
+    input: "SAVE10",
+    desc: "valid coupon",
+    expected: "Discount applied",
+  },
+  {
+    id: "V2",
+    input: "EXPIRED1",
+    desc: "expired coupon",
+    expected: "Coupon has expired",
+  },
+  {
+    id: "V3",
+    input: "",
+    desc: "empty coupon code",
+    expected: "Coupon code is required",
+  },
+  {
+    id: "V4",
+    input: "XXXXX",
+    desc: "non-existent coupon",
+    expected: "Invalid coupon code",
+  },
+];
+
+test.each(couponVariants)(
+  "TC-COUPON-$id: coupon field — $desc",
+  async ({ page, seededCartWithProduct }, { input, expected }) => {
+    await checkoutPage.navigate("/checkout");
+    await checkoutPage.applyCoupon(input);
+    await expect(checkoutPage.couponMessage).toHaveText(expected);
+  },
+);
+```
+
+**Separate test blocks template (`[separate-test]` annotation):**
+
+```typescript
+// Each Decision Table or State Transition variant gets its own test()
+// because each requires a different fixture state
+test("TC-ORDER-V1: admin cancels Pending order", async ({
+  seededPendingOrder,
+}) => {
+  // ...
+});
+
+test("TC-ORDER-V2: admin cancels Shipped order — rejected", async ({
+  seededShippedOrder,
+}) => {
+  // ...
+});
+```
+
+**API data-driven test template (`[data-driven]` — Error Guessing auth variants):**
+
+```typescript
+// All auth-boundary variants target the same endpoint
+// Only the Authorization header changes
+const authVariants = [
+  { id: "V1", label: "no token", headers: {}, expectedStatus: 401 },
+  {
+    id: "V2",
+    label: "wrong role",
+    headers: { Authorization: `Bearer ${userToken}` },
+    expectedStatus: 403,
+  },
+];
+
+test.each(authVariants)(
+  "TC-SEC-$id: GET /api/admin/orders — $label",
+  async ({ request }, { headers, expectedStatus }) => {
+    const response = await request.get("/api/admin/orders", { headers });
+    expect(response.status()).toBe(expectedStatus);
+  },
+);
+```
+
+### Data & Teardown Management
+
+Consult `core/fixtures-and-hooks.md` and `core/test-data-management.md` for authoritative patterns.
+
+**Universal teardown rule:** ALL data created during a test run — whether created in a fixture or created by a test action — MUST be deleted before the test worker exits. No exceptions.
+
+#### Precondition Data (created before the test)
+
+Use the fixture `use()` pattern. Teardown code placed after `await use(...)` runs even when the test fails:
+
+```typescript
+// CORRECT — fixture creates data, fixture cleans it up
 seededProduct: async ({}, use) => {
-  const adminCtx = await getAuthenticatedContext(...);
-  const product = await createProductViaApi(adminCtx);
+  const adminCtx = await request.newContext({ ... });
+  const response = await adminCtx.post('/api/products', { data: productPayload });
+  const product = await response.json();
 
   await use({ id: product.id, name: product.name });
 
-  // Teardown — runs even if test fails
-  await adminCtx.delete(`/api/products/${product.id}`).catch(() => {
-    console.warn(`Teardown failed for product ${product.id}`);
-  });
+  // Teardown — always runs, even if the test threw
+  await adminCtx.delete(`/api/products/${product.id}`).catch((err) =>
+    console.warn(`[teardown] Failed to delete product ${product.id}: ${err.message}`)
+  );
   await adminCtx.dispose();
 },
 
-// WRONG — no teardown, test data leaks
+// WRONG — no teardown: data leaks into subsequent test runs
 seededProduct: async ({}, use) => {
   const product = await createProductViaApi(...);
   await use({ id: product.id });
-  // No cleanup — product remains in DB after test
+  // Missing teardown — product persists in the DB
 },
 ```
+
+#### In-Test Created Data (created by a test action)
+
+Some tests create data as part of their own assertion — for example, a registration test creates a new user, or a checkout test places an order. This data must also be cleaned up. Use a **cleanup registry fixture**:
+
+```typescript
+// e2e/fixtures/index.ts — cleanup registry fixture
+cleanup: async ({}, use) => {
+  const tasks: Array<() => Promise<void>> = [];
+  await use({
+    // Test calls this to register a cleanup task
+    add: (fn: () => Promise<void>) => tasks.push(fn),
+  });
+  // Teardown: execute all registered cleanup tasks in reverse order
+  for (const task of tasks.reverse()) {
+    await task().catch((err) =>
+      console.warn(`[cleanup] Task failed: ${err.message}`)
+    );
+  }
+},
+```
+
+In the test, register cleanup immediately after the action that creates the data:
+
+```typescript
+test('TC-REG-01: register new user', async ({ page, cleanup, request }) => {
+  const email = faker.internet.email();
+
+  await registerPage.navigate('/register');
+  await registerPage.register(email, 'ValidPass1!');
+
+  // Register cleanup immediately — runs even if subsequent assertions fail
+  cleanup.add(async () => {
+    const adminCtx = await request.newContext({ ... });
+    await adminCtx.delete(`/api/users/${encodeURIComponent(email)}`).catch(() => {});
+    await adminCtx.dispose();
+  });
+
+  await expect(page).toHaveURL('/dashboard');
+});
+```
+
+**Decision rule — which teardown pattern to use:**
+
+| Data origin                                            | Pattern                  | Reason                                                                                    |
+| ------------------------------------------------------ | ------------------------ | ----------------------------------------------------------------------------------------- |
+| Created in a fixture before the test                   | Fixture `use()` teardown | Fixture lifecycle guarantees teardown runs                                                |
+| Created by a test action (e.g., register, place order) | Cleanup registry fixture | Teardown is registered at the point of creation, not at test end                          |
+| Static accounts (`test@eshop.com`, `admin@eshop.com`)  | No teardown needed       | These accounts are not created by tests; their state (cart, orders) is reset via fixtures |
 
 ## Workflow
 
@@ -364,18 +499,21 @@ Run before presenting each human gate.
 
 - [ ] One `test()` block for the primary E2E journey.
 - [ ] Journey phases wrapped in `test.step()` with descriptive names.
-- [ ] Error paths that are part of the realistic journey are inside the main `test()` block.
+- [ ] All steps use **fully valid data** — no invalid or variant inputs injected into the E2E flow.
+- [ ] Error paths that are part of the realistic user journey (included in Phase 1) are inside the main `test()` block, not in separate files.
 - [ ] Test ID follows `TC-{MODULE}-{NUMBER}` format.
 - [ ] All assertions use web-first form.
 - [ ] No `waitForTimeout()` or `sleep()` anywhere.
-- [ ] Every spec variant from the Phase 2 data matrix has a corresponding `test()` block or is represented as a step variant within the flow.
+- [ ] No `test.each()` used in E2E flow tests.
 - [ ] All contents in English, including comments.
 
 ### Test Spec Checklist (Validation Tests)
 
-- [ ] Each isolated validation check is its own `test()` block.
-- [ ] Each test name clearly describes the expected behavior (not the input).
-- [ ] Each test has exactly one action and one assertion (single responsibility).
+- [ ] Every variant group annotated `[data-driven]` in `spec.md` is implemented as a single `test.each()` block.
+- [ ] Every variant group annotated `[separate-test]` in `spec.md` is implemented as individual `test()` blocks.
+- [ ] `test.each()` is used only when all variants share identical flow and differ only in input + expected outcome.
+- [ ] No `test.each()` is used when variants require different fixture state or cause irreversible state changes.
+- [ ] Variant array entries include an `id` field so test names are unique and traceable to the spec.
 - [ ] Tests are in a dedicated `-validation.spec.ts` file.
 - [ ] All contents in English, including comments.
 
@@ -385,8 +523,16 @@ Run before presenting each human gate.
 - [ ] Auth header set correctly (`Authorization: Bearer {token}`).
 - [ ] Asserts HTTP status code explicitly (`expect(response.status()).toBe(200)`).
 - [ ] Asserts response body shape where relevant.
-- [ ] Security variants (401, 403) are present for protected endpoints.
+- [ ] Security variants (401, 403) annotated `[data-driven]` in spec are implemented as `test.each()` blocks.
 - [ ] All contents in English, including comments.
+
+### Teardown Checklist (applies to all spec types)
+
+- [ ] Every fixture that creates a resource has teardown code after `await use(...)`.
+- [ ] Teardown code uses `.catch()` to suppress errors — teardown failure must not mask test failure.
+- [ ] Every resource created by a test action (registration, order placement, etc.) has a corresponding `cleanup.add()` call immediately after the action.
+- [ ] Static test accounts (`test@eshop.com`, `admin@eshop.com`) are not deleted — only data they created is cleaned up.
+- [ ] No test data remains in the database after the test suite completes.
 
 ## Completion Criteria
 
@@ -409,6 +555,10 @@ Run before presenting each human gate.
 - Stop after each piece and wait for human `PASSED`/`FAILED` response.
 - Derive all expected values and UI text from `docs/sut/srs.md`.
 - Apply the Failure Diagnosis Protocol before fixing any reported error.
+- Read the `[data-driven]` / `[separate-test]` annotation in `spec.md` Phase 2 before implementing each variant group.
+- Use `test.each()` for `[data-driven]` variant groups; use individual `test()` blocks for `[separate-test]` groups.
+- Implement the cleanup registry fixture (`cleanup`) if any test in the scenario creates data as part of its own action.
+- Add teardown code after every `await use(...)` call in every fixture — no exceptions.
 
 **MUST NOT do:**
 
@@ -424,3 +574,7 @@ Run before presenting each human gate.
 - Write direct database queries.
 - Reference `playwright-automation-plan.md` — that file is for human reference only.
 - Proceed to the next piece without explicit `PASSED` response.
+- Use `test.each()` in E2E flow tests — the main journey is always a single `test()` block.
+- Build a cross-feature data matrix — variants from different features must be tested separately, not combined into one parameterised flow.
+- Leave any fixture without teardown code, even if teardown is only a `.catch(() => {})` guard.
+- Create data inside a test body without registering a `cleanup.add()` call immediately after.

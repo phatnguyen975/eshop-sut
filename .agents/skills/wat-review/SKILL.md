@@ -79,12 +79,14 @@ Verify against `docs/scenarios/{scenario-id}/spec.md` Phase 1 (flow) and Phase 2
 
 **Technique coverage:** Invoke `functional-test-design` silently. For each technique applied in Phase 2:
 
-| Technique                 | What to verify                                                                                                                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Domain Testing (EP + BVA) | Every equivalence class has a corresponding `test()` block. Boundary values (on-point and off-point) have their own blocks. No class is tested with multiple redundant values. |
-| Decision Table            | Each condition-flip combination from the matrix has a corresponding `test()` block. The all-true (happy path) combination is present.                                          |
-| State Transition          | Each valid transition, invalid transition, and terminal-state attempt has a corresponding test.                                                                                |
-| Error Guessing            | Integration boundary tests (client-supplied values, auth bypass, role escalation) are present as API-layer tests.                                                              |
+| Technique                 | What to verify                                                                                                                                                                                                  |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain Testing (EP + BVA) | Every equivalence class has a corresponding `test()` block or row in a `test.each()` array. Boundary values (on-point and off-point) have their own entries. No class is tested with multiple redundant values. |
+| Decision Table            | Each condition-flip combination from the matrix has a corresponding `test()` block. The all-true (happy path) combination is present.                                                                           |
+| State Transition          | Each valid transition, invalid transition, and terminal-state attempt has a corresponding test.                                                                                                                 |
+| Error Guessing            | Integration boundary tests (client-supplied values, auth bypass, role escalation) are present as API-layer tests.                                                                                               |
+
+**Data-driven pattern verification:** For each variant group annotated `[data-driven]` in `spec.md` Phase 2, verify it is implemented as a single `test.each()` block (not duplicated as separate `test()` blocks). For each variant group annotated `[separate-test]`, verify each variant has its own `test()` block (not collapsed into a `test.each()`). Flag a Coverage Gap finding if the annotation was not followed.
 
 Report findings as Coverage Gap if any variant from the Phase 2 matrix is missing from the implementation. Do not print the technique analysis — report only what is missing and which variant ID it corresponds to.
 
@@ -92,13 +94,15 @@ Report findings as Coverage Gap if any variant from the Phase 2 matrix is missin
 
 Each test must be independently executable in any order and in any parallel worker.
 
-| Check                         | What to look for                                                                                            |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| No shared mutable state       | Any `let` variable at `describe` block or module level that is mutated by tests                             |
-| Fixture teardown present      | Every fixture that creates a resource has cleanup code after `await use(...)`                               |
-| Teardown uses `.catch()`      | Teardown code that throws on failure (would mask test result)                                               |
-| No execution-order dependency | Any test that assumes a previous test has run (e.g., relies on data created by TC-01 without its own setup) |
-| Dynamic data is unique        | Any test that creates data with a fixed name/email that would conflict in parallel execution                |
+| Check                           | What to look for                                                                                                                                                        |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No shared mutable state         | Any `let` variable at `describe` block or module level that is mutated by tests                                                                                         |
+| Fixture teardown present        | Every fixture that creates a resource has cleanup code after `await use(...)`                                                                                           |
+| Teardown uses `.catch()`        | Teardown code that throws on failure (would mask test result)                                                                                                           |
+| No execution-order dependency   | Any test that assumes a previous test has run (e.g., relies on data created by TC-01 without its own setup)                                                             |
+| Dynamic data is unique          | Any test that creates data with a fixed name/email that would conflict in parallel execution                                                                            |
+| In-test created data cleaned up | Any test action that creates a resource (user registration, order placement, etc.) must be followed immediately by a `cleanup.add()` call registering the deletion task |
+| Cleanup registry fixture used   | Any scenario where tests create data as a side effect must include the `cleanup` fixture — not rely on `afterEach` hooks or manual `try/finally` blocks                 |
 
 ### Axis 4 — Security Coverage
 

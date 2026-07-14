@@ -207,6 +207,35 @@ Apply after all systematic techniques. Focus on:
 - Client-side bypass attempts: values that pass UI validation but should be caught server-side (negative prices, manipulated IDs, script injection in text fields)
 - Known common defect patterns for this type of feature (off-by-one in counters, race conditions in concurrent requests, case sensitivity in email matching)
 
+#### Test Case Payload Completeness
+
+When defining variants (especially for Domain Testing and Error Guessing), the input cannot just be the isolated value being tested. Every variant in the matrix **must specify the complete, executable test payload** required to trigger the action. 
+
+For example, if testing the validation of an "Email" field in a registration form, the variant must specify not only the invalid email value but also the valid baseline values for the "Password" and "Confirm Password" fields required to submit the form. This complete payload is necessary for `wat-build` to correctly construct the `test.each()` data array.
+
+#### Data-Driven Implementation Annotation
+
+After building the variant table for each step, annotate each variant group with exactly one of the following labels. This annotation is the contract for `wat-build` — it determines which Playwright implementation pattern must be used.
+
+| Annotation            | Definition                                                                                                                                       | `wat-build` pattern                                      |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| **`[data-driven]`**   | All variants share the **same test flow** and differ only in input value and expected output. Preconditions are identical across all variants.   | Single `test.each()` block in the validation or API spec |
+| **`[separate-test]`** | Variants require **different setup**, different preconditions, different navigation paths, or cause irreversible state changes between variants. | One `test()` block per variant                           |
+
+**Selection rules:**
+
+| Condition                                                                                                         | Annotation        |
+| ----------------------------------------------------------------------------------------------------------------- | ----------------- |
+| EP/BVA variants on a single input field — same form, same action, only the input value changes                    | `[data-driven]`   |
+| Error Guessing auth variants — same endpoint, only the Authorization header changes                               | `[data-driven]`   |
+| Decision Table combinations where each combination requires a distinct fixture state                              | `[separate-test]` |
+| State Transition variants — each variant starts from a different system state                                     | `[separate-test]` |
+| Variants where one variant's action permanently modifies shared state (e.g., consumes a coupon, locks an account) | `[separate-test]` |
+
+**Cross-feature E2E flow data rule:**
+
+Do **not** build a cross-feature data matrix that combines variants from multiple features into a single parameterised E2E flow. Each feature boundary's variants belong in their own validation or API spec. The E2E flow test always uses fully valid data at every step — its purpose is to verify the complete business journey succeeds end to end, not to vary inputs across features.
+
 ## Workflow
 
 ### Step 1 — Verify Prerequisites
@@ -354,16 +383,20 @@ List all conditions that must be true before the scenario begins:
 
 > **Phase 2 Status:** DRAFT | APPROVED (Gate B)
 
-### Step {N} — {Step Title} [{technique(s)}]
+### Step {N} — {Step Title} [Domain Testing — EP + BVA] `[data-driven]`
 
-| Variant ID | Technique               | Input / Trigger | Expected Outcome   |
-| ---------- | ----------------------- | --------------- | ------------------ |
-| S{N}.V1    | EP (valid)              | {value}         | {outcome from SRS} |
+> **Implementation annotation:** `[data-driven]` — all variants share the same form submission flow; implement as one `test.each()` block in the validation spec.
+
+| Variant ID | Technique               | Test Payload (All required fields) | Expected Outcome   |
+| ---------- | ----------------------- | ---------------------------------- | ------------------ |
+| S{N}.V1    | EP (valid)              | {full valid payload}               | {outcome from SRS} |
 | S{N}.V2    | EP (invalid — {reason}) | {value}         | {error from SRS}   |
 | S{N}.V3    | BVA (on-point)          | {value}         | {outcome}          |
 | S{N}.V4    | BVA (off-point)         | {value}         | {error}            |
 
-### Step {M} — {Step Title} [Decision Table — {N} conditions]
+### Step {M} — {Step Title} [Decision Table — {N} conditions] `[separate-test]`
+
+> **Implementation annotation:** `[separate-test]` — each combination requires its own precondition state; implement as individual `test()` blocks in the validation spec.
 
 | Variant ID | C1: {condition} | C2: {condition} | Expected Outcome |
 | ---------- | --------------- | --------------- | ---------------- |
@@ -371,7 +404,9 @@ List all conditions that must be true before the scenario begins:
 | S{M}.V2    | FALSE           | TRUE            | {failure — C1}   |
 | S{M}.V3    | TRUE            | FALSE           | {failure — C2}   |
 
-### Step {P} — {Step Title} [State Transition]
+### Step {P} — {Step Title} [State Transition] `[separate-test]`
+
+> **Implementation annotation:** `[separate-test]` — each variant starts from a different system state; implement as individual `test()` blocks.
 
 | Variant ID | Current State | Trigger       | Expected Next State | Valid?  |
 | ---------- | ------------- | ------------- | ------------------- | ------- |
@@ -379,9 +414,11 @@ List all conditions that must be true before the scenario begins:
 | S{P}.V2    | {state}       | {trigger}     | Rejected            | Invalid |
 | S{P}.V3    | {terminal}    | {any trigger} | Rejected — terminal | Invalid |
 
-### Step {Q} — {Step Title} [Error Guessing]
+### Step {Q} — {Step Title} [Error Guessing] `[data-driven]`
 
-| Variant ID | Attack Vector            | Input / Trigger                      | Expected Defense          |
+> **Implementation annotation:** `[data-driven]` — all auth-boundary variants target the same endpoint with different Authorization headers; implement as one `test.each()` block in the API spec.
+
+| Variant ID | Attack Vector            | Test Payload (All required fields)   | Expected Defense          |
 | ---------- | ------------------------ | ------------------------------------ | ------------------------- |
 | S{Q}.V1    | No auth token            | Request without Authorization header | 401 per SRS               |
 | S{Q}.V2    | Wrong role               | User token on privileged endpoint    | 403 per SRS               |
@@ -416,7 +453,11 @@ List all conditions that must be true before the scenario begins:
 - [ ] Decision Table: N+1 combinations for N conditions.
 - [ ] State Transition: valid, invalid, and terminal-state triggers all present.
 - [ ] Every variant's expected outcome is derived from the SRS.
+- [ ] Every variant includes a complete, executable test payload (all fields required to trigger the action), not just isolated target values.
 - [ ] Steps with no applicable technique have an explicit "No technique applicable" note.
+- [ ] Every variant group has exactly one implementation annotation: `[data-driven]` or `[separate-test]`.
+- [ ] No cross-feature variant matrix exists — each feature boundary's variants are annotated independently.
+- [ ] The E2E flow (Phase 1) uses only valid data at every step — no variant inputs injected into the main flow.
 
 ## Completion Criteria
 
