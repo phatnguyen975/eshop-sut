@@ -23,7 +23,7 @@
 
 **Conditions identified:**
 
-- **Age (BR-101):** Under 18 vs 18+ → **binary**
+- **Age (BR-101):** Under 18 vs 18 or older → binary
 - **Employment status (BR-102):** Full-time / Part-time / Unemployed → 3 values → **extended entry**
 - **Credit score class (BR-103):** Good (≥700) / Fair (500–699) / Poor (<500) → 3 values → **extended entry** (EP pre-applied)
 
@@ -112,119 +112,177 @@ Systematic fill: C1 alternates every 9, C2 alternates every 3, C3 alternates eve
 
 ### 3b: Merge via Don't Care
 
-**Check R1–R9 (all have C1=Under18):**
+The systematic approach checks **all pairs** across all three condition dimensions (C1, C2, and C3) — not only pairs that differ in C3. For each pair, verify: (a) action sets are identical, (b) exactly one condition differs.
 
-- **Check R1 vs R2:** Actions R1: {A3} — Actions R2: {A3} — same. Differ: C3 (Good vs Fair). **Valid merge candidate.** But wait — check R3 (C1=U18, C2=FT, C3=Poor): Actions = {A3, A5}. **Different** from R1 {A3}. → R1 and R2 can merge (both only A3), but R3 cannot merge with R1 or R2.
-- **Check R4 vs R5:** Actions {A3, A4} vs {A3, A4} — same. Differ: C3 only. **Valid merge → R4+R5.**
-- **Check R7 vs R8:** Actions {A3, A4} vs {A3, A4} — same. Differ: C3 only. **Valid merge → R7+R8.**
+#### Round 1 — Direct merges from the full table
 
-**Let's systematically check all:**
+**Pairs differing only in C3:**
 
-| Rules              | Actions            | Same? | Differ in 1 condition? | Merge?      |
-| ------------------ | ------------------ | ----- | ---------------------- | ----------- |
-| R1 vs R2           | {A3} vs {A3}       | ✓     | C3 only                | ✓ → R1+R2   |
-| R4 vs R5           | {A3,A4} vs {A3,A4} | ✓     | C3 only                | ✓ → R4+R5   |
-| R7 vs R8           | {A3,A4} vs {A3,A4} | ✓     | C3 only                | ✓ → R7+R8   |
-| R13 vs R14         | {A2} vs {A2}       | ✓     | C3 only (Good vs Fair) | ✓ → R13+R14 |
-| R16 vs R17         | {A4} vs {A4}       | ✓     | C3 only                | ✓ → R16+R17 |
-| R1+R2 vs R4+R5     | {A3} vs {A3,A4}    | ✗     | —                      | No          |
-| R13+R14 vs R16+R17 | {A2} vs {A4}       | ✗     | —                      | No          |
+| Rules      | C1  | C2       | C3       | Actions            | Same actions? | Merge?                 |
+| ---------- | --- | -------- | -------- | ------------------ | ------------- | ---------------------- |
+| R1 vs R2   | U18 | FT       | Gd vs Fr | {A3} vs {A3}       | ✓             | ✓ → **R1+R2** (C3=—)   |
+| R4 vs R5   | U18 | PT       | Gd vs Fr | {A3} vs {A3}       | ✓             | ✓ → **R4+R5** (C3=—)   |
+| R7 vs R8   | U18 | UE       | Gd vs Fr | {A3,A4} vs {A3,A4} | ✓             | ✓ → **R7+R8** (C3=—)   |
+| R13 vs R14 | 18+ | PT       | Gd vs Fr | {A2} vs {A2}       | ✓             | ✓ → **R13+R14** (C3=—) |
+| R16 vs R17 | 18+ | UE       | Gd vs Fr | {A4} vs {A4}       | ✓             | ✓ → **R16+R17** (C3=—) |
+| R3 vs R6   | U18 | FT vs PT | Po       | {A3,A5} vs {A3,A5} | ✓             | ✓ → **R3+R6** (C2=—)   |
 
-**Check cascading merges on merged rules:**
+**Pairs differing only in C2:**
 
-- R1+R2 (C1=U18, C2=FT, C3=—, Actions={A3}): Compare with R4+R5 (C1=U18, C2=PT, C3=—, Actions={A3,A4}). Different actions → no merge.
+| Rules      | C1  | C2       | C3  | Actions            | Same actions? | Merge?                              |
+| ---------- | --- | -------- | --- | ------------------ | ------------- | ----------------------------------- |
+| R1 vs R4   | U18 | FT vs PT | Gd  | {A3} vs {A3}       | ✓             | ✓ (captured via cascading below)    |
+| R2 vs R5   | U18 | FT vs PT | Fr  | {A3} vs {A3}       | ✓             | ✓ (captured via cascading below)    |
+| R3 vs R6   | U18 | FT vs PT | Po  | {A3,A5} vs {A3,A5} | ✓             | ✓ → **R3+R6** (already found above) |
+| R11 vs R14 | 18+ | FT vs PT | Fr  | {A2} vs {A2}       | ✓             | ✓ → **R11+R14** (C2=—)              |
+| R12 vs R15 | 18+ | FT vs PT | Po  | {A5} vs {A5}       | ✓             | ✓ → **R12+R15** (C2=—)              |
 
-No further merges possible.
+**Pairs differing only in C1:** None share the same action set — U18 always adds A3 which 18+ rules do not have.
+
+**Round 1 result — 7 valid merges found:** R1+R2, R4+R5, R7+R8, R13+R14, R16+R17, R3+R6, R11+R14, R12+R15
+
+#### Round 2 — Cascading merges on the merged rules
+
+After Round 1, check whether any newly merged rules can be merged further.
+
+**R1+R2 = (U18, FT, —, {A3}) vs R4+R5 = (U18, PT, —, {A3}):**
+
+- Actions: {A3} vs {A3} ✓
+- Differ in C2 only (FT vs PT) ✓
+- → **VALID cascading merge → R1+R2+R4+R5 = (U18, —, —, {A3})**
+- Rationale: Under-18 applicants with FT or PT employment and non-poor credit are ALL rejected for age only, regardless of employment type or credit class. C2 and C3 are both Don't Care.
+
+**R3+R6 = (U18, —, Po, {A3,A5}) vs R7+R8 = (U18, UE, —, {A3,A4}):**
+
+- Actions: {A3,A5} vs {A3,A4} ✗ Different → No merge.
+
+**R11+R14 = (18+, —, Fr, {A2}) vs R13+R14 = (18+, PT, —, {A2}):**
+
+- These two merged rules both have {A2} but differ in two dimensions (C2 and C3) simultaneously — they do not form a simple rectangular block. Cannot merge further.
+- Note: R14 is covered by both R11+R14 and R13+R14. This is valid — R14 is redundantly covered, which is acceptable. Both merged rules are kept for completeness.
+
+**R12+R15 = (18+, —, Po, {A5}) vs R18 = (18+, UE, Po, {A4,A5}):**
+
+- Actions: {A5} vs {A4,A5} ✗ Different → No merge.
+
+**No further cascading merges possible after Round 2.**
+
+#### Round 3 — Final check: no further merges possible
+
+All remaining rules checked — no additional valid pairs exist. Reduction is complete.
 
 ### 3c: Reduced Decision Table
 
-|                          | R1+R2  | R3  | R4+R5  | R6  | R7+R8  | R9  | R10 | R11 | R12 | R13+R14  | R15 | R16+R17  | R18 |
-| ------------------------ | :----: | :-: | :----: | :-: | :----: | :-: | :-: | :-: | :-: | :------: | :-: | :------: | :-: |
-| **C1 (Age)**             |  U18   | U18 |  U18   | U18 |  U18   | U18 | 18+ | 18+ | 18+ |   18+    | 18+ |   18+    | 18+ |
-| **C2 (Employment)**      |   FT   | FT  |   PT   | PT  |   UE   | UE  | FT  | FT  | FT  |    PT    | PT  |    UE    | UE  |
-| **C3 (Credit)**          |   —    | Po  |   —    | Po  |   —    | Po  | Gd  | Fr  | Po  |    —     | Po  |    —     | Po  |
-| A1 (Approve T2)          |        |     |        |     |        |     |  X  |     |     |          |     |          |     |
-| A2 (Approve T1)          |        |     |        |     |        |     |     |  X  |     |    X     |     |          |     |
-| A3 (Reject: underage)    |   X    |  X  |   X    |  X  |   X    |  X  |     |     |     |          |     |          |     |
-| A4 (Reject: unemployed)  |        |     |   X    |  X  |   X    |  X  |     |     |     |          |     |    X     |  X  |
-| A5 (Reject: poor credit) |        |  X  |        |  X  |        |  X  |     |     |  X  |          |  X  |          |  X  |
-| **Covers**               | R1, R2 | R3  | R4, R5 | R6  | R7, R8 | R9  | R10 | R11 | R12 | R13, R14 | R15 | R16 ,R17 | R18 |
+**10 rules** after full reduction (18 → 10):
+
+|                          | **R1+R2+R4+R5** | **R3+R6** | **R7+R8** | **R9** | **R10** | **R11+R14** | **R12+R15** | **R13+R14** | **R16+R17** | **R18** |
+| ------------------------ | :-------------: | :-------: | :-------: | :----: | :-----: | :---------: | :---------: | :---------: | :---------: | :-----: |
+| **C1 (Age)**             |       U18       |    U18    |    U18    |  U18   |   18+   |     18+     |     18+     |     18+     |     18+     |   18+   |
+| **C2 (Employment)**      |        —        |     —     |    UE     |   UE   |   FT    |      —      |      —      |     PT      |     UE      |   UE    |
+| **C3 (Credit)**          |        —        |    Po     |     —     |   Po   |   Gd    |     Fr      |     Po      |      —      |      —      |   Po    |
+| A1 (Approve T2)          |                 |           |           |        |    X    |             |             |             |             |         |
+| A2 (Approve T1)          |                 |           |           |        |         |      X      |             |      X      |             |         |
+| A3 (Reject: underage)    |        X        |     X     |     X     |   X    |         |             |             |             |             |         |
+| A4 (Reject: unemployed)  |                 |           |     X     |   X    |         |             |             |             |      X      |    X    |
+| A5 (Reject: poor credit) |                 |     X     |           |   X    |         |             |      X      |             |             |    X    |
+| **Covers**               |   R1,R2,R4,R5   |   R3,R6   |   R7,R8   |   R9   |   R10   |   R11,R14   |   R12,R15   |  R13,R14\*  |   R16,R17   |   R18   |
+
+- R14 is covered by both R11+R14 and R13+R14 — redundant coverage is acceptable.
+
+**Don't Care rationale:**
+
+| Merged Rule | Don't Care Condition(s) | Rationale                                                                                                                                                                                        |
+| ----------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R1+R2+R4+R5 | C2=—, C3=—              | Under-18 with FT/PT and non-poor credit → rejected for age only. Employment type (FT/PT) and credit class (Good/Fair) have no effect on the outcome.                                             |
+| R3+R6       | C2=— (FT/PT only)       | Under-18 with poor credit → rejected for age AND poor credit. Employment type (FT vs PT) does not change this outcome. Note: UE is excluded because R7+R8+R9 handle unemployed cases separately. |
+| R7+R8       | C3=— (Good/Fair only)   | Under-18, unemployed, non-poor credit → rejected for age AND unemployment. Credit class (Good vs Fair) does not change this outcome.                                                             |
+| R11+R14     | C2=— (FT/PT only)       | Adult with fair credit → Tier 1 approved regardless of FT or PT employment (both lead to Tier 1 given Fair credit). Note: UE excluded (different action set).                                    |
+| R12+R15     | C2=— (FT/PT only)       | Adult with poor credit → rejected for poor credit, regardless of FT or PT employment. Note: UE excluded (adds A4 to action set).                                                                 |
+| R13+R14     | C3=— (Good/Fair only)   | Adult, part-time → Tier 1 approved regardless of Good or Fair credit (PT caps at Tier 1 either way).                                                                                             |
+| R16+R17     | C3=— (Good/Fair only)   | Adult, unemployed, non-poor credit → rejected for unemployment only. Credit class (Good vs Fair) does not change this outcome.                                                                   |
 
 **Reduction summary:**
 
-- **Impossible rules removed:** 0
-- **Merges applied:** 5 (R1+R2, R4+R5, R7+R8, R13+R14, R16+R17)
-- **Full table:** 18 rules → **Reduced table:** 13 rules
+- Impossible rules removed: 0
+- Round 1 merges: R1+R2, R4+R5, R7+R8, R13+R14, R16+R17, R3+R6, R11+R14, R12+R15 (8 merges)
+- Round 2 cascading merges: R1+R2+R4+R5 (1 cascading merge)
+- **Full table:** 18 rules → **Reduced:** 10 rules
 
 ## Step 4 — Derive Test Cases
 
-| TC ID | Description                                                            | Rule    | C1  | C2  | C3     | Expected Result                                                                                           | BR                     |
-| ----- | ---------------------------------------------------------------------- | ------- | --- | --- | ------ | --------------------------------------------------------------------------------------------------------- | ---------------------- |
-| TC-01 | Under 18, full-time, non-poor credit — rejected underage only          | R1+R2   | U18 | FT  | Good\* | REJECTED: "Applicant must be 18 or older"                                                                 | BR-101                 |
-| TC-02 | Under 18, full-time, poor credit — rejected underage + poor credit     | R3      | U18 | FT  | Poor   | REJECTED: underage + poor credit score                                                                    | BR-101, BR-103         |
-| TC-03 | Under 18, part-time, non-poor credit — rejected underage + unemployed? | R4+R5   | U18 | PT  | Fair\* | REJECTED: underage + unemployed (no — part-time is not unemployed; A4=unemployed; PT does NOT trigger A4) | BR-101                 |
-| TC-04 | Under 18, part-time, poor credit — rejected underage + poor credit     | R6      | U18 | PT  | Poor   | REJECTED: underage + poor credit                                                                          | BR-101, BR-103         |
-| TC-05 | Under 18, unemployed, non-poor credit — rejected underage + unemployed | R7+R8   | U18 | UE  | Good\* | REJECTED: underage + unemployed                                                                           | BR-101, BR-102         |
-| TC-06 | Under 18, unemployed, poor credit — all three rejection reasons        | R9      | U18 | UE  | Poor   | REJECTED: underage + unemployed + poor credit                                                             | BR-101, BR-102, BR-103 |
-| TC-07 | Adult, full-time, good credit — highest approval (Tier 2)              | R10     | 18+ | FT  | Good   | APPROVED: Tier 2                                                                                          | BR-104                 |
-| TC-08 | Adult, full-time, fair credit — approved Tier 1                        | R11     | 18+ | FT  | Fair   | APPROVED: Tier 1                                                                                          | BR-102, BR-103, BR-104 |
-| TC-09 | Adult, full-time, poor credit — rejected for credit                    | R12     | 18+ | FT  | Poor   | REJECTED: poor credit score                                                                               | BR-103                 |
-| TC-10 | Adult, part-time, good/fair credit — Tier 1 (employment constraint)    | R13+R14 | 18+ | PT  | Good\* | APPROVED: Tier 1 (part-time caps at Tier 1 despite good credit)                                           | BR-102, BR-104         |
-| TC-11 | Adult, part-time, poor credit — rejected for credit                    | R15     | 18+ | PT  | Poor   | REJECTED: poor credit score                                                                               | BR-103                 |
-| TC-12 | Adult, unemployed, non-poor credit — rejected for unemployment         | R16+R17 | 18+ | UE  | Fair\* | REJECTED: unemployed                                                                                      | BR-102                 |
-| TC-13 | Adult, unemployed, poor credit — rejected for unemployment + credit    | R18     | 18+ | UE  | Poor   | REJECTED: unemployed + poor credit score                                                                  | BR-102, BR-103         |
+One test case per reduced rule. Rules with Don't Care conditions require a concrete value choice — documented below.
+
+| TC ID | Description                                                          | Rule        | C1  | C2   | C3   | Expected Result                                                 | BR                     |
+| ----- | -------------------------------------------------------------------- | ----------- | --- | ---- | ---- | --------------------------------------------------------------- | ---------------------- |
+| TC-01 | Under-18, non-unemployed, non-poor credit — rejected for age only    | R1+R2+R4+R5 | U18 | FT\* | Gd\* | REJECTED: "Applicant must be 18 or older"                       | BR-101                 |
+| TC-02 | Under-18, non-unemployed, poor credit — rejected age + poor credit   | R3+R6       | U18 | PT\* | Po   | REJECTED: underage + poor credit score                          | BR-101, BR-103         |
+| TC-03 | Under-18, unemployed, non-poor credit — rejected age + unemployed    | R7+R8       | U18 | UE   | Fr\* | REJECTED: underage + unemployed                                 | BR-101, BR-102         |
+| TC-04 | Under-18, unemployed, poor credit — all three rejections             | R9          | U18 | UE   | Po   | REJECTED: underage + unemployed + poor credit                   | BR-101, BR-102, BR-103 |
+| TC-05 | Adult, full-time, good credit — Tier 2 approved                      | R10         | 18+ | FT   | Gd   | APPROVED: Tier 2                                                | BR-104                 |
+| TC-06 | Adult, non-unemployed, fair credit — Tier 1 approved                 | R11+R14     | 18+ | FT\* | Fr   | APPROVED: Tier 1                                                | BR-102, BR-103, BR-104 |
+| TC-07 | Adult, non-unemployed, poor credit — rejected for poor credit        | R12+R15     | 18+ | PT\* | Po   | REJECTED: poor credit score                                     | BR-103                 |
+| TC-08 | Adult, part-time, good/fair credit — Tier 1 (employment cap)         | R13+R14     | 18+ | PT   | Gd\* | APPROVED: Tier 1 (part-time caps at Tier 1 despite good credit) | BR-102, BR-104         |
+| TC-09 | Adult, unemployed, non-poor credit — rejected for unemployment       | R16+R17     | 18+ | UE   | Gd\* | REJECTED: unemployed                                            | BR-102                 |
+| TC-10 | Adult, unemployed, poor credit — rejected unemployment + poor credit | R18         | 18+ | UE   | Po   | REJECTED: unemployed + poor credit score                        | BR-102, BR-103         |
+
+- Don't Care value choices documented below.
 
 **Don't Care value notes:**
 
-| TC ID | Don't Care Condition | Chosen Value | Rationale                                                                                                                                                        |
-| ----- | -------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TC-01 | C3 (Credit)          | Good         | Good credit is the "normal pass" value — if the system incorrectly applies credit rejection for a Good-credit under-18, this will expose it                      |
-| TC-03 | C3 (Credit)          | Fair         | Fair chosen (not Good) to differentiate from TC-01 and confirm different credit values produce same result                                                       |
-| TC-05 | C3 (Credit)          | Good         | Same rationale as TC-01 — Good is revealing for credit check                                                                                                     |
-| TC-10 | C3 (Credit)          | Good         | Critical case: good credit should be constrained by part-time employment to Tier 1. Good credit chosen to verify the employment constraint overrides credit tier |
-| TC-12 | C3 (Credit)          | Fair         | Fair chosen to differ from TC-05 and confirm non-poor credit doesn't change unemployment rejection                                                               |
-
-**Correction on TC-03 action evaluation (noted during test case derivation):**
-
-R4+R5 (C1=U18, C2=PT, C3=—): Actions = {A3} only (NOT A4). Part-time is not unemployed. A4 triggers only for C2=Unemployed. The table correctly shows A4 absent for R4+R5. TC-03 expected result is REJECTED for underage only (A3). This was verified against the full table — confirmed correct.
+| TC ID | Don't Care Condition | Chosen Value | Rationale                                                                                                                                |
+| ----- | -------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| TC-01 | C2 (Employment)      | FT           | FT is the cleaner "non-unemployed" representative; most clearly demonstrates that employment type doesn't affect outcome                 |
+| TC-01 | C3 (Credit)          | Gd           | Good credit is the most revealing choice — if the system incorrectly triggers A5 for a Good-credit under-18, this will expose it         |
+| TC-02 | C2 (Employment)      | PT           | PT chosen to differentiate from TC-01 (which uses FT) and confirm both FT and PT produce same outcome for R3+R6                          |
+| TC-03 | C3 (Credit)          | Fr           | Fair chosen to complement TC-01 (Good) — confirms both Good and Fair produce same outcome for R7+R8                                      |
+| TC-06 | C2 (Employment)      | FT           | FT chosen to exercise the FT+Fair path; PT+Fair is covered implicitly by R13+R14 (TC-08 uses Good but R14 = PT+Fair)                     |
+| TC-07 | C2 (Employment)      | PT           | PT chosen to differentiate from TC-09 (FT poor credit path exercised less critically since R12 alone is a valid rule)                    |
+| TC-08 | C3 (Credit)          | Gd           | Good credit is the most critical choice — confirms that even Good credit is capped at Tier 1 by part-time employment (key business rule) |
+| TC-09 | C3 (Credit)          | Gd           | Good credit chosen — confirms unemployment rejection overrides even the highest credit class                                             |
 
 ## Step 5 — Review Against Quality Checklists
 
 ### Process Quality Checklist
 
-- [x] All conditions identified: Age, Employment (3 values), Credit (3 values with EP applied)
+- [x] All conditions identified: Age (binary), Employment (3 values), Credit (3 values with EP applied)
 - [x] Implied conditions covered: "18 or older" complement (Under 18)
-- [x] All actions identified including multiple simultaneous rejections (BR-105)
+- [x] All actions identified including multiple simultaneous rejections per BR-105
 - [x] Spec gap (part-time + good credit tier resolution) confirmed with BA before construction
 - [x] Full table built first: 18 rules, confirmed 2 × 3 × 3 = 18
-- [x] No impossible rules — all 18 combinations can realistically occur
-- [x] All 5 merges verified: identical action sets, differ in exactly 1 condition
-- [x] Don't Care rationale documented for all 5 merged rules
-- [x] Post-reduction: 18 rules → 13 rules; all 18 full rules covered by reduced table
+- [x] No impossible rules — all 18 combinations can realistically occur (Type 1 and Type 2 analysis performed)
+- [x] Merge analysis performed systematically across all three condition dimensions (C1, C2, C3) — not C3 only
+- [x] 9 merges verified across 2 rounds: Round 1 (8 direct merges) + Round 2 (1 cascading merge)
+- [x] Don't Care rationale documented for all 7 merged rules with scope limitations noted (e.g., "FT/PT only — UE excluded")
+- [x] Post-reduction coverage check: all 18 full rules covered by exactly one reduced rule (R14 covered by two merged rules — redundant coverage documented and acceptable)
+- [x] Full table: 18 rules → Reduced: 10 rules
 
 ### Test Case Quality Checklist
 
-- [x] All 13 reduced rules have exactly one test case
+- [x] All 10 reduced rules have exactly one test case
 - [x] Every action (A1–A5) appears in at least one test case
 - [x] All expected results specify decision (APPROVED/REJECTED) and specific reason(s)
-- [x] Don't Care values chosen and documented for all 5 applicable test cases
-- [x] TC-03 action correction verified against full table before finalizing
+- [x] Don't Care values chosen with documented rationale for all 8 applicable cases
 - [x] No duplicate input combinations in final suite
 
 ## Coverage Summary
 
-| Reduced Rule | Covers                       | TC    | Key Scenario                                 |
-| ------------ | ---------------------------- | ----- | -------------------------------------------- |
-| R1+R2        | R1 (C3=Good), R2 (C3=Fair)   | TC-01 | Under-18 FT: underage rejection only         |
-| R3           | R3                           | TC-02 | Under-18 FT poor: underage + poor credit     |
-| R4+R5        | R4 (C3=Good), R5 (C3=Fair)   | TC-03 | Under-18 PT: underage only (not unemployed)  |
-| R6           | R6                           | TC-04 | Under-18 PT poor: underage + poor credit     |
-| R7+R8        | R7 (C3=Good), R8 (C3=Fair)   | TC-05 | Under-18 UE: underage + unemployed           |
-| R9           | R9                           | TC-06 | Under-18 UE poor: all three rejections       |
-| R10          | R10                          | TC-07 | Adult FT Good: Tier 2 approved               |
-| R11          | R11                          | TC-08 | Adult FT Fair: Tier 1 approved               |
-| R12          | R12                          | TC-09 | Adult FT Poor: credit rejection              |
-| R13+R14      | R13 (C3=Good), R14 (C3=Fair) | TC-10 | Adult PT Good/Fair: Tier 1 (employment cap)  |
-| R15          | R15                          | TC-11 | Adult PT Poor: credit rejection              |
-| R16+R17      | R16 (C3=Good), R17 (C3=Fair) | TC-12 | Adult UE non-poor: unemployment rejection    |
-| R18          | R18                          | TC-13 | Adult UE Poor: unemployed + credit rejection |
+| Reduced Rule | Covers Full Rules                              | TC    | Key Scenario                                                             |
+| ------------ | ---------------------------------------------- | ----- | ------------------------------------------------------------------------ |
+| R1+R2+R4+R5  | R1 (FT,Gd), R2 (FT,Fr), R4 (PT,Gd), R5 (PT,Fr) | TC-01 | Under-18 non-UE non-poor: age rejection only (C2 and C3 both Don't Care) |
+| R3+R6        | R3 (FT,Po), R6 (PT,Po)                         | TC-02 | Under-18 non-UE poor credit: age + poor credit (C2 Don't Care)           |
+| R7+R8        | R7 (UE,Gd), R8 (UE,Fr)                         | TC-03 | Under-18 unemployed non-poor: age + unemployed (C3 Don't Care)           |
+| R9           | R9                                             | TC-04 | Under-18 unemployed poor: all three rejections                           |
+| R10          | R10                                            | TC-05 | Adult FT Good: Tier 2 approved (only rule for Tier 2)                    |
+| R11+R14      | R11 (FT,Fr), R14 (PT,Fr)                       | TC-06 | Adult non-UE Fair: Tier 1 approved (C2 Don't Care)                       |
+| R12+R15      | R12 (FT,Po), R15 (PT,Po)                       | TC-07 | Adult non-UE Poor: credit rejection (C2 Don't Care)                      |
+| R13+R14      | R13 (PT,Gd), R14 (PT,Fr)                       | TC-08 | Adult PT non-poor: Tier 1 employment cap (C3 Don't Care)                 |
+| R16+R17      | R16 (UE,Gd), R17 (UE,Fr)                       | TC-09 | Adult UE non-poor: unemployment rejection (C3 Don't Care)                |
+| R18          | R18                                            | TC-10 | Adult UE Poor: unemployed + credit rejection                             |
+
+**Note on R14:** Covered by both R11+R14 and R13+R14. This is acceptable redundant coverage — R14 (Adult, PT, Fair → Tier 1) satisfies the action sets of both merged rules. TC-06 and TC-08 each independently confirm correct handling of paths that include R14.
+
+**Coverage metrics:**
+
+- Full rules: 18 → Reduced rules: **10** (44% reduction)
+- Test cases: **10** (reduced from the naive 18)
+- All actions covered: A1 ✓ (TC-05), A2 ✓ (TC-06, TC-08), A3 ✓ (TC-01–04), A4 ✓ (TC-03, TC-04, TC-09, TC-10), A5 ✓ (TC-02, TC-04, TC-07, TC-10)

@@ -152,14 +152,14 @@ Remove any scenarios that test the same condition. Assign a priority to each:
 ```markdown
 ## [SC-XX] [Scenario Name]
 
-| Field              | Value                                                                     |
-| ------------------ | ------------------------------------------------------------------------- |
-| **ID**             | SC-XX                                                                     |
-| **Name**           | [Full descriptive name following: verb + object + context]                |
-| **Coverage Label** | [Happy Path / Negative / Error Recovery / Concurrent / Security & Misuse] |
-| **Priority**       | [P1 / P2 / P3 / P4]                                                       |
-| **Actor**          | [Who performs this scenario]                                              |
-| **Traced BR/FR**   | [BR-xx, FR-xx — at least one reference required]                          |
+| Field              | Value                                                                      |
+| ------------------ | -------------------------------------------------------------------------- |
+| **ID**             | SC-XX                                                                      |
+| **Name**           | [Full descriptive name following: Actor + Action/Goal + Context/Condition] |
+| **Coverage Label** | [Happy Path / Negative / Error Recovery / Concurrent / Security & Misuse]  |
+| **Priority**       | [P1 / P2 / P3 / P4]                                                        |
+| **Actor**          | [Who performs this scenario]                                               |
+| **Traced BR/FR**   | [BR-xx, FR-xx — at least one reference required]                           |
 
 ### Preconditions
 

@@ -103,8 +103,8 @@ For each variable:
 
 For every ordered (sequential/range) equivalence class, apply BVA:
 
-- **Standard BVA (3-value):** Test `LB-1`, `LB`, `LB+1` at the lower boundary; `UB-1`, `UB`, `UB+1` at the upper boundary.
-- **Simplified BVA (2-value):** For lower-risk scenarios, test only `LB` and `LB-1`; `UB` and `UB+1`.
+- **Standard BVA (2-value):** For lower-risk scenarios, test only `LB` and `LB-1`; `UB` and `UB+1`.
+- **Extended BVA (3-value):** Test `LB-1`, `LB`, `LB+1` at the lower boundary; `UB-1`, `UB`, `UB+1` at the upper boundary.
 - Add a **nominal value** (representative from the middle of the valid class) to confirm core logic.
 
 For non-ordered classes (discrete sets, boolean conditions), BVA does not apply — EP representative values are sufficient.
@@ -118,7 +118,7 @@ Apply test case combination rules:
 - **Valid test cases:** Combine as many valid classes as possible into a single test case. Continue until all valid classes are covered at least once.
 - **Invalid test cases:** One test case per invalid class. All other variables in the same test case must use valid values. This prevents Defect Masking.
 
-Assign each test case: ID, description, input values, expected output, and traceability to requirement/class.
+**Assign each test case:** ID, description, input values, expected output, and traceability to requirement/class.
 
 → Use [`resources/output-template.md`](resources/output-template.md) for the recommended test case format.
 

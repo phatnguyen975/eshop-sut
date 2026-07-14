@@ -65,7 +65,7 @@ S2 → S3 : Close [Admin action] / Archive record
 
 Alternatively, use Mermaid stateDiagram-v2 syntax for rendered environments:
 
-```
+```mermaid
 stateDiagram-v2
     [*] --> Active
     Active --> Active : Deposit / Update balance
@@ -103,13 +103,11 @@ The STT converts the STD into an **exhaustive analytical grid** that forces syst
 - Total cells = number of states × number of events
 
 **Step 2: Fill valid transition cells**
-For each valid transition in the STD, find its row (source state) and column (event), and write:
-`Destination State / Action`
 
-For valid self-transitions: `Same State (S1) / Action`
+- For each valid transition in the STD, find its row (source state) and column (event), and write:`Destination State / Action`
+- For valid self-transitions: `Same State (S1) / Action`
 
-**Step 3: Fill invalid transition cells**
-For every cell not corresponding to a valid transition, determine what the system does:
+**Step 3: Fill invalid transition cells** For every cell not corresponding to a valid transition, determine what the system does:
 
 - `— / "Error: [message]"` — system rejects with specific error
 - `— / [no-op]` — system silently ignores the event, no state change, no visible output
