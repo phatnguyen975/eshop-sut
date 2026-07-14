@@ -1,4 +1,3 @@
-// Demo trigger CI
 import { test, expect } from "../../../fixtures";
 import { RegisterPage } from "../../../pages/web/register.page";
 import { LoginPage } from "../../../pages/web/login.page";
