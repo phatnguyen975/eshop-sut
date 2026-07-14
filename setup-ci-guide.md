@@ -41,7 +41,7 @@ Chuyển sang tab **Secrets**, nhấn **New repository secret**:
 | `ADMIN_EMAIL`    | `admin@eshop.com` | Email của admin                        |
 | `ADMIN_PASSWORD` | `Admin123!`       | Mật khẩu của admin                     |
 
-## 5. Kích hoạt và Kiểm thử CI
+## 3. Kích hoạt và Kiểm thử CI
 
 Sau khi cấu hình xong Variables và Secrets, bạn chỉ cần commit code lên nhánh `web-automation-testing`:
 
