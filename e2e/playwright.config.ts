@@ -40,9 +40,11 @@ export default defineConfig({
   // Parallel workers: 4 on CI for controlled concurrency; default (50% of CPU cores) locally.
   workers: process.env.CI ? 4 : undefined,
 
-  // Reporters: HTML report for interactive debugging; list for readable console output.
-  // playwright-report/ is the default output dir — already in .gitignore from init.
-  reporter: [["html"], ["list"]],
+  // Reporters: In CI, use blob (for shard merging) + github (PR annotations).
+  // Locally, use html (interactive) + list (readable console output).
+  reporter: process.env.CI
+    ? [["blob"], ["github"], ["list"]]
+    : [["html"], ["list"]],
 
   // ---------------------------------------------------------------------------
   // Global setup & teardown — run once before/after the entire test suite

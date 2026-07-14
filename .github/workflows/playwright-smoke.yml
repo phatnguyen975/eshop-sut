@@ -1,0 +1,125 @@
+name: Smoke Tests (Monorepo)
+
+on:
+  push:
+    branches: [web-automation-testing]
+  pull_request:
+    branches: [web-automation-testing]
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+
+jobs:
+  # 1. Monorepo Path Filtering
+  changes:
+    name: Detect File Changes
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      admin: ${{ steps.filter.outputs.admin }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'frontend-web/**'
+              - 'backend/**'
+              - 'e2e/tests/web/**'
+              - 'e2e/tests/smoke/web/**'
+              - 'e2e/pages/web/**'
+              - 'e2e/fixtures/**'
+              - 'e2e/playwright.config.ts'
+            admin:
+              - 'frontend-admin/**'
+              - 'backend/**'
+              - 'e2e/tests/admin/**'
+              - 'e2e/tests/smoke/admin/**'
+              - 'e2e/pages/admin/**'
+              - 'e2e/fixtures/**'
+              - 'e2e/playwright.config.ts'
+
+  # 2. Run tests dynamically based on changes
+  smoke:
+    name: Smoke — Chromium
+    needs: changes
+    # Only run if web or admin (or backend) changed
+    if: ${{ needs.changes.outputs.web == 'true' || needs.changes.outputs.admin == 'true' }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: e2e
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+        working-directory: e2e
+
+      - name: Install Playwright OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+        working-directory: e2e
+
+      # Determine which projects to run based on dorny/paths-filter
+      - name: Set Project Flags
+        id: set-flags
+        run: |
+          FLAGS=""
+          if [ "${{ needs.changes.outputs.web }}" == "true" ]; then
+            FLAGS="--project=smoke-web"
+          fi
+          if [ "${{ needs.changes.outputs.admin }}" == "true" ]; then
+            FLAGS="$FLAGS --project=smoke-admin"
+          fi
+          echo "project_flags=$FLAGS" >> $GITHUB_OUTPUT
+
+      - name: Run smoke suite
+        run: npx playwright test ${{ steps.set-flags.outputs.project_flags }}
+        working-directory: e2e
+        env:
+          WEB_BASE_URL: ${{ vars.WEB_BASE_URL }}
+          ADMIN_BASE_URL: ${{ vars.ADMIN_BASE_URL }}
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+          USER_EMAIL: ${{ secrets.USER_EMAIL }}
+          USER_PASSWORD: ${{ secrets.USER_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+
+      - name: Upload smoke report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: smoke-report-${{ github.run_number }}
+          path: e2e/playwright-report/
+          retention-days: 7
+
+      - name: Upload traces on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: smoke-traces-${{ github.run_number }}
+          path: e2e/test-results/
+          retention-days: 3
