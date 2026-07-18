@@ -38,22 +38,16 @@ Use this at **Step 4** to document the final test suite. Each row is one test ca
 
 - **TC ID:** Unique identifier (e.g., TC-01, TC-02).
 - **Description:** Human-readable summary of what the test case exercises and its testing focus.
-- **Variable(s) Under Test:** The primary variable(s) whose class/boundary is being exercised.
+- **Variable(s) Under Test:** The primary variable(s) (separated by `<br>`) whose class/boundary is being exercised.
 - **EC(s) Covered:** Which equivalence class IDs this test case covers.
 - **BVA Point:** If this is a boundary test, which point (LB, LB−1, LB+1, UB, UB−1, UB+1, Nominal). Use N/A for non-BVA test cases (e.g., enum representatives).
-- **Input Value(s):** All variables needed to execute the test, written as `variable="value"` (even for single-variable test cases). When multiple variables exist, use `<br>` to separate each on its own line.
+- **Input Value(s):** All variables (separated by `<br>`) needed to execute the test, written as `variable="value"`.
 - **Expected Output:** Concrete, verifiable result (specific error message, response code, calculated value, UI state).
 - **Req / BR:** Requirement ID or BR number being verified.
 
-**Input Value(s) formatting rules:**
-
-- **Single variable:** `username="john_doe"`
-- **Multiple variables:** `username="john_doe"`<br>`password="Secret@1"` — one per line using `<br>`
-- The variable currently under test should reflect the EC/BVA value being exercised; all other variables use a valid representative value to ensure isolation.
-
 ## Notes on Template Usage
 
-- Templates can be implemented in any format: Markdown table (primary used), spreadsheet, test management tool (TestRail, Jira Xray, Zephyr, etc.).
+- Templates can be implemented in any format: Markdown table (primarily used), spreadsheet, test management tool (TestRail, Jira Xray, Zephyr, etc.).
 - Column order may be adapted to the team's preference; all columns must be present.
-- The `<br>` separator in "Input Value(s)" renders as a line break in Markdown viewers and most test management tools; in plain text environments, use a newline or semicolon separator instead.
+- The `<br>` separator renders as a line break in Markdown viewers and most test management tools; in plain text environments, use a newline or semicolon separator instead.
 - The "EC(s) Covered" column enables direct traceability from test case to coverage claim.

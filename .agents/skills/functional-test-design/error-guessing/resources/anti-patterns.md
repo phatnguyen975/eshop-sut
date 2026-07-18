@@ -56,11 +56,11 @@ Without a documented rationale linking the guess to a specific suspected defect 
 
 **Mistake:** Writing error guessing test cases that specify "test with value X" but do not specify what the correct system behavior should be.
 
-**Example:** "Test with username = 'john '" — no expected result specified.
+**Example:** "Test with username = `'john '`" — no expected result specified.
 
 **Consequence:** The test case is not executable. During test execution, the tester cannot determine pass/fail without an expected result. Different testers may evaluate the same execution result differently. Defects may be overlooked because the tester does not know what "correct" looks like.
 
-**Correct approach:** Every test case must specify the expected result — what the system should do if the code is correct. "Username 'john ' should be rejected with error 'Username may not contain trailing spaces'" or "Username 'john ' should be trimmed and treated as 'john'" — either is acceptable as long as it is explicit and derived from the requirements.
+**Correct approach:** Every test case must specify the expected result — what the system should do if the code is correct. "Username `'john '` should be rejected with error `'Username may not contain trailing spaces'`" or "Username `'john '` should be trimmed and treated as `'john'`" — either is acceptable as long as it is explicit and derived from the requirements.
 
 ## AP-07: Combining Multiple Hypotheses in One Test Case
 

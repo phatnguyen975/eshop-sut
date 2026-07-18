@@ -5,10 +5,10 @@ description: >
   — an experience-based test design technique. Use after applying black-box techniques (Domain
   Testing, Decision Table, State Transition, Use Case Testing) to identify additional high-value
   test cases targeting defect-prone areas that systematic techniques may miss. Triggers include:
-  "error guessing", "what else should we test", "edge cases", "what could go wrong", "attack
-  the system", "fault attack", "experience-based testing", or any request to supplement an
-  existing test suite with additional risk-based cases. Also use when the tester has domain
-  knowledge, historical defect data, or heuristic intuition about where defects are likely to hide.
+  "error guessing", "what else should we test", "edge cases", "what could go wrong", "attack the
+  system", "fault attack", "experience-based testing", or any request to supplement an existing
+  test suite with additional risk-based cases. Also use when the tester has domain knowledge,
+  historical defect data, or heuristic intuition about where defects are likely to hide.
 ---
 
 # Error Guessing Skill
@@ -48,7 +48,7 @@ Unlike black-box techniques (EP, BVA, Decision Table, State Transition), Error G
 - `--file` mode requires a file-capable environment (e.g., claude.ai with computer tools enabled). If file tools are unavailable, AI will notify the user and fall back to conversation output.
 - The path in `--file` is the desired output location. If the file already exists, AI will ask before overwriting.
 - Both modes produce identical content — only the delivery differs.
-- `--file` can be combined with any input: `/error-guessing --file="tests/user-registration-api.md"` then paste the requirements.
+- `--file` can be combined with any input: `/error-guessing --file="path/to/output.md"` then paste the requirements.
 
 ## When to Use
 
@@ -71,12 +71,12 @@ Unlike black-box techniques (EP, BVA, Decision Table, State Transition), Error G
 
 Before applying this skill, you must have:
 
-1. **Completed systematic test suite** — the existing test cases from black-box techniques; Error Guessing identifies what they missed
-2. **Feature/component description** — FR, BR, user stories, or API spec being tested
-3. **Tester's domain knowledge** — experience with the technology stack, business domain, or similar systems
-4. **Historical defect data** (when available) — past bugs in this system or similar systems; defect taxonomies
-5. **Risk information** (when available) — which areas are highest risk, most complex, or most recently changed
-6. **Error taxonomy reference** — [`resources/error-taxonomy.md`](resources/error-taxonomy.md) — structured catalog of common error categories to guide systematic guessing
+1. **Completed systematic test suite** — the existing test cases from black-box techniques; Error Guessing identifies what they missed.
+2. **Feature/component description** — FR, BR, user stories, or API spec being tested.
+3. **Tester's domain knowledge** — experience with the technology stack, business domain, or similar systems.
+4. **Historical defect data** (when available) — past bugs in this system or similar systems; defect taxonomies.
+5. **Risk information** (when available) — which areas are highest risk, most complex, or most recently changed.
+6. **Error taxonomy reference** — [`resources/error-taxonomy.md`](resources/error-taxonomy.md) — structured catalog of common error categories to guide systematic guessing.
 
 ## Core Principles
 
@@ -168,14 +168,11 @@ Translate each error hypothesis into one or more executable test cases:
 
 ### Step 6 — Review Against Quality Checklists
 
-Verify the test suite against both checklists in [`resources/quality-checklist.md`](resources/quality-checklist.md):
-
-- **Process Quality Checklist** — was the error guessing approach applied correctly?
-- **Test Case Quality Checklist** — are the individual test cases correct and justified?
+Before finalizing, verify the test suite against the **Test Case Quality Checklist** in [`resources/quality-checklist.md`](resources/quality-checklist.md).
 
 ## Anti-Patterns
 
-→ Full detail: [`resources/anti-patterns.md`](resources/anti-patterns.md)
+→ **Full detail:** [`resources/anti-patterns.md`](resources/anti-patterns.md)
 
 **Critical anti-patterns:**
 
@@ -188,31 +185,33 @@ Verify the test suite against both checklists in [`resources/quality-checklist.m
 
 ## Best Practices
 
-→ Full detail: [`resources/best-practices.md`](resources/best-practices.md)
+→ **Full detail:** [`resources/best-practices.md`](resources/best-practices.md)
 
 **Key best practices:**
 
-- Always apply systematic techniques first; apply Error Guessing only to supplement
-- Use a structured error taxonomy (Fault Attack approach) rather than pure intuition — structured guessing finds more defects
-- Mine historical defect data: defects cluster; where bugs were found before, they are likely to be found again
-- Consult domain experts (developers, architects, business analysts) — their implementation knowledge is a high-value input
-- Document every test case rationale — "why do I suspect this?" is as important as "what am I testing?"
-- Prioritize by risk: test the most likely and most damaging failure modes first
-- Revisit and update the error list when requirements change or new defects are found
+- Always apply systematic techniques first; apply Error Guessing only to supplement.
+- Use a structured error taxonomy (Fault Attack approach) rather than pure intuition — structured guessing finds more defects.
+- Mine historical defect data: defects cluster; where bugs were found before, they are likely to be found again.
+- Consult domain experts (developers, architects, business analysts) — their implementation knowledge is a high-value input.
+- Document every test case rationale — "why do I suspect this?" is as important as "what am I testing?".
+- Prioritize by risk: test the most likely and most damaging failure modes first.
+- Revisit and update the error list when requirements change or new defects are found.
 
 ## Process Quality Checklist
 
 _Use this to verify the Error Guessing process was applied correctly — before reviewing individual test cases._
 
-- [ ] Systematic techniques (EP/BVA, Decision Table, State Transition, etc.) were applied first; Error Guessing is supplementing, not replacing them
-- [ ] The existing test suite was reviewed before generating error hypotheses (no duplicate coverage)
-- [ ] Error taxonomy was used as a structured checklist — all major categories considered, not just intuition
-- [ ] Historical defect data was consulted where available
-- [ ] Domain experts were consulted where their knowledge was relevant and accessible
-- [ ] Every error hypothesis has a documented rationale (not "gut feel" without basis)
-- [ ] Error hypotheses were prioritized by risk (probability × impact) before test case design
-- [ ] High-priority hypotheses were addressed first
-- [ ] Each hypothesis was translated into at least one specific, executable test case
+- [ ] Systematic techniques (EP/BVA, Decision Table, State Transition, etc.) were applied first; Error Guessing is supplementing, not replacing them.
+- [ ] The existing test suite was reviewed before generating error hypotheses (no duplicate coverage).
+- [ ] Error taxonomy was used as a structured checklist — all major categories considered, not just intuition.
+- [ ] Historical defect data was consulted where available.
+- [ ] Domain experts were consulted where their knowledge was relevant and accessible.
+- [ ] Every error hypothesis has a documented rationale (not "gut feel" without basis).
+- [ ] Error hypotheses were prioritized by risk (probability × impact) before test case design.
+- [ ] High-priority hypotheses were addressed first.
+- [ ] Each hypothesis was translated into at least one specific, executable test case.
+
+→ For the full **Process Quality Checklist** should be verified, see [`resources/quality-checklist.md`](resources/quality-checklist.md).
 
 ## Common Rationalizations to Reject
 
@@ -238,8 +237,6 @@ The design process produces:
 
 1. **Error / Fault List** — structured list of error hypotheses with category, rationale, and risk priority, organized by error category
 2. **Test Case Suite** — supplementary test cases derived from high and medium priority hypotheses, using the template in [`resources/output-template.md`](resources/output-template.md)
-
-Each test case must include: ID, description, rationale (the error hypothesis), priority, input values, expected output, and the source of the hypothesis (experience, historical defect, taxonomy category).
 
 ## Examples
 

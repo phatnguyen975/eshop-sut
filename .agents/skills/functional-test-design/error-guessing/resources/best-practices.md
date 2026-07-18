@@ -25,7 +25,7 @@
 **How:**
 
 - Search the bug tracker for the component or feature name
-- Look for: defect type (what broke), root cause (why it broke), trigger (what input caused it)
+- **Look for:** defect type (what broke), root cause (why it broke), trigger (what input caused it)
 - Translate past defect patterns into current-feature hypotheses: "This component failed previously when [X]; could the same pattern exist here with [Y]?"
 
 ## BP-04: Consult Domain Experts
@@ -95,8 +95,8 @@
 
 **Examples of positive error guesses:**
 
-- "The system might reject email addresses with '+' in the local part (e.g., user+tag@domain.com) — these are valid per RFC 5321 but often mistakenly blocked"
-- "The system might reject passwords containing special characters like '%' or '&' despite them being valid"
+- "The system might reject email addresses with `'+'` in the local part (e.g., `user+tag@domain.com`) — these are valid per RFC 5321 but often mistakenly blocked"
+- "The system might reject passwords containing special characters like `'%'` or `'&'` despite them being valid"
 
 ## BP-10: Update the Fault List When Defects Are Found
 

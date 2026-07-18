@@ -22,7 +22,9 @@
 - "Has coupon" → C3 (boolean)
 - Implied constraint: a customer cannot be simultaneously "new" (no prior account) and "existing with loyalty card" (requires an account) → C1=T AND C2=T is mutually exclusive
 
-**Spec gap identified:** BR-003 says the coupon "cannot be combined" with the new customer discount — but does not specify whether this triggers an error or silently ignores the coupon. **→ Raised with PO. Confirmed: coupon is silently ignored; BR-001 (15%) applies.** [Confirmed: Product Owner, sprint planning 2026-Q4]
+**Spec gap identified:** BR-003 says the coupon "cannot be combined" with the new customer discount — but does not specify whether this triggers an error or silently ignores the coupon.
+
+→ **Raised with PO. Confirmed: coupon is silently ignored; BR-001 (15%) applies.** [Confirmed: Product Owner, sprint planning 2026-Q4]
 
 ### Conditions
 
@@ -34,30 +36,32 @@
 
 ### Actions
 
-| ID  | Description                     | Observable Outcome                                           | Source           |
-| --- | ------------------------------- | ------------------------------------------------------------ | ---------------- |
-| A1  | Apply 15% new customer discount | Order total × 0.85; discount line "New Customer: −15%" shown | BR-001           |
-| A2  | Apply 10% loyalty discount      | Order total × 0.90; discount line "Loyalty: −10%" shown      | BR-002           |
-| A3  | Apply 20% coupon discount       | Order total × 0.80; discount line "Coupon: −20%" shown       | BR-003           |
-| A4  | No discount applied             | Order total unchanged; no discount line shown                | BR-005 (implied) |
+| ID  | Description                     | Observable Outcome                                           | Source |
+| --- | ------------------------------- | ------------------------------------------------------------ | ------ |
+| A1  | Apply 15% new customer discount | Order total × 0.85; discount line "New Customer: −15%" shown | BR-001 |
+| A2  | Apply 10% loyalty discount      | Order total × 0.90; discount line "Loyalty: −10%" shown      | BR-002 |
+| A3  | Apply 20% coupon discount       | Order total × 0.80; discount line "Coupon: −20%" shown       | BR-003 |
+| A4  | No discount applied             | Order total unchanged; no discount line shown                | BR-005 |
 
 ## Step 2 — Build the Full Decision Table
 
-3 binary conditions → 2³ = **8 rules**
+3 binary conditions → **2³ = 8 rules**
 
-Fill condition rows using binary counting pattern (C1 alternates every 4, C2 every 2, C3 every 1):
+Fill condition rows using binary counting pattern:
 
-|                       |  R1   |  R2   |               R3                | R4  | R5  | R6  | R7  | R8  |
-| --------------------- | :---: | :---: | :-----------------------------: | :-: | :-: | :-: | :-: | :-: |
-| **C1 (New customer)** |   T   |   T   |                T                |  T  |  F  |  F  |  F  |  F  |
-| **C2 (Loyalty card)** |   T   |   T   |                F                |  F  |  T  |  T  |  F  |  F  |
-| **C3 (Has coupon)**   |   T   |   F   |                T                |  F  |  T  |  F  |  T  |  F  |
-| A1 (15% new)          |       |       |                X                |  X  |     |     |     |     |
-| A2 (10% loyalty)      |       |       |                                 |     |  X  |  X  |     |     |
-| A3 (20% coupon)       |       |       |                                 |     |  X  |     |  X  |     |
-| A4 (No discount)      |       |       |                                 |     |     |     |     |  X  |
-| **IMPOSSIBLE**        |   X   |   X   |                                 |     |     |     |     |     |
-| Rationale             | C1+C2 | C1+C2 | BR-003: coupon ignored for C1=T |     |     |     |     |     |
+|                   |  R1   |  R2   |               R3                | R4  | R5  | R6  | R7  | R8  |
+| ----------------- | :---: | :---: | :-----------------------------: | :-: | :-: | :-: | :-: | :-: |
+| **CONDITIONS**    |       |       |                                 |     |     |     |     |     |
+| C1 (New customer) |   T   |   T   |                T                |  T  |  F  |  F  |  F  |  F  |
+| C2 (Loyalty card) |   T   |   T   |                F                |  F  |  T  |  T  |  F  |  F  |
+| C3 (Has coupon)   |   T   |   F   |                T                |  F  |  T  |  F  |  T  |  F  |
+| **ACTIONS**       |       |       |                                 |     |     |     |     |     |
+| A1 (15% new)      |       |       |                X                |  X  |     |     |     |     |
+| A2 (10% loyalty)  |       |       |                                 |     |  X  |  X  |     |     |
+| A3 (20% coupon)   |       |       |                                 |     |  X  |     |  X  |     |
+| A4 (No discount)  |       |       |                                 |     |     |     |     |  X  |
+| **IMPOSSIBLE**    |   X   |   X   |                                 |     |     |     |     |     |
+| Rationale         | C1+C2 | C1+C2 | BR-003: coupon ignored for C1=T |     |     |     |     |     |
 
 **Action evaluation notes:**
 
@@ -77,9 +81,7 @@ Fill condition rows using binary counting pattern (C1 alternates every 4, C2 eve
 - **Rationale:** C1=T (new customer, no prior account) and C2=T (existing loyalty card holder) are mutually exclusive.
 - **Classification: Type 1 (Structurally impossible)**. BR-001 states "a loyalty card is issued only to customers who have completed at least one prior purchase; new customers have no prior purchases." The impossibility is proven directly by BR-001 — not inferred by the tester.
 - **Source:** BR-001. Stakeholder confirmation: **not required** — BR-001 is the proof.
-- → **Both removed.**
-
-**Remaining rules:** R3, R4, R5, R6, R7, R8
+- **Remaining rules:** R3, R4, R5, R6, R7, R8
 
 ### 3b: Merge via Don't Care
 
@@ -87,7 +89,7 @@ Fill condition rows using binary counting pattern (C1 alternates every 4, C2 eve
 
 - Actions R3: {A1} — Actions R4: {A1} ✓ **Identical**
 - Conditions differ: only C3 (T in R3, F in R4) ✓ **Exactly one**
-- → **Valid merge.** C3 becomes Don't Care (`—`).
+- **Valid merge.** C3 becomes Don't Care (`—`).
 - **Rationale:** BR-003 prohibits coupon for new customers — whether a new customer has a coupon or not, only A1 applies. C3 is irrelevant when C1=T.
 - **Merged rule:** R3+R4
 
@@ -111,16 +113,18 @@ No further merges possible.
 
 ### 3c: Reduced Decision Table
 
-|                       | **R3+R4** | **R5** | **R6** | **R7** | **R8** |
-| --------------------- | :-------: | :----: | :----: | :----: | :----: |
-| **C1 (New customer)** |     T     |   F    |   F    |   F    |   F    |
-| **C2 (Loyalty card)** |     F     |   T    |   T    |   F    |   F    |
-| **C3 (Has coupon)**   |     —     |   T    |   F    |   T    |   F    |
-| A1 (15% new)          |     X     |        |        |        |        |
-| A2 (10% loyalty)      |           |   X    |   X    |        |        |
-| A3 (20% coupon)       |           |   X    |        |   X    |        |
-| A4 (No discount)      |           |        |        |        |   X    |
-| **Covers full rules** |  R3, R4   |   R5   |   R6   |   R7   |   R8   |
+|                       | R3+R4  | R5  | R6  | R7  | R8  |
+| --------------------- | :----: | :-: | :-: | :-: | :-: |
+| **CONDITIONS**        |        |     |     |     |     |
+| C1 (New customer)     |   T    |  F  |  F  |  F  |  F  |
+| C2 (Loyalty card)     |   F    |  T  |  T  |  F  |  F  |
+| C3 (Has coupon)       |   —    |  T  |  F  |  T  |  F  |
+| **ACTIONS**           |        |     |     |     |     |
+| A1 (15% new)          |   X    |     |     |     |     |
+| A2 (10% loyalty)      |        |  X  |  X  |     |     |
+| A3 (20% coupon)       |        |  X  |     |  X  |     |
+| A4 (No discount)      |        |     |     |     |  X  |
+| **Covers full rules** | R3, R4 | R5  | R6  | R7  | R8  |
 
 **Reduction summary:**
 
@@ -153,7 +157,7 @@ One test case per reduced rule:
 | TC-04 | Non-loyalty customer with coupon — 20% only            | R7    | F       | F (No loyalty) | T (Coupon)    | N/A                                  | N/A         | 20% applied | N/A                 | BR-003                 |
 | TC-05 | No qualification — 0% discount                         | R8    | F       | F (No loyalty) | F (No coupon) | N/A                                  | N/A         | N/A         | 0%; total unchanged | BR-005                 |
 
-**Don't Care value note:**
+**Don't Care value notes:**
 
 - **TC-01, C3:** Chosen value = T (has coupon).
 - **Rationale:** If the system incorrectly applies the coupon discount for a new customer (defect in BR-003 implementation), C3=T will expose it. C3=F would not.
@@ -162,25 +166,25 @@ One test case per reduced rule:
 
 ### Process Quality Checklist
 
-- [x] All conditions identified including mutual exclusion (C1+C2)
-- [x] Implied condition complement covered (e.g., C1=F cases)
-- [x] All actions identified including implied default A4 (0%)
-- [x] Spec gap on BR-003 coupon behavior raised and resolved before construction
-- [x] Full table constructed first (8 rules, confirmed 2³)
-- [x] All action cells consciously marked — no ambiguous blanks
-- [x] Impossible rules R1, R2 confirmed with stakeholder before removal
-- [x] Don't Care merge R3+R4 satisfies both criteria (identical actions, one differing condition)
-- [x] Don't Care rationale documented
-- [x] Post-reduction coverage check: all 6 non-impossible full rules covered by reduced table
+- [x] All conditions identified including mutual exclusion (C1+C2).
+- [x] Implied condition complement covered (e.g., C1=F cases).
+- [x] All actions identified including implied default A4 (0%).
+- [x] Spec gap on BR-003 coupon behavior raised and resolved before construction.
+- [x] Full table constructed first (8 rules, confirmed 2³).
+- [x] All action cells consciously marked — no ambiguous blanks.
+- [x] Impossible rules R1, R2 confirmed with stakeholder before removal.
+- [x] Don't Care merge R3+R4 satisfies both criteria (identical actions, one differing condition).
+- [x] Don't Care rationale documented.
+- [x] Post-reduction coverage check: all 6 non-impossible full rules covered by reduced table.
 
 ### Test Case Quality Checklist
 
-- [x] All 5 reduced rules have exactly one test case
-- [x] Every action appears as expected result in at least one test case
-- [x] All expected results are specific and verifiable (percentage values, UI elements)
-- [x] Don't Care condition has concrete value (C3=T) with documented rationale
-- [x] No duplicate input combinations in test suite
-- [x] All conditions fully specified in every test case
+- [x] All 5 reduced rules have exactly one test case.
+- [x] Every action appears as expected result in at least one test case.
+- [x] All expected results are specific and verifiable (percentage values, UI elements).
+- [x] Don't Care condition has concrete value (C3=T) with documented rationale.
+- [x] No duplicate input combinations in test suite.
+- [x] All conditions fully specified in every test case.
 
 ## Coverage Summary
 

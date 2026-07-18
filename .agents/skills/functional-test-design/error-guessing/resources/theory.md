@@ -2,13 +2,11 @@
 
 ## 1. Definition and Classification
 
-Error Guessing is an **experience-based test design technique** formally defined in ISTQB Foundation Level Syllabus (v4.0). The tester uses personal knowledge, intuition, and past experience to anticipate errors, defects, and failures — then designs test cases specifically targeting those anticipated problem areas.
+Error Guessing is an **experience-based test design technique** formally defined in ISTQB Foundation Level Syllabus. The tester uses personal knowledge, intuition, and past experience to anticipate errors, defects, and failures — then designs test cases specifically targeting those anticipated problem areas.
 
-**ISTQB formal definition (FL v4.0):**
+**ISTQB formal definition:**
 
 > "Error guessing is a technique used to anticipate the occurrence of errors, defects, and failures, based on the tester's knowledge. This knowledge includes: how the application has worked in the past, the types of errors developers tend to make, and the types of failures that have occurred in other applications."
-
-**Classification:** Experience-Based Test Design Technique — alongside Exploratory Testing and Checklist-Based Testing. These techniques complement, rather than compete with, black-box and white-box systematic techniques.
 
 ## 2. Relationship to Other Techniques
 
@@ -74,8 +72,6 @@ Cross-project and industry defect knowledge:
 - It reduces dependency on any single tester's experience.
 - It provides a basis for test suite maintenance when requirements change.
 
-**ISTQB note:** The term "Fault Attack" appears primarily in ISTQB Advanced Level Test Analyst material. At Foundation Level, the concept is described as "creating lists of possible errors, defects, and failures" as the basis for error guessing. Both terms describe the same structured approach.
-
 ## 5. Error Guessing vs. Exploratory Testing
 
 These are frequently confused. Both are experience-based, but they are distinct techniques:
@@ -105,30 +101,19 @@ Checklist-Based Testing uses a generic, reusable checklist (e.g., "test all mand
 
 ## 7. Known Limitations
 
-### 7.1 No Coverage Guarantee
-
-Error Guessing cannot be cited as a coverage criterion. There is no formal way to know when "enough" error guessing has been done. It is inherently incomplete — it can only find the defects the tester thought to look for.
-
-### 7.2 Experience Dependence
-
-The quality of error guessing is directly proportional to the tester's relevant experience. An inexperienced tester applying Error Guessing may miss entire categories of defects. This is why the error taxonomy and Fault Attack approach are essential — they partially compensate for experience gaps by providing a structured checklist.
-
-### 7.3 Diminishing Returns
-
-Error Guessing produces the highest value when applied to new features or after a long interval. On a mature system with an extensive existing test suite, the incremental value of additional error guessing decreases as the easy-to-guess defects are already covered.
-
-### 7.4 Not Suitable as Primary Technique
-
-Because it has no coverage guarantee and no formal derivation procedure, Error Guessing cannot substitute for systematic techniques. Applied alone, it produces a test suite with unknown gaps.
+- **No Coverage Guarantee:** Error Guessing cannot be cited as a coverage criterion. There is no formal way to know when "enough" error guessing has been done. It is inherently incomplete — it can only find the defects the tester thought to look for.
+- **Experience Dependence:** The quality of error guessing is directly proportional to the tester's relevant experience. An inexperienced tester applying Error Guessing may miss entire categories of defects. This is why the error taxonomy and Fault Attack approach are essential — they partially compensate for experience gaps by providing a structured checklist.
+- **Diminishing Returns:** Error Guessing produces the highest value when applied to new features or after a long interval. On a mature system with an extensive existing test suite, the incremental value of additional error guessing decreases as the easy-to-guess defects are already covered.
+- **Not Suitable as Primary Technique:** Because it has no coverage guarantee and no formal derivation procedure, Error Guessing cannot substitute for systematic techniques. Applied alone, it produces a test suite with unknown gaps.
 
 ## 8. What Error Guessing Targets — The Gaps in Systematic Techniques
 
 Systematic black-box techniques have known blind spots. Error Guessing is most valuable when it explicitly targets these:
 
-| Systematic Technique | Known Gap                                                                     | Error Guessing Target                                                                                                         |
-| -------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| EP/BVA               | Assumes all values in a class behave identically — misses internal anomalies  | Values that "should be" equivalent but trigger special code paths (e.g., 0 in a positive range, `MAX_INT` in a numeric range) |
-| Decision Table       | Models conditions at one point in time — misses sequential and timing effects | Combinations applied in specific orders; repeated applications of the same combination                                        |
-| State Transition     | Models defined states — misses invalid state data combinations                | Events with data values that expose guard condition defects; events triggered simultaneously                                  |
-| Use Case Testing     | Models normal and alternative flows — misses implementation-specific failures | Integration failure points; timeout conditions; partial success scenarios                                                     |
-| All systematic       | Focus on single-session behavior — miss multi-session and persistence effects | Data created in session 1 that causes failure in session 2; cache effects; stale state                                        |
+| Systematic Technique | Known Gap                                                                     | Error Guessing Target                                                                                                       |
+| -------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| EP/BVA               | Assumes all values in a class behave identically — misses internal anomalies  | Values that "should be" equivalent but trigger special code paths (e.g., 0 in a positive range, MAX_INT in a numeric range) |
+| Decision Table       | Models conditions at one point in time — misses sequential and timing effects | Combinations applied in specific orders; repeated applications of the same combination                                      |
+| State Transition     | Models defined states — misses invalid state data combinations                | Events with data values that expose guard condition defects; events triggered simultaneously                                |
+| Use Case Testing     | Models normal and alternative flows — misses implementation-specific failures | Integration failure points; timeout conditions; partial success scenarios                                                   |
+| All systematic       | Focus on single-session behavior — miss multi-session and persistence effects | Data created in session 1 that causes failure in session 2; cache effects; stale state                                      |

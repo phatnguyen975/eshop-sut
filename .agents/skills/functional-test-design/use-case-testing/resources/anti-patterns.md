@@ -18,7 +18,7 @@
 
 ## AP-03: Missing Preconditions or Vague Preconditions
 
-**Mistake:** Test cases with no precondition, or with a vague precondition like "user is logged in" or "system is operational."
+**Mistake:** Test cases with no precondition, or with a vague precondition like "user is logged in" or "system is operational".
 
 **Consequence:** Tests are non-deterministic. Two testers running the same test from different starting states get different results. Defects cannot be reliably reproduced. Test results are not meaningful.
 
@@ -26,7 +26,7 @@
 
 ## AP-04: Verifying Only the UI Response, Ignoring Postconditions
 
-**Mistake:** Test case's expected result is "system shows success message." No backend assertions.
+**Mistake:** Test case's expected result is "system shows success message". No backend assertions.
 
 **Consequence:** The use case may appear to succeed at the UI level while backend state is incorrect: the database record was not updated, the audit log was not written, the email was not sent. Integration defects between layers are invisible.
 

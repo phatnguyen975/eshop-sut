@@ -44,7 +44,7 @@ Two complementary goals:
 - `--file` mode requires a file-capable environment (e.g., claude.ai with computer tools enabled). If file tools are unavailable, AI will notify the user and fall back to conversation output.
 - The path in `--file` is the desired output location. If the file already exists, AI will ask before overwriting.
 - Both modes produce identical content — only the delivery differs.
-- `--file` can be combined with any input: `/decision-table-testing --file="tests/discount-rules.md"` then paste the requirements.
+- `--file` can be combined with any input: `/decision-table-testing --file="path/to/output.md"` then paste the requirements.
 
 ## When to Use
 
@@ -105,15 +105,15 @@ Parse all requirements, BRs, and user stories. Extract:
 
 → See [`resources/conditions-actions-guide.md`](resources/conditions-actions-guide.md) for extraction patterns and examples.
 
-### Step 2 — Build the Full (Unoptimized) Decision Table
+### Step 2 — Build the Full Decision Table
 
 Construct the complete table before any reduction:
 
 1. **Choose table entry type:**
    - **Limited Entry:** Condition values are binary only (T/F, Y/N, 0/1). Simplest form; total rules = 2ⁿ for n binary conditions.
-   - **Extended Entry:** Condition values can be multi-valued (e.g., status = ACTIVE / INACTIVE / SUSPENDED). Total rules = product of all value counts per condition.
+   - **Extended Entry:** Condition values can be multi-valued (e.g., status = `ACTIVE` / `INACTIVE` / `SUSPENDED`). Total rules = product of all value counts per condition.
 2. **Calculate total number of rules:** For n binary conditions → 2ⁿ rules. Fill condition rows with all possible combinations systematically (use binary counting pattern for limited entry).
-3. **Fill in actions per rule:** For each rule (column), evaluate the requirement and mark every applicable action. **Use consistent notation:** `X` or `✓` for "action applies"; _blank_ or `—` for "action does not apply"; specify exact values for extended entry tables.
+3. **Fill in actions per rule:** For each rule (column), evaluate the requirement and mark every applicable action. **Use consistent notation:** `X` for "action applies"; _blank_ for "action does not apply"; specify exact values for extended entry tables.
 4. **Mark impossible rules** (do not remove yet — removal happens in Step 3).
 
 → See [`resources/table-construction.md`](resources/table-construction.md) for notation standards, entry types, and construction patterns.
@@ -122,7 +122,7 @@ Construct the complete table before any reduction:
 
 Apply reduction to eliminate redundancy while preserving 100% logical coverage:
 
-**3a. Remove Impossible Rules**
+#### 3a. Remove Impossible Rules
 
 - Identify rules containing combinations that cannot occur in the real system (mutually exclusive conditions, physically impossible states).
 - **Classify each candidate impossible rule before acting:**
@@ -130,9 +130,7 @@ Apply reduction to eliminate redundancy while preserving 100% logical coverage:
   - **Type 2 (Assumed impossible):** Impossibility is inferred by the tester, not explicitly stated in the spec. Stakeholder confirmation is mandatory before removal — what appears impossible may occur via API bypass, admin override, data migration, or race conditions.
 - Mark removed rules as `IMPOSSIBLE` with documented rationale (do not silently delete).
 
-→ See [`resources/reduction-guide.md`](resources/reduction-guide.md) for the full classification procedure and examples.
-
-**3b. Merge Rules via Don't Care Conditions**
+#### 3b. Merge Rules via Don't Care Conditions
 
 - Two rules can be merged if and only if:
   - They produce **exactly the same set of actions**
@@ -140,7 +138,7 @@ Apply reduction to eliminate redundancy while preserving 100% logical coverage:
 - The differing condition becomes a **Don't Care (`—`)** in the merged rule.
 - Apply iteratively — a merged rule may be eligible for further merging.
 
-**3c. Verify Reduction Completeness**
+#### 3c. Verify Reduction Completeness
 
 - After reduction, verify that the merged rules still cover all original rules they replaced.
 - No valid rule from the full table should be unrepresented in the reduced table.
@@ -163,10 +161,7 @@ Translate each remaining column (rule) in the reduced table into one test case:
 
 ### Step 5 — Review Against Quality Checklists
 
-Before finalizing, verify against both checklists in [`resources/quality-checklist.md`](resources/quality-checklist.md):
-
-- **Process Quality Checklist** — was the design methodology applied correctly?
-- **Test Case Quality Checklist** — are the resulting test cases correct and complete?
+Before finalizing, verify the test suite against the **Test Case Quality Checklist** in [`resources/quality-checklist.md`](resources/quality-checklist.md).
 
 ## Design Rules
 
@@ -184,7 +179,7 @@ Before finalizing, verify against both checklists in [`resources/quality-checkli
 
 ## Anti-Patterns
 
-→ Full detail: [`resources/anti-patterns.md`](resources/anti-patterns.md)
+→ **Full detail:** [`resources/anti-patterns.md`](resources/anti-patterns.md)
 
 **Critical anti-patterns:**
 
@@ -199,7 +194,7 @@ Before finalizing, verify against both checklists in [`resources/quality-checkli
 
 ## Best Practices
 
-→ Full detail: [`resources/best-practices.md`](resources/best-practices.md)
+→ **Full detail:** [`resources/best-practices.md`](resources/best-practices.md)
 
 **Key best practices:**
 
@@ -228,6 +223,8 @@ _Use this to verify the design process was followed correctly — before reviewi
 - [ ] Reduction is complete: no further merges are possible in the reduced table.
 - [ ] Every rule in the reduced table traces to one or more rules in the full table.
 - [ ] Every test case traces to a specific rule in the reduced table and to a specific requirement or BR.
+
+→ For the full **Process Quality Checklist** should be verified, see [`resources/quality-checklist.md`](resources/quality-checklist.md).
 
 ## Common Rationalizations to Reject
 

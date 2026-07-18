@@ -1,34 +1,35 @@
 # AI Audit Log — July 2026
 
-> **Last updated:** 2026-07-15T09:28:24+07:00
+> **Last updated:** 2026-07-15T20:53:00+07:00
 
 ## Monthly Statistics
 
 - **Period:** 2026-07-01 → 2026-07-15
-- **Total Interactions:** 7
-- **Models Used:** Gemini 3.1 Pro (High) (6), Claude Sonnet 4.6 (Thinking) (1)
+- **Total Interactions:** 11
+- **Models Used:** Gemini 3.1 Pro (High) (6), Claude Sonnet 4.6 (Thinking) (5)
 
 ### Status Breakdown
 
-| Status        | Count | %    |
-| ------------- | ----- | ---- |
-| ✅ VALID      | 7     | 100% |
-| ⚠️ PARTIAL    | 0     | 0%   |
-| 🔄 REVISED    | 0     | 0%   |
-| ❌ INVALID    | 0     | 0%   |
-| 🔲 INCOMPLETE | 0     | 0%   |
-| ⏳ PENDING    | 0     | 0%   |
-| **Total**     | **7** |      |
+| Status        | Count  | %   |
+| ------------- | ------ | --- |
+| ✅ VALID      | 10     | 91% |
+| ⚠️ PARTIAL    | 1      | 9%  |
+| 🔄 REVISED    | 0      | 0%  |
+| ❌ INVALID    | 0      | 0%  |
+| 🔲 INCOMPLETE | 0      | 0%  |
+| ⏳ PENDING    | 0      | 0%  |
+| **Total**     | **11** |     |
 
 ### Tag Breakdown
 
 | Tag             | Count |
 | --------------- | ----- |
+| `file-output`   | 8     |
+| `documentation` | 7     |
 | `devops`        | 5     |
-| `documentation` | 5     |
-| `file-output`   | 4     |
-| `design`        | 2     |
-| `planning`      | 2     |
+| `design`        | 4     |
+| `planning`      | 3     |
+| `testing`       | 2     |
 | `analysis`      | 1     |
 
 ### Quality Metrics
@@ -235,3 +236,113 @@ Clarified that backend changes DO trigger the admin test suite, quoting the rele
 | Reason   | The AI accurately analyzed its own generated code and correctly resolved the user's confusion regarding the triggers |
 | Revised  | No                                                                                                                   |
 | Revision | N/A                                                                                                                  |
+
+## [AI-AUDIT-008] 2026-07-15T19:50:53+07:00
+
+### Metadata
+
+- **Model:** Claude Sonnet 4.6 (Thinking)
+- **Tags:** `design` · `planning` · `file-output`
+- **Status:** ✅ VALID
+
+### Prompt
+
+```prompt
+/wat-spec SC-02
+```
+
+### Output
+
+- `docs/scenarios/SC-02/spec.md` — Created scenario specification Phase 1 (flow) for SC-02.
+
+### Evaluation
+
+| Field    | Detail                                                                                                                        |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Status   | ✅ VALID                                                                                                                      |
+| Reason   | AI successfully generated a complete and accurate Phase 1 scenario specification for SC-02 based on the provided requirements |
+| Revised  | No                                                                                                                            |
+| Revision | N/A                                                                                                                           |
+
+## [AI-AUDIT-009] 2026-07-15T20:27:46+07:00
+
+### Metadata
+
+- **Model:** Claude Sonnet 4.6 (Thinking)
+- **Tags:** `testing` · `documentation` · `file-output`
+- **Status:** ⚠️ PARTIAL
+
+### Prompt
+
+```prompt
+Tôi có thắc mắc tại sao bạn lại nhắc teardown trong beforeEach, chúng ta không dùng fixture hay sao
+```
+
+### Output
+
+- `docs/scenarios/SC-02/spec.md` — Fixed preconditions section to reference fixture-based cart cleanup instead of `beforeEach`.
+
+### Evaluation
+
+| Field    | Detail                                                                                                                                                    |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status   | ⚠️ PARTIAL                                                                                                                                                |
+| Reason   | AI incorrectly suggested using beforeEach for teardown instead of the agreed-upon fixture pattern. This was caught by the user and subsequently corrected |
+| Revised  | Yes                                                                                                                                                       |
+| Revision | Fixed spec to correctly specify the `emptyCart` fixture for pre-test isolation                                                                            |
+
+## [AI-AUDIT-010] 2026-07-15T20:31:57+07:00
+
+### Metadata
+
+- **Model:** Claude Sonnet 4.6 (Thinking)
+- **Tags:** `testing` · `design` · `file-output`
+- **Status:** ✅ VALID
+
+### Prompt
+
+```prompt
+APPROVED
+Tiếp tục thực hiện phase 2, tạo ra các nội dung đúng, đầy đủ và chi tiết nhất
+```
+
+### Output
+
+- `docs/scenarios/SC-02/spec.md` — Appended full Phase 2 test data matrix covering Domain Testing, Decision Table, and Error Guessing.
+
+### Evaluation
+
+| Field    | Detail                                                                                                                 |
+| -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Status   | ✅ VALID                                                                                                               |
+| Reason   | AI accurately applied functional test design techniques to generate a comprehensive Phase 2 test data matrix for SC-02 |
+| Revised  | No                                                                                                                     |
+| Revision | N/A                                                                                                                    |
+
+## [AI-AUDIT-011] 2026-07-15T20:36:26+07:00
+
+### Metadata
+
+- **Model:** Claude Sonnet 4.6 (Thinking)
+- **Tags:** `documentation` · `file-output`
+- **Status:** ✅ VALID
+
+### Prompt
+
+```prompt
+APPROVED
+Hãy update status và đợi tôi đưa ra yêu cầu tiếp theo
+```
+
+### Output
+
+- `docs/scenarios/SC-02/spec.md` — Updated spec status to APPROVED after Gate B human approval.
+
+### Evaluation
+
+| Field    | Detail                                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------ |
+| Status   | ✅ VALID                                                                                               |
+| Reason   | AI successfully updated the scenario specification status to APPROVED and awaited further instructions |
+| Revised  | No                                                                                                     |
+| Revision | N/A                                                                                                    |

@@ -4,7 +4,7 @@
 
 A decision table is a tabular representation of conditional logic that maps every meaningful combination of condition values to the corresponding set of actions (outcomes) the system must perform. It is a tool for both **specification** (clarifying requirements) and **test design** (deriving test cases).
 
-In software testing, Decision Table Testing is classified as a **black-box test design technique** in the ISTQB Foundation Level Syllabus (v4.0, Section 4.3). It is used when the system's behavior is determined by combinations of multiple conditions — not by a single condition in isolation.
+In software testing, Decision Table Testing is classified as a **black-box test design technique** in the ISTQB Foundation Level Syllabus. It is used when the system's behavior is determined by combinations of multiple conditions — not by a single condition in isolation.
 
 ## 2. Anatomy of a Decision Table
 
@@ -30,19 +30,14 @@ A standard decision table has four regions:
 - **Action entries:** Whether each action applies in each rule.
 - **Rules (columns):** Each column represents one unique combination of condition values — one rule maps to one test case.
 
-**ISTQB terminology note:**
-
-- ISTQB uses **"conditions"** and **"actions"** — not "causes" and "effects".
-- Both terminologies are used in industry but this skill uses ISTQB standard — conditions and actions.
-
 ## 3. Table Entry Types
 
 ### 3.1 Limited Entry Decision Table
 
-Condition values are restricted to binary values only: **True/False**, **Yes/No**, or **0/1**.
+Condition values are restricted to **binary values** only — **True/False**, **Yes/No**, or **0/1**.
 
 - Each condition has exactly 2 possible values
-- Total rules = **2ⁿ** where n = number of conditions
+- **Total rules = 2ⁿ** where n = number of conditions
 - Simplest form; most common in practice
 
 **Example:** 3 binary conditions → 2³ = 8 rules
@@ -51,8 +46,8 @@ Condition values are restricted to binary values only: **True/False**, **Yes/No*
 
 Condition values can be **multi-valued** (more than two possible states).
 
-- Each condition can take k values; total rules = **k₁ × k₂ × ... × kₙ**
-- Used when a condition has more than two meaningful states (e.g., account status = ACTIVE / SUSPENDED / CLOSED)
+- Each condition can take k values; **total rules = k₁ × k₂ × ... × kₙ**
+- Used when a condition has more than two meaningful states (e.g., account status = `ACTIVE` / `SUSPENDED` / `CLOSED`)
 - More expressive but generates more rules; reduction is especially important
 
 **Example:** 3 conditions with 2, 3, and 2 values → 2 × 3 × 2 = 12 rules
@@ -94,8 +89,8 @@ The **full decision table** (also called the unoptimized or expanded table) cont
 
 The **collapsed decision table** (also called the reduced or optimized table) is derived from the full table by:
 
-1. Removing impossible rules.
-2. Merging rules that produce the same actions and differ in exactly one condition (introducing Don't Care entries).
+1. Removing impossible rules
+2. Merging rules that produce the same actions and differ in exactly one condition (Don't Care entries)
 
 **Purpose:** The collapsed table is what drives test case derivation. Each remaining rule becomes one test case.
 
@@ -103,7 +98,7 @@ The **collapsed decision table** (also called the reduced or optimized table) is
 
 ## 6. Don't Care Conditions
 
-A **Don't Care** condition (notated as `—` or `N/A` or `*`) in a merged rule means: the value of this condition does not affect which actions apply for this rule.
+A **Don't Care** condition (notated as `—`) in a merged rule means: the value of this condition does not affect which actions apply for this rule.
 
 ### Formal Merging Criterion
 
@@ -132,12 +127,6 @@ An **impossible rule** is a rule where the combination of condition values canno
 - **Logically dependent conditions:** The value of one condition constrains the possible values of another (e.g., if account is CLOSED, balance cannot be > 0)
 - **Physical/domain constraints:** Real-world constraints that prevent a combination (e.g., a date of February 31st)
 
-### Important: Confirm Before Removing
-
-An impossible rule must be **confirmed as impossible with the stakeholder or business analyst before removal**. What appears logically impossible to the tester may be a legitimate edge case the system must handle (e.g., data migration scenarios, legacy records, API calls bypassing UI validation).
-
-Document the rationale for every impossible rule, even after removal.
-
 ## 8. Relationship to Other Techniques
 
 ### Decision Table + Equivalence Partitioning
@@ -146,9 +135,9 @@ When a condition involves a continuous range (e.g., "purchase amount"), use EP f
 
 **Example:** Instead of "Amount = any value", use EP to define:
 
-- Class A: amount < $50
-- Class B: $50 ≤ amount ≤ $100
-- Class C: amount > $100
+- **Class A:** amount < $50
+- **Class B:** $50 ≤ amount ≤ $100
+- **Class C:** amount > $100
 
 Then use A, B, C as the condition values in the table.
 

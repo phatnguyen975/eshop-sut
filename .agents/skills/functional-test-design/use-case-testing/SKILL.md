@@ -44,7 +44,7 @@ The technique systematically derives test cases by identifying all meaningful pa
 - `--file` mode requires a file-capable environment (e.g., claude.ai with computer tools enabled). If file tools are unavailable, AI will notify the user and fall back to conversation output.
 - The path in `--file` is the desired output location. If the file already exists, AI will ask before overwriting.
 - Both modes produce identical content — only the delivery differs.
-- `--file` can be combined with any input: `/use-case-testing --file="tests/online-purchase.md"` then paste the requirements.
+- `--file` can be combined with any input: `/use-case-testing --file="path/to/output.md"` then paste the requirements.
 
 ## When to Use
 
@@ -55,19 +55,19 @@ The technique systematically derives test cases by identifying all meaningful pa
 - When **integration between system components** needs to be exercised through a realistic actor journey.
 - As the primary technique for **acceptance testing** — verifying the system delivers the intended business value.
 
-**Key signal:** If the requirement describes _what an actor does step-by-step and what the system does in response_ — Use Case Testing is the right technique.
+**Key signal:** If the requirement describes _what an actor does step-by-step and what the system does in response_, Use Case Testing is the right technique.
 
 ## When NOT to Use
 
 - No use case specification or equivalent exists — use requirements cannot be mapped to actor-goal-flow structure → clarify requirements first.
-- The requirement describes **only input field constraints** with no multi-step interaction → use Domain Testing (EP/BVA) instead.
-- The requirement describes **combinations of simultaneous conditions** with no sequence → use Decision Table Testing instead.
-- The requirement describes **system state transitions over time** → use State Transition Testing instead.
+- The requirement describes **only input field constraints** with no multi-step interaction → use **Domain Testing** instead.
+- The requirement describes **combinations of simultaneous conditions** with no sequence → use **Decision Table Testing** instead.
+- The requirement describes **system state transitions over time** → use **State Transition Testing** instead.
 - **Do not** use Use Case Testing as a complete test strategy alone — combine with Domain Testing for input data selection within steps, and Error Guessing for additional negative paths.
 
 ## Inputs Required
 
-Before applying this skill:
+Before applying this skill, you must have:
 
 1. **Use Case Specification** (or equivalent) containing:
    - Use Case ID and Name
@@ -118,7 +118,7 @@ Produce a complete **Flow Inventory**:
 2. **Alternate Flows:** For each alternate flow:
    - Assign an ID (e.g., AF-1, AF-2, AF-3)
    - Identify the Main Flow step it branches from (e.g., "Branches from Step 2")
-   - Classify as: **Optional Flow** (valid but non-default path) or **Exception Flow** (error, rule violation, system failure)
+   - Classify as **Optional Flow** (valid but non-default path) or **Exception Flow** (error, rule violation, system failure)
    - Identify the endpoint: Rejoins Main Flow at step N / Terminates use case / Loops back
 3. **Discover hidden alternate flows:** Look for:
    - Every step in the Main Flow where the system performs a conditional action
@@ -199,10 +199,7 @@ For each test case, confirm:
 
 ### Step 7 — Review Against Quality Checklists
 
-Before finalizing, verify against both checklists in [`resources/quality-checklist.md`](resources/quality-checklist.md):
-
-- **Process Quality Checklist** — was the design methodology applied correctly?
-- **Test Case Quality Checklist** — are the resulting test cases correct, complete, and executable?
+Before finalizing, verify the test suite against the **Test Case Quality Checklist** in [`resources/quality-checklist.md`](resources/quality-checklist.md).
 
 ## Design Rules
 
@@ -219,7 +216,7 @@ Before finalizing, verify against both checklists in [`resources/quality-checkli
 
 ## Anti-Patterns
 
-→ Full detail: [`resources/anti-patterns.md`](resources/anti-patterns.md)
+→ **Full detail:** [`resources/anti-patterns.md`](resources/anti-patterns.md)
 
 **Critical anti-patterns:**
 
@@ -232,16 +229,16 @@ Before finalizing, verify against both checklists in [`resources/quality-checkli
 
 ## Best Practices
 
-→ Full detail: [`resources/best-practices.md`](resources/best-practices.md)
+→ **Full detail:** [`resources/best-practices.md`](resources/best-practices.md)
 
 **Key best practices:**
 
-- Validate the use case spec before designing tests — gaps in the spec become gaps in the test suite
-- Discover hidden alternate flows by asking "what if?" at every Main Flow step
-- Apply risk-based prioritization to the Scenario Matrix — not all alternate flow combinations need testing
-- Always verify all postconditions — use DB queries, log checks, and notification verification in test assertions
-- Use Domain Testing (EP/BVA) to select test data for each scenario's input steps — do not choose data arbitrarily
-- Maintain a Requirements Traceability Matrix (RTM) linking: BR → Use Case → Scenario → Test Case → Defect
+- Validate the use case spec before designing tests — gaps in the spec become gaps in the test suite.
+- Discover hidden alternate flows by asking "what if?" at every Main Flow step.
+- Apply risk-based prioritization to the Scenario Matrix — not all alternate flow combinations need testing.
+- Always verify all postconditions — use DB queries, log checks, and notification verification in test assertions.
+- Use Domain Testing (EP/BVA) to select test data for each scenario's input steps — do not choose data arbitrarily.
+- Maintain a Requirements Traceability Matrix (RTM) linking: BR → Use Case → Scenario → Test Case → Defect.
 
 ## Process Quality Checklist
 
@@ -259,6 +256,8 @@ _Use this to verify the design methodology was applied correctly._
 - [ ] Domain Testing (EP/BVA) applied to select test data for each data-entry step.
 - [ ] All postconditions from the use case spec have explicit test assertions (not just UI assertions).
 
+→ For the full **Process Quality Checklist** should be verified, see [`resources/quality-checklist.md`](resources/quality-checklist.md).
+
 ## Common Rationalizations to Reject
 
 - _"The happy path works — the alternate flows are obvious edge cases"_ → Alternate flows are where most production defects are found; "obvious" is not a testing criterion
@@ -271,11 +270,11 @@ _Use this to verify the design methodology was applied correctly._
 
 Stop and re-evaluate if you observe:
 
-- The Scenario Matrix has only one scenario (S1 = Main Flow) — alternate flows were not analyzed
-- A test case has no precondition or has "system is operational" as the precondition — not executable
-- Expected result is only "system shows success message" with no backend assertions — postconditions not verified
-- An alternate flow in the use case spec has zero corresponding scenarios — coverage gap
-- All test cases use the same test data — Domain Testing was not applied; specific paths may not be reliably triggered
+- The Scenario Matrix has only one scenario (S1 = Main Flow) — alternate flows were not analyzed.
+- A test case has no precondition or has "system is operational" as the precondition — not executable.
+- Expected result is only "system shows success message" with no backend assertions — postconditions not verified.
+- An alternate flow in the use case spec has zero corresponding scenarios — coverage gap.
+- All test cases use the same test data — Domain Testing was not applied; specific paths may not be reliably triggered.
 
 ## Output
 

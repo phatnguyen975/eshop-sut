@@ -6,8 +6,6 @@ This taxonomy provides a structured catalog of error categories to guide systema
 
 This taxonomy is not exhaustive — add domain-specific categories as needed. The goal is to ensure all major defect categories are considered, not to produce test cases for every item.
 
-**Usage:** During Step 3 of the design process, work through each top-level category. For each applicable sub-category, generate one or more error hypotheses specific to the feature under test.
-
 ## Category 1: Input Value Faults
 
 Defects triggered by specific input values that receive special handling (or fail to receive it).
@@ -204,7 +202,7 @@ Defects that only manifest in specific deployment configurations.
 
 Defects that enable unauthorized access, data exposure, or system compromise.
 
-_Note: Security testing is a specialized discipline. These are common entry points for Error Guessing; dedicated security testing techniques provide deeper coverage._
+**Note:** Security testing is a specialized discipline. These are common entry points for Error Guessing; dedicated security testing techniques provide deeper coverage.
 
 ### 7.1 Authentication and Authorization
 

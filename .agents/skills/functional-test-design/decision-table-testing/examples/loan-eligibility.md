@@ -23,7 +23,7 @@
 
 **Conditions identified:**
 
-- **Age (BR-101):** Under 18 vs 18 or older → binary
+- **Age (BR-101):** Under 18 vs 18 or older → binary → limited entry
 - **Employment status (BR-102):** Full-time / Part-time / Unemployed → 3 values → **extended entry**
 - **Credit score class (BR-103):** Good (≥700) / Fair (500–699) / Poor (<500) → 3 values → **extended entry** (EP pre-applied)
 
@@ -68,13 +68,13 @@
 
 **Total rules = 2 × 3 × 3 = 18 rules**
 
-Systematic fill: C1 alternates every 9, C2 alternates every 3, C3 alternates every 1.
-
 |                          | R1  | R2  | R3  | R4  | R5  | R6  | R7  | R8  | R9  | R10 | R11 | R12 | R13 | R14 | R15 | R16 | R17 | R18 |
 | ------------------------ | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| **C1 (Age)**             | U18 | U18 | U18 | U18 | U18 | U18 | U18 | U18 | U18 | 18+ | 18+ | 18+ | 18+ | 18+ | 18+ | 18+ | 18+ | 18+ |
-| **C2 (Employment)**      | FT  | FT  | FT  | PT  | PT  | PT  | UE  | UE  | UE  | FT  | FT  | FT  | PT  | PT  | PT  | UE  | UE  | UE  |
-| **C3 (Credit)**          | Gd  | Fr  | Po  | Gd  | Fr  | Po  | Gd  | Fr  | Po  | Gd  | Fr  | Po  | Gd  | Fr  | Po  | Gd  | Fr  | Po  |
+| **CONDITIONS**           |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| C1 (Age)                 | U18 | U18 | U18 | U18 | U18 | U18 | U18 | U18 | U18 | 18+ | 18+ | 18+ | 18+ | 18+ | 18+ | 18+ | 18+ | 18+ |
+| C2 (Employment)          | FT  | FT  | FT  | PT  | PT  | PT  | UE  | UE  | UE  | FT  | FT  | FT  | PT  | PT  | PT  | UE  | UE  | UE  |
+| C3 (Credit)              | Gd  | Fr  | Po  | Gd  | Fr  | Po  | Gd  | Fr  | Po  | Gd  | Fr  | Po  | Gd  | Fr  | Po  | Gd  | Fr  | Po  |
+| **ACTIONS**              |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
 | A1 (Approve Tier 2)      |     |     |     |     |     |     |     |     |     |  X  |     |     |     |     |     |     |     |     |
 | A2 (Approve Tier 1)      |     |     |     |     |     |     |     |     |     |     |  X  |     |  X  |  X  |     |     |     |     |
 | A3 (Reject: underage)    |  X  |  X  |  X  |  X  |  X  |  X  |  X  |  X  |  X  |     |     |     |     |     |     |     |     |     |
@@ -105,7 +105,7 @@ Systematic fill: C1 alternates every 9, C2 alternates every 3, C3 alternates eve
 - Age 18+ + Unemployed: possible (an adult can be unemployed)
 - No BR in the spec defines any two conditions as mutually exclusive
 
-**No Type 1 candidates** (nothing in the spec prohibits any combination).
+**No Type 1 candidates** (nothing in the spec prohibits any combination).  
 **No Type 2 candidates** — the combinations are not merely assumed-impossible; they are genuinely possible in reality.
 
 → **No impossible rules removed.**
@@ -118,24 +118,23 @@ The systematic approach checks **all pairs** across all three condition dimensio
 
 **Pairs differing only in C3:**
 
-| Rules      | C1  | C2       | C3       | Actions            | Same actions? | Merge?                 |
-| ---------- | --- | -------- | -------- | ------------------ | ------------- | ---------------------- |
-| R1 vs R2   | U18 | FT       | Gd vs Fr | {A3} vs {A3}       | ✓             | ✓ → **R1+R2** (C3=—)   |
-| R4 vs R5   | U18 | PT       | Gd vs Fr | {A3} vs {A3}       | ✓             | ✓ → **R4+R5** (C3=—)   |
-| R7 vs R8   | U18 | UE       | Gd vs Fr | {A3,A4} vs {A3,A4} | ✓             | ✓ → **R7+R8** (C3=—)   |
-| R13 vs R14 | 18+ | PT       | Gd vs Fr | {A2} vs {A2}       | ✓             | ✓ → **R13+R14** (C3=—) |
-| R16 vs R17 | 18+ | UE       | Gd vs Fr | {A4} vs {A4}       | ✓             | ✓ → **R16+R17** (C3=—) |
-| R3 vs R6   | U18 | FT vs PT | Po       | {A3,A5} vs {A3,A5} | ✓             | ✓ → **R3+R6** (C2=—)   |
+| Rules      | C1  | C2  | C3       | Actions            | Same actions? | Merge?                 |
+| ---------- | --- | --- | -------- | ------------------ | ------------- | ---------------------- |
+| R1 vs R2   | U18 | FT  | Gd vs Fr | {A3} vs {A3}       | ✓             | ✓ → **R1+R2** (C3=—)   |
+| R4 vs R5   | U18 | PT  | Gd vs Fr | {A3} vs {A3}       | ✓             | ✓ → **R4+R5** (C3=—)   |
+| R7 vs R8   | U18 | UE  | Gd vs Fr | {A3,A4} vs {A3,A4} | ✓             | ✓ → **R7+R8** (C3=—)   |
+| R13 vs R14 | 18+ | PT  | Gd vs Fr | {A2} vs {A2}       | ✓             | ✓ → **R13+R14** (C3=—) |
+| R16 vs R17 | 18+ | UE  | Gd vs Fr | {A4} vs {A4}       | ✓             | ✓ → **R16+R17** (C3=—) |
 
 **Pairs differing only in C2:**
 
-| Rules      | C1  | C2       | C3  | Actions            | Same actions? | Merge?                              |
-| ---------- | --- | -------- | --- | ------------------ | ------------- | ----------------------------------- |
-| R1 vs R4   | U18 | FT vs PT | Gd  | {A3} vs {A3}       | ✓             | ✓ (captured via cascading below)    |
-| R2 vs R5   | U18 | FT vs PT | Fr  | {A3} vs {A3}       | ✓             | ✓ (captured via cascading below)    |
-| R3 vs R6   | U18 | FT vs PT | Po  | {A3,A5} vs {A3,A5} | ✓             | ✓ → **R3+R6** (already found above) |
-| R11 vs R14 | 18+ | FT vs PT | Fr  | {A2} vs {A2}       | ✓             | ✓ → **R11+R14** (C2=—)              |
-| R12 vs R15 | 18+ | FT vs PT | Po  | {A5} vs {A5}       | ✓             | ✓ → **R12+R15** (C2=—)              |
+| Rules      | C1  | C2       | C3  | Actions            | Same actions? | Merge?                           |
+| ---------- | --- | -------- | --- | ------------------ | ------------- | -------------------------------- |
+| R1 vs R4   | U18 | FT vs PT | Gd  | {A3} vs {A3}       | ✓             | ✓ (captured via cascading below) |
+| R2 vs R5   | U18 | FT vs PT | Fr  | {A3} vs {A3}       | ✓             | ✓ (captured via cascading below) |
+| R3 vs R6   | U18 | FT vs PT | Po  | {A3,A5} vs {A3,A5} | ✓             | ✓ → **R3+R6** (C2=—)             |
+| R11 vs R14 | 18+ | FT vs PT | Fr  | {A2} vs {A2}       | ✓             | ✓ → **R11+R14** (C2=—)           |
+| R12 vs R15 | 18+ | FT vs PT | Po  | {A5} vs {A5}       | ✓             | ✓ → **R12+R15** (C2=—)           |
 
 **Pairs differing only in C1:** None share the same action set — U18 always adds A3 which 18+ rules do not have.
 
@@ -149,7 +148,7 @@ After Round 1, check whether any newly merged rules can be merged further.
 
 - Actions: {A3} vs {A3} ✓
 - Differ in C2 only (FT vs PT) ✓
-- → **VALID cascading merge → R1+R2+R4+R5 = (U18, —, —, {A3})**
+- **VALID cascading merge → R1+R2+R4+R5 = (U18, —, —, {A3})**
 - Rationale: Under-18 applicants with FT or PT employment and non-poor credit are ALL rejected for age only, regardless of employment type or credit class. C2 and C3 are both Don't Care.
 
 **R3+R6 = (U18, —, Po, {A3,A5}) vs R7+R8 = (U18, UE, —, {A3,A4}):**
@@ -159,7 +158,7 @@ After Round 1, check whether any newly merged rules can be merged further.
 **R11+R14 = (18+, —, Fr, {A2}) vs R13+R14 = (18+, PT, —, {A2}):**
 
 - These two merged rules both have {A2} but differ in two dimensions (C2 and C3) simultaneously — they do not form a simple rectangular block. Cannot merge further.
-- Note: R14 is covered by both R11+R14 and R13+R14. This is valid — R14 is redundantly covered, which is acceptable. Both merged rules are kept for completeness.
+- **Note:** R14 is covered by both R11+R14 and R13+R14. This is valid — R14 is redundantly covered, which is acceptable. Both merged rules are kept for completeness.
 
 **R12+R15 = (18+, —, Po, {A5}) vs R18 = (18+, UE, Po, {A4,A5}):**
 
@@ -175,19 +174,21 @@ All remaining rules checked — no additional valid pairs exist. Reduction is co
 
 **10 rules** after full reduction (18 → 10):
 
-|                          | **R1+R2+R4+R5** | **R3+R6** | **R7+R8** | **R9** | **R10** | **R11+R14** | **R12+R15** | **R13+R14** | **R16+R17** | **R18** |
-| ------------------------ | :-------------: | :-------: | :-------: | :----: | :-----: | :---------: | :---------: | :---------: | :---------: | :-----: |
-| **C1 (Age)**             |       U18       |    U18    |    U18    |  U18   |   18+   |     18+     |     18+     |     18+     |     18+     |   18+   |
-| **C2 (Employment)**      |        —        |     —     |    UE     |   UE   |   FT    |      —      |      —      |     PT      |     UE      |   UE    |
-| **C3 (Credit)**          |        —        |    Po     |     —     |   Po   |   Gd    |     Fr      |     Po      |      —      |      —      |   Po    |
-| A1 (Approve T2)          |                 |           |           |        |    X    |             |             |             |             |         |
-| A2 (Approve T1)          |                 |           |           |        |         |      X      |             |      X      |             |         |
-| A3 (Reject: underage)    |        X        |     X     |     X     |   X    |         |             |             |             |             |         |
-| A4 (Reject: unemployed)  |                 |           |     X     |   X    |         |             |             |             |      X      |    X    |
-| A5 (Reject: poor credit) |                 |     X     |           |   X    |         |             |      X      |             |             |    X    |
-| **Covers**               |   R1,R2,R4,R5   |   R3,R6   |   R7,R8   |   R9   |   R10   |   R11,R14   |   R12,R15   |  R13,R14\*  |   R16,R17   |   R18   |
+|                          |  R1+R2+R4+R5   | R3+R6  | R7+R8  | R9  | R10 | R11+R14  | R12+R15  | R13+R14  | R16+R17  | R18 |
+| ------------------------ | :------------: | :----: | :----: | :-: | :-: | :------: | :------: | :------: | :------: | :-: |
+| **CONDITIONS**           |                |        |        |     |     |          |          |          |          |     |
+| C1 (Age)                 |      U18       |  U18   |  U18   | U18 | 18+ |   18+    |   18+    |   18+    |   18+    | 18+ |
+| C2 (Employment)          |       —        |   —    |   UE   | UE  | FT  |    —     |    —     |    PT    |    UE    | UE  |
+| C3 (Credit)              |       —        |   Po   |   —    | Po  | Gd  |    Fr    |    Po    |    —     |    —     | Po  |
+| **ACTIONS**              |                |        |        |     |     |          |          |          |          |     |
+| A1 (Approve T2)          |                |        |        |     |  X  |          |          |          |          |     |
+| A2 (Approve T1)          |                |        |        |     |     |    X     |          |    X     |          |     |
+| A3 (Reject: underage)    |       X        |   X    |   X    |  X  |     |          |          |          |          |     |
+| A4 (Reject: unemployed)  |                |        |   X    |  X  |     |          |          |          |    X     |  X  |
+| A5 (Reject: poor credit) |                |   X    |        |  X  |     |          |    X     |          |          |  X  |
+| **Covers full rules**    | R1, R2, R4, R5 | R3, R6 | R7, R8 | R9  | R10 | R11, R14 | R12, R15 | R13, R14 | R16, R17 | R18 |
 
-- R14 is covered by both R11+R14 and R13+R14 — redundant coverage is acceptable.
+_R14 is covered by both R11+R14 and R13+R14 — redundant coverage is acceptable._
 
 **Don't Care rationale:**
 
@@ -225,8 +226,6 @@ One test case per reduced rule. Rules with Don't Care conditions require a concr
 | TC-09 | Adult, unemployed, non-poor credit — rejected for unemployment       | R16+R17     | 18+ | UE   | Gd\* | REJECTED: unemployed                                            | BR-102                 |
 | TC-10 | Adult, unemployed, poor credit — rejected unemployment + poor credit | R18         | 18+ | UE   | Po   | REJECTED: unemployed + poor credit score                        | BR-102, BR-103         |
 
-- Don't Care value choices documented below.
-
 **Don't Care value notes:**
 
 | TC ID | Don't Care Condition | Chosen Value | Rationale                                                                                                                                |
@@ -244,25 +243,25 @@ One test case per reduced rule. Rules with Don't Care conditions require a concr
 
 ### Process Quality Checklist
 
-- [x] All conditions identified: Age (binary), Employment (3 values), Credit (3 values with EP applied)
-- [x] Implied conditions covered: "18 or older" complement (Under 18)
-- [x] All actions identified including multiple simultaneous rejections per BR-105
-- [x] Spec gap (part-time + good credit tier resolution) confirmed with BA before construction
-- [x] Full table built first: 18 rules, confirmed 2 × 3 × 3 = 18
-- [x] No impossible rules — all 18 combinations can realistically occur (Type 1 and Type 2 analysis performed)
-- [x] Merge analysis performed systematically across all three condition dimensions (C1, C2, C3) — not C3 only
-- [x] 9 merges verified across 2 rounds: Round 1 (8 direct merges) + Round 2 (1 cascading merge)
-- [x] Don't Care rationale documented for all 7 merged rules with scope limitations noted (e.g., "FT/PT only — UE excluded")
-- [x] Post-reduction coverage check: all 18 full rules covered by exactly one reduced rule (R14 covered by two merged rules — redundant coverage documented and acceptable)
-- [x] Full table: 18 rules → Reduced: 10 rules
+- [x] All conditions identified: Age (binary), Employment (3 values), Credit (3 values with EP applied).
+- [x] Implied conditions covered: "18 or older" complement (Under 18).
+- [x] All actions identified including multiple simultaneous rejections per BR-105.
+- [x] Spec gap (part-time + good credit tier resolution) confirmed with BA before construction.
+- [x] Full table built first: 18 rules, confirmed 2 × 3 × 3 = 18.
+- [x] No impossible rules — all 18 combinations can realistically occur (Type 1 and Type 2 analysis performed).
+- [x] Merge analysis performed systematically across all three condition dimensions (C1, C2, C3) — not C3 only.
+- [x] 9 merges verified across 2 rounds: Round 1 (8 direct merges) + Round 2 (1 cascading merge).
+- [x] Don't Care rationale documented for all 7 merged rules with scope limitations noted (e.g., "FT/PT only — UE excluded").
+- [x] Post-reduction coverage check: all 18 full rules covered by exactly one reduced rule (R14 covered by two merged rules — redundant coverage documented and acceptable).
+- [x] Full table: 18 rules → Reduced: 10 rules.
 
 ### Test Case Quality Checklist
 
-- [x] All 10 reduced rules have exactly one test case
-- [x] Every action (A1–A5) appears in at least one test case
-- [x] All expected results specify decision (APPROVED/REJECTED) and specific reason(s)
-- [x] Don't Care values chosen with documented rationale for all 8 applicable cases
-- [x] No duplicate input combinations in final suite
+- [x] All 10 reduced rules have exactly one test case.
+- [x] Every action (A1–A5) appears in at least one test case.
+- [x] All expected results specify decision (APPROVED/REJECTED) and specific reason(s).
+- [x] Don't Care values chosen with documented rationale for all 8 applicable cases.
+- [x] No duplicate input combinations in final suite.
 
 ## Coverage Summary
 
@@ -283,6 +282,6 @@ One test case per reduced rule. Rules with Don't Care conditions require a concr
 
 **Coverage metrics:**
 
-- Full rules: 18 → Reduced rules: **10** (44% reduction)
-- Test cases: **10** (reduced from the naive 18)
-- All actions covered: A1 ✓ (TC-05), A2 ✓ (TC-06, TC-08), A3 ✓ (TC-01–04), A4 ✓ (TC-03, TC-04, TC-09, TC-10), A5 ✓ (TC-02, TC-04, TC-07, TC-10)
+- **Full rules:** 18 → **Reduced rules:** 10 (44% reduction)
+- **Test cases:** 10 (reduced from the naive 18)
+- **All actions covered:** A1 ✓ (TC-05), A2 ✓ (TC-06, TC-08), A3 ✓ (TC-01–04), A4 ✓ (TC-03, TC-04, TC-09, TC-10), A5 ✓ (TC-02, TC-04, TC-07, TC-10)

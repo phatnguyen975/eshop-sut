@@ -154,7 +154,7 @@ BR-001, BR-003 → Full table rules R1–R8 → Reduced rules R3+4, R5, R6, R7, 
 
 ## BP-09: Choose Revealing Test Data for Don't Care Conditions
 
-**Practice:** When a test case includes a Don't Care condition (—), choose the concrete test data value for that condition carefully — pick the value most likely to expose a defect if the condition unexpectedly matters.
+**Practice:** When a test case includes a Don't Care condition (`—`), choose the concrete test data value for that condition carefully — pick the value most likely to expose a defect if the condition unexpectedly matters.
 
 **Why:** Don't Care means the condition _should not_ affect the outcome. But if the implementation is wrong, it might. Choosing a revealing value maximizes the chance of catching such defects.
 

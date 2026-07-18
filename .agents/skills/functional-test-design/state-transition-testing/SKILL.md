@@ -15,7 +15,8 @@ description: >
 
 ## Overview
 
-**State Transition Testing** is a black-box test design technique for systems where the **output depends not only on the current input but also on the system's prior history** — i.e., its current state. The system is modeled as a **Finite State Machine (FSM)**: a set of states, events that trigger transitions between states, guard conditions that qualify transitions, and actions (observable outputs) produced during transitions.
+**State Transition Testing** is a black-box test design technique for systems where the **output depends not only on the current input but also on the system's prior history** — i.e., its current state. The system is modeled as a **Finite State Machine (FSM)** —
+a set of states, events that trigger transitions between states, guard conditions that qualify transitions, and actions (observable outputs) produced during transitions.
 
 **Core purpose:** Systematically derive test cases that cover all meaningful paths through a system's state space — including paths the system should correctly reject — ensuring no state, transition, or invalid combination is left untested.
 
@@ -44,7 +45,7 @@ The technique produces two complementary artifacts before any test cases are wri
 - `--file` mode requires a file-capable environment (e.g., claude.ai with computer tools enabled). If file tools are unavailable, AI will notify the user and fall back to conversation output.
 - The path in `--file` is the desired output location. If the file already exists, AI will ask before overwriting.
 - Both modes produce identical content — only the delivery differs.
-- `--file` can be combined with any input: `/state-transition-testing --file="tests/order-lifecycle.md"` then paste the requirements.
+- `--file` can be combined with any input: `/state-transition-testing --file="path/to/output.md"` then paste the requirements.
 
 ## When to Use
 
@@ -92,9 +93,9 @@ Follow these steps sequentially. Do not skip any steps.
 
 Parse all requirements, BRs, and user stories. Extract:
 
-- **States:** Distinguishable conditions in which the system can exist. **Look for:** status fields (ACTIVE, SUSPENDED), lifecycle stages (Draft, Submitted, Approved), named phases (Logged Out, Logged In, Locked). Exclude intermediate processing steps that are not observable.
+- **States:** Distinguishable conditions in which the system can exist. **Look for:** status fields (`ACTIVE`, `SUSPENDED`), lifecycle stages (Draft, Submitted, Approved), named phases (Logged Out, Logged In, Locked). Exclude intermediate processing steps that are not observable.
 - **Events:** Triggers that cause the system to evaluate and potentially change state. **Look for:** user actions (Submit, Cancel, Pay), system triggers (timeout, scheduled job), external inputs (payment gateway response).
-- **Guard Conditions:** Boolean rules that qualify when an event causes a specific transition. **Format:** `[condition]`. **Look for:** "only if", "provided that", "when balance > 0".
+- **Guard Conditions:** Boolean rules that qualify when an event causes a specific transition. **Format:** `[condition]`. **Look for:** "only if", "provided that", "when".
 - **Actions:** Observable outputs produced during a transition. **Look for:** messages displayed, records updated, emails sent, redirect targets.
 - **Initial State and Final State(s):**
   - The **initial pseudostate** (not a real state) defines where the FSM starts. The first real state is the one entered from the initial pseudostate.
@@ -108,12 +109,12 @@ Document findings in the **FSM Component List** before drawing anything.
 
 Build the visual model of the FSM:
 
-1. Draw each state as a node (circle or rectangle)
-2. Mark the initial pseudostate (solid filled circle → arrow → first state)
-3. Mark final states (double-bordered node or bullseye symbol)
-4. Draw directed arrows for each valid transition, labeled: `Event [Guard] / Action`
-5. Include self-transitions (reflexive transitions) where applicable — an event that returns the system to the same state it is already in
-6. **Verify:** every state is reachable from the initial state; every non-final state has at least one outgoing transition
+1. Draw each state as a node (circle or rectangle).
+2. Mark the initial pseudostate (solid filled circle → arrow → first state).
+3. Mark final states (double-bordered node or bullseye symbol).
+4. Draw directed arrows for each valid transition, labeled: `Event [Guard] / Action`.
+5. Include self-transitions (reflexive transitions) where applicable — an event that returns the system to the same state it is already in.
+6. Verify that every state is reachable from the initial state; every non-final state has at least one outgoing transition.
 
 In text/Markdown environments, represent the STD as a **labeled transition list** or **Mermaid diagram** (primarily used). The STD must be reviewed with stakeholders before proceeding.
 
@@ -127,7 +128,7 @@ Build the exhaustive analytical grid:
 2. Columns = every unique event identified across all states
 3. Each cell = the result of applying that event in that state:
    - **Valid transition:** destination state + action
-   - **Invalid transition:** mark as `N/A` or `—` with expected system response (error message, no-op, rejection)
+   - **Invalid transition:** mark as `—` with expected system response (error message, no-op, rejection)
 4. **Verify:** cell count = number of states × number of events; no cell left blank or undefined
 
 The STT exposes all **invalid transitions** — combinations the diagram does not show because they are not valid paths, but which the system must still handle gracefully.
@@ -155,20 +156,17 @@ Choose the coverage target based on risk and context:
 Translate each test path into one executable test case:
 
 - **Precondition:** The exact state the system must be in before the test begins. This is mandatory — a test case without a precondition is not executable.
-- **Steps:** The sequence of events to trigger, in order, including any required input data per event
-- **Expected result per step:** The observable action (output, message, state change) after each event — not just the final state
-- **Postcondition:** The state the system should be in after the test completes
-- **Validity:** Whether this test case exercises a valid path (positive) or an invalid transition (negative)
-- **Coverage:** Which transitions (or transition pairs for N-switch) this test case covers
+- **Steps:** The sequence of events to trigger, in order, including any required input data per event.
+- **Expected result per step:** The observable action (output, message, state change) after each event — not just the final state.
+- **Postcondition:** The state the system should be in after the test completes.
+- **Validity:** Whether this test case exercises a valid path (positive) or an invalid transition (negative).
+- **Coverage:** Which transitions (or transition pairs for N-switch) this test case covers.
 
 → Use [`resources/output-template.md`](resources/output-template.md) for the recommended test case format.
 
 ### Step 6 — Review Against Quality Checklists
 
-Before finalizing, verify against both checklists in [`resources/quality-checklist.md`](resources/quality-checklist.md):
-
-- **Process Quality Checklist** — was the design methodology applied correctly?
-- **Test Case Quality Checklist** — are the resulting test cases correct, complete, and executable?
+Before finalizing, verify the test suite against the **Test Case Quality Checklist** in [`resources/quality-checklist.md`](resources/quality-checklist.md).
 
 ## Design Rules
 
@@ -203,13 +201,13 @@ Before finalizing, verify against both checklists in [`resources/quality-checkli
 
 **Key best practices:**
 
-- Always **review the STD with the team** (developer + PO + QA) before proceeding — the diagram is a specification tool, not just a testing tool
-- Use **path optimization**: design test paths that traverse multiple transitions in one journey; this is more efficient and closer to real user behavior
-- **Combine All Transitions + Invalid Transitions coverage** as the minimum baseline for functional testing — 0-switch alone is insufficient
-- For range-based events (e.g., "Withdraw [Amount <= Balance]"), combine with EP/BVA to select specific test data values within each guard condition class
-- **Label every transition completely**: Event, Guard Condition (if any), and Action — partial labels produce ambiguous test cases
-- Always specify **expected intermediate states and actions**, not just the final state — defects often occur during the transition, not at the destination
-- Document **why** specific invalid transitions exist — rationale enables accurate error message verification
+- Always **review the STD with the team** (developer + PO + QA) before proceeding — the diagram is a specification tool, not just a testing tool.
+- Use **path optimization**: design test paths that traverse multiple transitions in one journey; this is more efficient and closer to real user behavior.
+- **Combine All Transitions + Invalid Transitions coverage** as the minimum baseline for functional testing — 0-switch alone is insufficient.
+- For range-based events (e.g., "Withdraw [Amount <= Balance]"), combine with EP/BVA to select specific test data values within each guard condition class.
+- **Label every transition completely**: Event, Guard Condition (if any), and Action — partial labels produce ambiguous test cases.
+- Always specify **expected intermediate states and actions**, not just the final state — defects often occur during the transition, not at the destination.
+- Document **why** specific invalid transitions exist — rationale enables accurate error message verification.
 
 ## Process Quality Checklist
 
@@ -229,6 +227,8 @@ _Use this to verify the design methodology was applied correctly — before revi
 - [ ] Test paths optimized — multiple transitions covered per test case where possible.
 - [ ] Every test case has an explicit precondition (starting state).
 - [ ] STD reviewed with at least one stakeholder (PO, developer, or BA) before test case derivation.
+
+→ For the full **Process Quality Checklist** should be verified, see [`resources/quality-checklist.md`](resources/quality-checklist.md).
 
 ## Common Rationalizations to Reject
 

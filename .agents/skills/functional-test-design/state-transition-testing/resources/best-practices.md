@@ -26,9 +26,7 @@
 
 **Why:** The STT confirms which state × event combination to test. It does not specify the exact data value within the guard condition range. EP/BVA selects the most revealing values — the boundary points where guard evaluation defects concentrate.
 
-**Example:** For `Withdraw [Amount ≤ Balance]` with Balance = $100:
-
-- **BVA test data:** Amount = $100 (exact boundary, valid), Amount = $100.01 (just over, triggers invalid path), Amount = $50 (nominal valid), Amount = $0 (lower boundary valid).
+**Example:** For `Withdraw [Amount ≤ Balance]` with Balance = $100: Amount = $100 (exact boundary, valid), Amount = $100.01 (just over, triggers invalid path), Amount = $50 (nominal valid), Amount = $0 (lower boundary valid).
 
 ## BP-05: Specify Expected Intermediate Actions, Not Just Final State
 

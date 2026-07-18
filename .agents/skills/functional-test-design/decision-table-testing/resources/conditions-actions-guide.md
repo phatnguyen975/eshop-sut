@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This guide covers how to correctly identify conditions and actions from requirements — the most critical and error-prone step in Decision Table Testing. A wrong or incomplete set of conditions/actions produces a wrong table regardless of how well the remaining steps are executed.
+This guide covers how to correctly identify conditions and actions from requirements — the most critical and error-prone step in Decision Table Testing. A wrong or incomplete set of conditions/actions produces a wrong table regardless of how well the remaining steps are executed. Use during **Step 1** of the design process.
 
-Use during **Step 1** of the design process.
+→ Use [`output-template.md`](output-template.md) for the recommended format.
 
 ## What Is a Condition?
 
@@ -41,8 +41,6 @@ An **action** is a dependent outcome — a behavior the system performs as a res
 - "[X] is not permitted/allowed..." → prohibition of X is an action (or constrains a condition)
 
 ## Identifying Implied Conditions
-
-Requirements are rarely complete. A critical QA responsibility is to identify conditions that are **implied but not explicitly stated**.
 
 ### Pattern 1: The Implicit Negative
 
@@ -103,7 +101,13 @@ A requirement assumes a precondition that must also be modeled as a condition.
 
 When no action is triggered, that itself is an action that must be documented.
 
-**Example:** Rules 7 and 8 in a discount table might result in "0% discount" — this must be explicitly stated as an action ("Apply 0% discount" or "No discount applied"), not left as a blank row.
+**Example:** Consider a discount system with two conditions: "Is new customer?" (T/F) and "Has coupon?" (T/F). The requirements state:
+
+> "New customers receive a 15% discount. Customers with a valid coupon receive a 20% discount."
+
+The requirements describe 2 actions (A1: 15% discount, A2: 20% coupon discount) but are silent about the case where the customer is neither new nor holds a coupon (C1=False AND C2=False). This combination is valid — it can and will occur — but no action is explicitly defined for it.
+
+The no-op outcome must be explicitly stated as an action: "Apply 0% discount; order total unchanged." Without this, the table has a blank action row for this rule, which is ambiguous during test execution — the tester cannot distinguish between "no discount is correct" and "the system failed to apply a discount."
 
 ### Pattern 2: The Error/Rejection Action
 
@@ -198,24 +202,3 @@ A frequent mistake is confusing **conditions** (categories of behavior) with **t
 | Test Data | Purchase amount: $75.00 (Medium class representative) | Specific value used in execution        |
 
 Conditions belong in the decision table. Test data is chosen during test case derivation (Step 4), after the table is built and reduced.
-
-## Output of Step 1: Conditions and Actions List
-
-Before building the table, document:
-
-**Conditions Table:**
-
-| Condition ID | Description               | Possible Values | Source (Req/BR) | Mutual Exclusion Notes          |
-| ------------ | ------------------------- | --------------- | --------------- | ------------------------------- |
-| C1           | Customer is new           | True / False    | BR-001          | Mutually exclusive with C2=True |
-| C2           | Customer has loyalty card | True / False    | BR-002          | Mutually exclusive with C1=True |
-| C3           | Customer has coupon       | True / False    | BR-003          | —                               |
-
-**Actions Table:**
-
-| Action ID | Description                     | Observable Outcome         | Source (Req/BR) |
-| --------- | ------------------------------- | -------------------------- | --------------- |
-| A1        | Apply 15% new customer discount | Order total reduced by 15% | BR-001          |
-| A2        | Apply 10% loyalty discount      | Order total reduced by 10% | BR-002          |
-| A3        | Apply 20% coupon discount       | Order total reduced by 20% | BR-003          |
-| A4        | Apply 0% discount               | Order total unchanged      | Implied default |

@@ -4,6 +4,8 @@
 
 Step-by-step procedures for reducing the full decision table into the collapsed (optimized) table. Use during **Step 3** of the design process.
 
+→ Use [`output-template.md`](output-template.md) for the recommended format.
+
 ## Overview of Reduction
 
 Table reduction has two operations, applied in sequence:
@@ -45,56 +47,15 @@ For Type 2, **Stakeholder confirmation is mandatory before removal.** What appea
 
 ### Decision Procedure
 
-**Step 1:** Review each rule in the full table. For each rule, ask: "Can this specific combination of condition values actually occur in the system?"
-
-**Step 2:** For every candidate impossible rule, classify it:
-
-- **Type 1:** Is the impossibility directly proven by a specific BR or spec statement? → cite the source; proceed to Step 4 without confirmation
-- **Type 2:** Is the impossibility an inference or assumption not explicitly in the spec? → confirmation required; proceed to Step 3
-
-**Step 3 (Type 2 only):** Confirm with a stakeholder (product owner, business analyst, or developer). Ask explicitly: "Can this combination [C1=X AND C2=Y] ever occur — through any path, including admin tools, API calls, data migration, or legacy data?" Document: who confirmed, when, and what was said.
-
-**Step 4:** Mark the rule as `IMPOSSIBLE` in the table with its type and rationale:
-
-- Type 1: `IMPOSSIBLE (Type 1) — proven by BR-[N]: "[quote or reference]"`
-- Type 2: `IMPOSSIBLE (Type 2) — confirmed by [Name], [Date]: "[summary]"`
-
-Do not remove from the table yet — keep visible for review.
-
-**Step 5:** After all impossible rules are classified and Type 2 rules are confirmed, remove them from the working table. Keep a copy of the full table with all impossible rules marked for traceability.
-
-### Examples
-
-**Type 1 — No confirmation needed**
-
-**Conditions:**
-
-- **C1:** Customer is a new customer (T/F)
-- **C2:** Customer has a loyalty card (T/F)
-
-**BR-001 states:** _"A loyalty card is issued only to customers who have completed at least one prior purchase. New customers have no prior purchases."_
-
-**Impossible rule:** C1=T AND C2=T
-
-- **Type:** Type 1
-- **Rationale:** BR-001 defines "new customer" as having no prior purchases; a loyalty card requires prior purchases — these are mutually exclusive by definition in the spec.
-- **Source:** BR-001
-- **Confirmation needed:** No
-
-**Type 2 — Confirmation required**
-
-**Conditions:**
-
-- **C1:** Order status = CANCELLED (T/F)
-- **C2:** Payment = SUCCEEDED (T/F)
-
-The tester believes C1=T AND C2=T is impossible — a cancelled order shouldn't have a succeeded payment.
-
-- **Type:** Type 2
-- **Rationale:** The spec does not explicitly prohibit this combination. It could occur via: a race condition where payment is processed after cancellation, an admin override, or a data migration from a legacy system.
-- **Action:** Confirm with stakeholder before marking impossible.
-- **After confirmation from PO (Jane Smith, 2026-07-09):** _"This combination should never occur in the new system, but legacy data may contain it. We will add a backend constraint. Mark as impossible for new system testing only."_
-- Confirmed as impossible for new system scope; document scope limitation.
+1. Review each rule in the full table. For each rule, ask: "Can this specific combination of condition values actually occur in the system?"
+2. For every candidate impossible rule, classify it:
+   - **Type 1:** Is the impossibility directly proven by a specific BR or spec statement? → cite the source; proceed to Step 4 without confirmation
+   - **Type 2:** Is the impossibility an inference or assumption not explicitly in the spec? → confirmation required; proceed to Step 3
+3. **(Type 2 only)** Confirm with a stakeholder (product owner, business analyst, or developer). Ask explicitly: "Can this combination [C1=X AND C2=Y] ever occur — through any path, including admin tools, API calls, data migration, or legacy data?" Document: who confirmed, when, and what was said.
+4. Mark the rule as `IMPOSSIBLE` in the table with its type and rationale:
+   - **Type 1:** `IMPOSSIBLE (Type 1) — proven by BR-[N]: "[quote or reference]"`
+   - **Type 2:** `IMPOSSIBLE (Type 2) — confirmed by [Name], [Date]: "[summary]"`
+5. After all impossible rules are classified and Type 2 rules are confirmed, remove them from the working table. Keep a copy of the full table with all impossible rules marked for traceability.
 
 ## Operation 2: Merging Rules via Don't Care
 
@@ -114,90 +75,26 @@ If both criteria are satisfied: merge the two rules into one. Replace the differ
 
 ### Merging Procedure
 
-**Step 1:** Scan the table for pairs of rules that satisfy both criteria.
-
-**Step 2:** For each valid pair, verify:
-
-- List the actions in R₁: [A1, A3]
-- List the actions in R₂: [A1, A3]
-- Are they identical? Yes → proceed
-- Which condition differs? C3 (T in R₁, F in R₂) → C3 becomes Don't Care
-
-**Step 3:** Create the merged rule:
-
-- All conditions same as R₁/R₂ except the differing one → replace with `—`
-- Actions: same as both R₁ and R₂ (they are identical)
-- Label: "R₁+R₂" or renumber as appropriate
-- Document: "C3 is Don't Care because A1+A3 apply regardless of C3 value"
-
-**Step 4:** Remove R₁ and R₂ from the table. Add the merged rule.
-
-**Step 5:** Check if the merged rule is now eligible for further merging with another rule. Apply iteratively.
-
-**Step 6:** Stop when no further valid merges are possible.
-
-### Worked Example
-
-Full table after removing impossible rules (5 remaining rules):
-
-| Condition   | R3  | R4  | R5  | R6  | R7  | R8  |
-| ----------- | --- | --- | --- | --- | --- | --- |
-| C1 (New)    | T   | T   | F   | F   | F   | F   |
-| C2 (Loyal)  | F   | F   | T   | T   | F   | F   |
-| C3 (Coupon) | T   | F   | T   | F   | T   | F   |
-| **Actions** |     |     |     |     |     |     |
-| A1 (15%)    | X   | X   |     |     |     |     |
-| A2 (10%)    |     |     | X   | X   |     |     |
-| A3 (20%)    |     |     | X   |     | X   |     |
-| A4 (0%)     |     |     |     |     |     | X   |
-
-**Check R3 vs R4:**
-
-- Actions R3: {A1} — Actions R4: {A1} ✓ Same
-- Conditions differ: only C3 (T vs F) ✓ Exactly one
-- → **Valid merge.** C3 becomes Don't Care. New rule: R3+4
-
-**Check R5 vs R6:**
-
-- Actions R5: {A2, A3} — Actions R6: {A2} ✗ Different
-- → Invalid merge.
-
-**Check R5 vs R7:**
-
-- Actions R5: {A2, A3} — Actions R7: {A3} ✗ Different
-- → Invalid merge.
-
-**Check R6 vs R8:**
-
-- Actions R6: {A2} — Actions R8: {A4} ✗ Different
-- → Invalid merge.
-
-**Check R7 vs R8:**
-
-- Actions R7: {A3} — Actions R8: {A4} ✗ Different
-- → Invalid merge.
-
-No further merges possible. Reduced table:
-
-| Condition            | R3+4                                                       | R5  | R6  | R7  | R8  |
-| -------------------- | ---------------------------------------------------------- | --- | --- | --- | --- |
-| C1 (New)             | T                                                          | F   | F   | F   | F   |
-| C2 (Loyal)           | F                                                          | T   | T   | F   | F   |
-| C3 (Coupon)          | —                                                          | T   | F   | T   | F   |
-| A1 (15%)             | X                                                          |     |     |     |     |
-| A2 (10%)             |                                                            | X   | X   |     |     |
-| A3 (20%)             |                                                            | X   |     | X   |     |
-| A4 (0%)              |                                                            |     |     |     | X   |
-| Covers               | R3,R4                                                      | R5  | R6  | R7  | R8  |
-| Don't Care rationale | C3 irrelevant for new customers (BR-003 blocks coupon+new) | —   | —   | —   | —   |
-
-**Result:** Reduced from 6 rules to 5 rules (only one merge was valid).
+1. Scan the table for pairs of rules that satisfy both criteria.
+2. For each valid pair, verify:
+   - List the actions in R₁: [A1, A3]
+   - List the actions in R₂: [A1, A3]
+   - Are they identical? Yes → proceed
+   - Which condition differs? C3 (T in R₁, F in R₂) → C3 becomes Don't Care
+3. Create the merged rule:
+   - All conditions same as R₁/R₂ except the differing one → replace with `—`
+   - Actions: same as both R₁ and R₂ (they are identical)
+   - Label: "R₁+R₂" or renumber as appropriate
+   - Document: "C3 is Don't Care because A1+A3 apply regardless of C3 value"
+4. Remove R₁ and R₂ from the table. Add the merged rule.
+5. Check if the merged rule is now eligible for further merging with another rule. Apply iteratively.
+6. Stop when no further valid merges are possible.
 
 ## Verification After Reduction
 
 After completing reduction, verify:
 
-- **Coverage check:** Every rule in the full table (excluding impossibles) must be covered by exactly one rule in the reduced table. A rule with `Don't Care=—` covers all original rules where that condition was `T` and where it was `F`.
+- **Coverage check:** Every rule in the full table (excluding impossibles) must be covered by exactly one rule in the reduced table. A rule with Don't Care (`—`) covers all original rules where that condition was T and where it was F.
 - **Count check:**
   - Full table: `2ⁿ` rules
   - Minus impossible rules: `N` rules removed

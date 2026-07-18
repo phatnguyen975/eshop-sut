@@ -66,14 +66,14 @@ For any feature whose primary objects have multiple states, draw a state transit
 ```
 Example — document approval workflow:
 
-[Draft] --submit--> [Pending Review]
-[Pending Review] --approve--> [Active]
-[Pending Review] --reject--> [Rejected]
-[Active] --suspend--> [Suspended]
-[Suspended] --reactivate--> [Active]
-[Active] --close--> [Closed]
-[Rejected] --revise--> [Draft]
-[Closed] → (terminal state — no further transitions)
+[Draft] --submit-> [Pending Review]
+[Pending Review] --approve-> [Active]
+[Pending Review] --reject-> [Rejected]
+[Active] --suspend-> [Suspended]
+[Suspended] --reactivate-> [Active]
+[Active] --close-> [Closed]
+[Rejected] --revise-> [Draft]
+[Closed] -> (terminal state — no further transitions)
 
 Scenarios derived from this diagram:
   - Each valid state transition

@@ -1,4 +1,4 @@
-# Example 3: Login — Multi-Variable Input
+# Example: Login Form Validation — Multi-Variable Input
 
 ## Scenario
 
@@ -10,8 +10,6 @@
 - **BR-003:** If username does not exist in the system, display: "Invalid username or password."
 - **BR-004:** If username exists but password does not match, display: "Invalid username or password." (Same message as BR-003 — intentionally generic for security.)
 - **BR-005:** If both username and password are correct, redirect user to the Dashboard.
-
-**Note on scope:** This example focuses on Domain Testing (EP + BVA) applied to the two input fields: `username` and `password`. Authentication logic (BR-003, BR-004, BR-005) requires test data setup (existing accounts in the system) and is noted in prerequisites per test case.
 
 ## Step 1 — Parse Requirements & Identify Variables
 
@@ -41,24 +39,22 @@
 
 ### Input: username
 
-| Class ID | Variable | Class Type | Value / Range / Description                                         | BVA Applicable? | Rationale                                              |
-| -------- | -------- | ---------- | ------------------------------------------------------------------- | --------------- | ------------------------------------------------------ |
-| EC-01    | username | Valid      | 5 ≤ length ≤ 20; alphanumeric + underscore only                     | Yes (length)    | Satisfies both length and character set rules (BR-001) |
-| EC-02    | username | Invalid    | length < 5                                                          | Yes             | Too short (BR-001)                                     |
-| EC-03    | username | Invalid    | length > 20                                                         | Yes             | Too long (BR-001)                                      |
-| EC-04    | username | Invalid    | Contains invalid characters (space, special chars excl. underscore) | No              | Character set violation (BR-001)                       |
-| EC-05    | username | Invalid    | Empty / null                                                        | No              | Mandatory field (BR-001)                               |
-
-**Splitting Principle note:** EC-04 could be split further (space vs special character) if the system produces different error messages per character type. Confirmed with BA: system shows a single generic message for any invalid character — no split needed.
+| Class ID | Class Type | Value / Range / Description                                         | BVA Applicable? | Rationale                                              |
+| -------- | ---------- | ------------------------------------------------------------------- | --------------- | ------------------------------------------------------ |
+| EC-01    | Valid      | 5 ≤ length ≤ 20; alphanumeric + underscore only                     | Yes (length)    | Satisfies both length and character set rules (BR-001) |
+| EC-02    | Invalid    | length < 5                                                          | Yes             | Too short (BR-001)                                     |
+| EC-03    | Invalid    | length > 20                                                         | Yes             | Too long (BR-001)                                      |
+| EC-04    | Invalid    | Contains invalid characters (space, special chars excl. underscore) | No              | Character set violation (BR-001)                       |
+| EC-05    | Invalid    | Empty / null                                                        | No              | Mandatory field (BR-001)                               |
 
 ### Input: password
 
-| Class ID | Variable | Class Type | Value / Range / Description    | BVA Applicable? | Rationale                      |
-| -------- | -------- | ---------- | ------------------------------ | --------------- | ------------------------------ |
-| EC-06    | password | Valid      | 8 ≤ length ≤ 30; any character | Yes (length)    | Satisfies length rule (BR-002) |
-| EC-07    | password | Invalid    | length < 8                     | Yes             | Too short (BR-002)             |
-| EC-08    | password | Invalid    | length > 30                    | Yes             | Too long (BR-002)              |
-| EC-09    | password | Invalid    | Empty / null                   | No              | Mandatory field (BR-002)       |
+| Class ID | Class Type | Value / Range / Description    | BVA Applicable? | Rationale                      |
+| -------- | ---------- | ------------------------------ | --------------- | ------------------------------ |
+| EC-06    | Valid      | 8 ≤ length ≤ 30; any character | Yes (length)    | Satisfies length rule (BR-002) |
+| EC-07    | Invalid    | length < 8                     | Yes             | Too short (BR-002)             |
+| EC-08    | Invalid    | length > 30                    | Yes             | Too long (BR-002)              |
+| EC-09    | Invalid    | Empty / null                   | No              | Mandatory field (BR-002)       |
 
 ## Step 3 — Apply Boundary Value Analysis
 
@@ -96,18 +92,13 @@ When both `username` and `password` are valid (EC-01 and EC-06), they are combin
 
 Each invalid class gets exactly one test case. The variable NOT under test is held at a valid representative value (nominal).
 
-**Valid representative values used as context:**
-
-- `username` valid context: `john_doe` (8 chars, alphanumeric + underscore, within range) — also assumes this account exists in the system
-- `password` valid context: `Secret1!` (8 chars — LB, convenient and meaningful) — matches the account for `john_doe`
-
 ### Test Case Suite
 
 **Prerequisites for all test cases:** A user account with `username="john_doe"` and `password="Secret1!"` exists in the system.
 
 | TC ID | Description                                           | Variable(s) Under Test | EC(s) Covered | BVA Point      | Input Value(s)                                                       | Expected Output                                                      | Req            |
 | ----- | ----------------------------------------------------- | ---------------------- | ------------- | -------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------- |
-| TC-01 | Happy path — both valid, nominal values               | username, password     | EC-01, EC-06  | Nominal (both) | `username="john_doe_123"`<br>`password="MySecurePassword_1!"`        | Redirect to Dashboard                                                | BR-005         |
+| TC-01 | Happy path — both valid, nominal values               | username<br>password   | EC-01, EC-06  | Nominal (both) | `username="john_doe_123"`<br>`password="MySecurePassword_1!"`        | Redirect to Dashboard                                                | BR-005         |
 | TC-02 | Valid username — lower boundary (5 chars)             | username               | EC-01         | LB (len=5)     | `username="john_"`<br>`password="Secret1!"`                          | Redirect to Dashboard                                                | BR-001, BR-005 |
 | TC-03 | Valid username — upper boundary (20 chars)            | username               | EC-01         | UB (len=20)    | `username="john_doe_123456789"`<br>`password="Secret1!"`             | Redirect to Dashboard                                                | BR-001, BR-005 |
 | TC-04 | Valid password — lower boundary (8 chars)             | password               | EC-06         | LB (len=8)     | `username="john_doe"`<br>`password="Secret1!"`                       | Redirect to Dashboard                                                | BR-002, BR-005 |
@@ -120,7 +111,7 @@ Each invalid class gets exactly one test case. The variable NOT under test is he
 | TC-11 | Invalid password — too long (UB+1, 31 chars)          | password               | EC-08         | UB+1 (len=31)  | `username="john_doe"`<br>`password="MySecurePassword_12345678901!!"` | Error: "Password must be 8–30 characters"                            | BR-002         |
 | TC-12 | Invalid password — empty                              | password               | EC-09         | N/A            | `username="john_doe"`<br>`password=(empty)`                          | Error: "Password is required"                                        | BR-002         |
 
-**Total: 12 test cases** — 5 valid, 7 invalid.
+> **Total: 12 test cases** (5 valid, 7 invalid).
 
 **Important notes:**
 

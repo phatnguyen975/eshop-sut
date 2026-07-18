@@ -2,7 +2,7 @@
 
 ## 1. What Is State Transition Testing?
 
-**State Transition Testing** is a black-box test design technique defined in ISTQB Foundation Level Syllabus (v4.0) for systems where **the output depends not only on the current input but also on the system's prior history** — i.e., its current state.
+**State Transition Testing** is a black-box test design technique defined in ISTQB Foundation Level Syllabus for systems where **the output depends not only on the current input but also on the system's prior history** — i.e., its current state.
 
 Such systems are modeled as **Finite State Machines (FSMs)**: mathematical models that represent a system's behavior through a finite number of states, the events that cause transitions between those states, conditions that qualify transitions, and observable outputs produced during transitions.
 
@@ -46,11 +46,7 @@ A **transition** is the change of the system from one state to another, triggere
 - **Invalid transition:** a state-event combination that is NOT permitted; the system must reject it gracefully (error message, no-op, or remain in current state)
 - **Self-transition (reflexive transition):** a transition where the source and destination state are the same; the event is processed and an action may be produced, but the state does not change
 
-**Notation (UML/ISTQB standard):**
-
-```
-Event [Guard Condition] / Action
-```
+**Notation (UML/ISTQB standard):** `Event [Guard Condition] / Action`
 
 - **Event** — what triggers the transition
 - **[Guard Condition]** — boolean qualifier (optional); the transition fires only if the condition is true
@@ -126,7 +122,7 @@ A standard STT has:
 | Cell content                 | Meaning                                                                  |
 | ---------------------------- | ------------------------------------------------------------------------ |
 | `Destination State / Action` | Valid transition — system moves to destination and performs action       |
-| `— / Error message` or `N`   | Invalid transition — system rejects the event; specify expected response |
+| `— / Error message`          | Invalid transition — system rejects the event; specify expected response |
 | `Same State / Action`        | Valid self-transition                                                    |
 
 ### 5.3 Total Cell Count

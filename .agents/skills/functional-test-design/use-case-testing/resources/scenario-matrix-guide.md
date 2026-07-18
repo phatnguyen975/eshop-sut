@@ -4,11 +4,13 @@
 
 Step-by-step guidance for constructing the Scenario Matrix — the systematic enumeration of all meaningful paths through a use case. Use during **Step 3** of the design process.
 
+→ Use [`output-template.md`](output-template.md) for the recommended format.
+
 ## What Is a Scenario Matrix?
 
 The Scenario Matrix is a table that lists every scenario (complete path from start to endpoint) to be tested. It makes coverage explicit — every row in the matrix must eventually map to at least one test case.
 
-**Rule:** Every scenario must:
+**Every scenario must:**
 
 - Begin with the Main Flow
 - Incorporate alternate flows at the points where they branch
@@ -43,8 +45,8 @@ Two alternate flows can appear in the same scenario only if:
 
 **Impossibility check:**
 
-- If AF-1 terminates the use case at Step 2, any alternate flow that branches from Step 3 or later is impossible to combine with AF-1
-- If AF-1 and AF-2 both branch from Step 2 (mutually exclusive conditions), they cannot occur in the same scenario
+- If AF-1 terminates the use case at Step 2, any alternate flow that branches from Step 3 or later is impossible to combine with AF-1.
+- If AF-1 and AF-2 both branch from Step 2 (mutually exclusive conditions), they cannot occur in the same scenario.
 
 Document impossible combinations explicitly: "AF-1 + AF-2: Impossible — AF-1 terminates the use case before AF-2's branching point at Step 4."
 
@@ -104,36 +106,3 @@ When the number of alternate flows is large, ensure every **pair** of alternate 
 ### Strategy 4: Representative Selection
 
 For alternate flows of the same type (e.g., three different "invalid input" flows that all result in the same system response pattern), select one representative for thorough testing and document the others as lower priority.
-
-## Scenario Matrix Validity Checks
-
-After completing the matrix:
-
-- [ ] S1 exists and equals the Main Flow only.
-- [ ] Every alternate flow appears in at least one scenario (not necessarily all combinations).
-- [ ] All impossible combinations are documented as impossible (not silently absent).
-- [ ] All low-priority combinations that will not be tested are documented as acknowledged.
-- [ ] No scenario starts mid-flow (every scenario begins at the use case's starting trigger).
-- [ ] No scenario is a partial path (every scenario has a defined endpoint).
-- [ ] Priority assignments are justified (high-risk paths are not marked low-priority without rationale).
-
-## Scenario Matrix Template
-
-```
-USE CASE: [UC ID] — [UC Name]
-Coverage target: [All flows / Risk-based selection / Pairwise]
-Total alternate flows identified: [N]
-Total scenarios in matrix: [M]
-
-┌──────┬─────────────────────────────────────────┬────────────┬──────────┬─────────────────────────────────────────────────┐
-│  ID  │  Path Composition                       │  Priority  │  Endpoint│  Status                                         │
-├──────┼─────────────────────────────────────────┼────────────┼──────────┼─────────────────────────────────────────────────┤
-│  S1  │  Main Flow                              │  Critical  │  Success │  Test                                           │
-│  S2  │  MF + AF-1: [short description]         │  High      │  [type]  │  Test                                           │
-│  S3  │  MF + AF-2: [short description]         │  High      │  [type]  │  Test                                           │
-│  S4  │  MF + AF-3: [short description]         │  Medium    │  [type]  │  Test                                           │
-│  S5  │  MF + AF-1 + AF-3: [description]        │  Medium    │  [type]  │  Test                                           │
-│  S6  │  MF + AF-2 + AF-3: [description]        │  Low       │  [type]  │  Acknowledged; not tested                       │
-│  —   │  MF + AF-1 + AF-2: [description]        │  —         │  —       │  IMPOSSIBLE: AF-1 terminates before AF-2 branch │
-└──────┴─────────────────────────────────────────┴────────────┴──────────┴─────────────────────────────────────────────────┘
-```

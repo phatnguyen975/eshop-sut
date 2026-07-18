@@ -160,25 +160,25 @@ Test cases designed for: **High (6) + Medium (7) = 13 hypotheses**
 
 ### Process Quality Checklist
 
-- [x] Systematic techniques (EP/BVA across all 4 fields) applied first; this suite supplements them
-- [x] Existing test suite reviewed — gap analysis documented in Step 1
-- [x] Error taxonomy consulted — all 8 major categories evaluated
-- [x] Historical defect data consulted — 3 prior defect patterns incorporated (FH-01, FH-02, FH-03)
-- [x] Developer knowledge consulted — 3 implementation risks identified (FH-02, FH-03, FH-07)
-- [x] Every hypothesis has documented rationale
-- [x] All hypotheses prioritized before test case design
-- [x] All High priority hypotheses have test cases
-- [x] Each test case targets exactly one hypothesis
+- [x] Systematic techniques (EP/BVA across all 4 fields) applied first; this suite supplements them.
+- [x] Existing test suite reviewed — gap analysis documented in Step 1.
+- [x] Error taxonomy consulted — all 8 major categories evaluated.
+- [x] Historical defect data consulted — 3 prior defect patterns incorporated (FH-01, FH-02, FH-03).
+- [x] Developer knowledge consulted — 3 implementation risks identified (FH-02, FH-03, FH-07).
+- [x] Every hypothesis has documented rationale.
+- [x] All hypotheses prioritized before test case design.
+- [x] All High priority hypotheses have test cases.
+- [x] Each test case targets exactly one hypothesis.
 
 ### Test Case Quality Checklist
 
-- [x] All 13 test cases have specific, verifiable expected results
-- [x] TC-EG-02 (concurrency) includes expected DB state verification — not just HTTP response
-- [x] TC-EG-03 (timezone) documents the ambiguity and expected behavior per each interpretation — raised as spec gap
-- [x] TC-EG-08 (trailing space) documents two acceptable expected results with constraint: must not store with space
-- [x] No test case duplicates systematic coverage (systematic suite covers empty, out-of-range, wrong-format)
-- [x] TC-EG-09 (mass assignment) includes DB-level verification — HTTP 201 alone is insufficient
-- [x] Low priority items FH-14, FH-15, FH-16 documented as acknowledged risks
+- [x] All 13 test cases have specific, verifiable expected results.
+- [x] TC-EG-02 (concurrency) includes expected DB state verification — not just HTTP response.
+- [x] TC-EG-03 (timezone) documents the ambiguity and expected behavior per each interpretation — raised as spec gap.
+- [x] TC-EG-08 (trailing space) documents two acceptable expected results with constraint: must not store with space.
+- [x] No test case duplicates systematic coverage (systematic suite covers empty, out-of-range, wrong-format).
+- [x] TC-EG-09 (mass assignment) includes DB-level verification — HTTP 201 alone is insufficient.
+- [x] Low priority items FH-14, FH-15, FH-16 documented as acknowledged risks.
 
 ## Coverage Summary
 
@@ -195,6 +195,5 @@ Test cases designed for: **High (6) + Medium (7) = 13 hypotheses**
 
 **Total fault hypotheses:** 16  
 **Test cases designed:** 13 (6 High + 7 Medium)  
-**Acknowledged risks (not tested):** 3 Low priority items
-
+**Acknowledged risks (not tested):** 3 Low priority items  
 **Spec gap raised:** TC-EG-03 (timezone interpretation for date_of_birth) — requires clarification from product owner before execution: should the system use the date-only portion or respect timezone offset when calculating age?

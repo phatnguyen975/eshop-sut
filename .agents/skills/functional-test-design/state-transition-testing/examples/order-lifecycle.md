@@ -44,11 +44,7 @@
 
 ### Guard Conditions
 
-| Guard ID | Expression                              | Associated With | Source                 |
-| -------- | --------------------------------------- | --------------- | ---------------------- |
-| G1       | Order is in Pending or Confirmed status | E2 (Cancel)     | BR-003, BR-005, BR-007 |
-
-**Note:** No explicit guard syntax is needed beyond the state machine structure itself — the STT captures which events are valid in which states.
+None.
 
 ### Actions
 
@@ -63,36 +59,38 @@
 
 ## Step 2 — Construct the State Transition Diagram (STD)
 
+**Labeled transition list:**
+
 ```
 STATES: S1 (Pending), S2 (Confirmed), S3 (Shipped), S4 (Delivered), S5 (Cancelled)
 INITIAL: ● → S1
 FINAL: S4, S5
 
 VALID TRANSITIONS:
-● → S1   : [unconditional] / Create order record
-S1 → S2  : E1: Payment Verified / Send confirmation email; order.status = CONFIRMED
-S1 → S5  : E2: Cancel Order / Send cancellation email; order.status = CANCELLED
-S2 → S3  : E3: Ship Order / Send shipment notification; order.status = SHIPPED
-S2 → S5  : E2: Cancel Order / Send cancellation email; order.status = CANCELLED
-S3 → S4  : E4: Confirm Delivery / Send delivery confirmation; order.status = DELIVERED
+● → S1  : [unconditional] / Create order record
+S1 → S2 : E1: Payment Verified / Send confirmation email; order.status = CONFIRMED
+S1 → S5 : E2: Cancel Order / Send cancellation email; order.status = CANCELLED
+S2 → S3 : E3: Ship Order / Send shipment notification; order.status = SHIPPED
+S2 → S5 : E2: Cancel Order / Send cancellation email; order.status = CANCELLED
+S3 → S4 : E4: Confirm Delivery / Send delivery confirmation; order.status = DELIVERED
 ```
 
 **Mermaid representation:**
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Pending
+  [*] --> Pending
 
-    Pending --> Confirmed : Payment Verified / Confirmation email
-    Pending --> Cancelled : Cancel Order / Cancellation email
+  Pending --> Confirmed : Payment Verified / Confirmation email
+  Pending --> Cancelled : Cancel Order / Cancellation email
 
-    Confirmed --> Shipped : Ship Order / Shipment notification
-    Confirmed --> Cancelled : Cancel Order / Cancellation email
+  Confirmed --> Shipped : Ship Order / Shipment notification
+  Confirmed --> Cancelled : Cancel Order / Cancellation email
 
-    Shipped --> Delivered : Confirm Delivery / Delivery confirmation
+  Shipped --> Delivered : Confirm Delivery / Delivery confirmation
 
-    Delivered --> [*]
-    Cancelled --> [*]
+  Delivered --> [*]
+  Cancelled --> [*]
 ```
 
 **STD completeness checks:**
@@ -123,13 +121,13 @@ stateDiagram-v2
 
 **Expanded format for invalid transitions (key ones):**
 
-| Current State | Event       | Valid? | Destination | Expected Response                                       | Source |
-| ------------- | ----------- | ------ | ----------- | ------------------------------------------------------- | ------ |
-| S3: Shipped   | E2: Cancel  | N      | —           | Error: "Cannot cancel a shipped order; contact support" | BR-007 |
-| S4: Delivered | Any         | N      | —           | Error: "Order is finalized and cannot be modified"      | BR-008 |
-| S5: Cancelled | Any         | N      | —           | Error: "Order is cancelled and cannot be modified"      | BR-009 |
-| S1: Pending   | E3: Ship    | N      | —           | Error: "Order must be confirmed before shipping"        | BR-010 |
-| S1: Pending   | E4: Deliver | N      | —           | Error: "Order must be confirmed before delivery"        | BR-010 |
+| Current State | Event       | Valid? | Destination State | Expected Response                                       | Source |
+| ------------- | ----------- | ------ | ----------------- | ------------------------------------------------------- | ------ |
+| S3: Shipped   | E2: Cancel  | N      | —                 | Error: "Cannot cancel a shipped order; contact support" | BR-007 |
+| S4: Delivered | Any         | N      | —                 | Error: "Order is finalized and cannot be modified"      | BR-008 |
+| S5: Cancelled | Any         | N      | —                 | Error: "Order is cancelled and cannot be modified"      | BR-009 |
+| S1: Pending   | E3: Ship    | N      | —                 | Error: "Order must be confirmed before shipping"        | BR-010 |
+| S1: Pending   | E4: Deliver | N      | —                 | Error: "Order must be confirmed before delivery"        | BR-010 |
 
 ## Step 4 — Coverage Plan and Test Paths
 

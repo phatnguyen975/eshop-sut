@@ -4,17 +4,6 @@
 
 This reference covers the complete application of BVA: boundary point definitions, data type increments, BVA variants, and when to apply each. Use during **Step 3** of the design process.
 
-## Core Premise
-
-Defects disproportionately occur at the **edges** of equivalence classes — the exact values where the system transitions from one behavior to another. The root cause is almost always developer error:
-
-- Off-by-one mistakes: `<` used instead of `<=`
-- Mistyped thresholds: `52` instead of `25`
-- Incorrect loop termination conditions
-- Ambiguous requirements at boundaries (e.g., "up to 100" — does that mean 100 is valid or not?)
-
-BVA deliberately targets these points to maximize defect detection.
-
 ## Boundary Points Defined
 
 For any **ordered** (sequential / range) equivalence class with a valid range of [LB, UB]:
@@ -29,11 +18,11 @@ For any **ordered** (sequential / range) equivalence class with a valid range of
 | UB      | Upper Boundary         | **Valid**      | Exact maximum valid value                         |
 | UB + 1  | Just above upper bound | **Invalid**    | First value above the valid range                 |
 
-## BVA Variants (ISTQB Foundation Level v4.0)
+## BVA Variants
 
 ### 2-Value BVA (Standard)
 
-Test each boundary with **2 points**: the boundary value itself, and the nearest value outside the boundary.
+Test each boundary with **2 points** — just outside and the boundary itself.
 
 For range `[LB, UB]`, test: `LB-1`, `LB`, `UB`, `UB+1`
 
@@ -41,7 +30,7 @@ For range `[LB, UB]`, test: `LB-1`, `LB`, `UB`, `UB+1`
 
 ### 3-Value BVA (Extended)
 
-Test each boundary with **3 points**: just outside, the boundary itself, and just inside.
+Test each boundary with **3 points** — just outside, the boundary itself, and just inside.
 
 For range `[LB, UB]`, test: `LB-1`, `LB`, `LB+1`, `UB-1`, `UB`, `UB+1`
 
@@ -130,24 +119,6 @@ The "just inside" and "just outside" boundary points require defining the **smal
 | UB − 1     | 9 items    | Valid (3-value only) |
 | UB         | 10 items   | Valid                |
 | UB + 1     | 11 items   | Invalid              |
-
-## Technical Boundary Testing (Beyond Standard BVA)
-
-Standard BVA tests boundaries defined in **business requirements**. However, systems also have **technical limits** defined by implementation:
-
-- Database column capacity (e.g., VARCHAR(255))
-- UI field character limits
-- API payload size limits
-- Data type maximums (e.g., 32-bit integer max: 2,147,483,647)
-- File system path length limits
-
-These are **not part of standard BVA** per ISTQB — they belong to **Technical Boundary Tests** or **Error Guessing**. They should be:
-
-- Clearly labeled separately from BVA test cases.
-- Added when the technical limit is different from the business rule limit, or when the spec does not mention technical constraints.
-- Treated as complementary, not replacement, to standard BVA.
-
-**Example:** If the business rule says "username must be 3–30 characters" but the database column is VARCHAR(50), test at 30 (business UB), 31 (business UB+1), and also 50 (technical UB) and 51 (technical UB+1).
 
 ## When BVA Does NOT Apply
 

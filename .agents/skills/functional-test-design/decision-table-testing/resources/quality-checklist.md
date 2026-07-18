@@ -62,7 +62,7 @@ _Verify that individual test cases are correct, complete, and well-formed — af
 - [ ] Every rule in the reduced table has exactly one corresponding test case — no rule is missing a test case.
 - [ ] Every condition appears in at least one test case as True/active and at least one test case as False/inactive (or all its values for multi-valued conditions).
 - [ ] Every action appears in at least one test case as the expected result (including "no action" / "0%" / "access denied" actions).
-- [ ] Rules that were marked impossible are NOT represented in the test case suite
+- [ ] Rules that were marked impossible are NOT represented in the test case suite.
 
 ### Correctness
 
@@ -80,7 +80,7 @@ _Verify that individual test cases are correct, complete, and well-formed — af
 
 ### Clarity and Traceability
 
-- [ ] Each test case has a unique ID
+- [ ] Each test case has a unique ID.
 - [ ] Each test case has a description that states what combination of conditions it is testing and why.
 - [ ] The reduced table rule number covered by each test case is referenced.
 - [ ] The requirement(s) or BR(s) verified by each test case are referenced.

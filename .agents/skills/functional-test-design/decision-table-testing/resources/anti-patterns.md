@@ -99,8 +99,8 @@ Every cell must be consciously filled.
 
 **Mistake:** Treating mutually exclusive conditions as separate valid test cases, or conversely, treating a genuinely valid combination as impossible because it seems unlikely.
 
-**Example of first error:** Defining `C1="New Customer"` and `C2="Existing Customer"` as independent T/F conditions and designing 4 rules — including `C1=T` AND `C2=T` — without marking it as impossible.  
-**Example of second error:** Marking `C1=T` AND `C3=T `(new customer with coupon) as impossible because the coupon is "ignored" — but the combination itself can occur and the system must handle it (by ignoring the coupon, not by preventing the combination).
+**Example of first error:** Defining C1="New Customer" and C2="Existing Customer" as independent T/F conditions and designing 4 rules — including C1=T AND C2=T — without marking it as impossible.  
+**Example of second error:** Marking C1=T AND C3=T (new customer with coupon) as impossible because the coupon is "ignored" — but the combination itself can occur and the system must handle it (by ignoring the coupon, not by preventing the combination).
 
 **Consequence (first):** Test suite includes an untestable rule based on a contradictory combination.  
 **Consequence (second):** A valid system behavior (new customer presents coupon → coupon silently ignored → 15% applied) is not tested.

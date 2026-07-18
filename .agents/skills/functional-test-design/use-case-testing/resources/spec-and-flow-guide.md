@@ -24,8 +24,8 @@ Validate the use case specification before starting test design. A defective spe
 
 **Common spec gaps to raise:**
 
-- "User has an account" → Clarify: active? verified? specific role?
-- "System is in a clean state" → Clarify: which data must exist or not exist?
+- "User has an account" → **Clarify:** active? verified? specific role?
+- "System is in a clean state" → **Clarify:** which data must exist or not exist?
 - Implicit prerequisites (e.g., product must be in stock before purchase) not listed
 
 #### Main Flow
@@ -46,9 +46,9 @@ Validate the use case specification before starting test design. A defective spe
 
 - [ ] Each alternate flow has a unique ID (AF-1, AF-2, etc.).
 - [ ] Each alternate flow references the specific main flow step where it branches ("Branches from Step 2").
-- [ ] Each alternate flow is classified: optional flow or exception flow.
+- [ ] Each alternate flow is classified: **optional flow** or **exception flow**.
 - [ ] Each alternate flow defines its endpoint: rejoins main flow at step N / terminates use case.
-- [ ] If it rejoins the main flow: which step does it rejoin at?
+- [ ] If it rejoins the main flow, which step does it rejoin at?
 
 **Common spec gaps to raise:**
 
@@ -98,6 +98,8 @@ Systematically enumerate all flows from the use case specification and discover 
 | AF-2    | Alternate | Account locked after max attempts; session terminated                | Step 2        | Terminate                 | Exception      |
 | AF-3    | Alternate | User selects "Forgot Password" at Step 1; redirect to password reset | Step 1        | Terminate (exits this UC) | Optional       |
 
+→ Use [`output-template.md`](output-template.md) for the recommended format.
+
 ### Discovering Hidden Alternate Flows
 
 The specified alternate flows in the UC spec are the starting point — not the complete list. Apply these techniques to discover missing flows:
@@ -128,9 +130,10 @@ For each business rule/constraint:
 - What is the system's response to a violation?
 - Does the violation constitute an alternate flow not yet in the spec?
 
-**Example:** BR says "max 5 failed login attempts before lockout."
+**Example:**
 
-- AF: "At exactly the 5th failed attempt, system locks account" → must be documented as its own alternate flow if not already in the spec
+- **BR:** "max 5 failed login attempts before lockout."
+- **AF:** "At exactly the 5th failed attempt, system locks account" → must be documented as its own alternate flow if not already in the spec
 
 #### Technique 3: Postcondition Reverse Analysis
 
@@ -139,8 +142,10 @@ For each postcondition in the spec:
 - What alternate flow could result in this postcondition NOT being met?
 - Is there an alternate flow for each "failure" postcondition listed?
 
-**Example:** Postcondition: "audit event published to logging service."
-Hidden alternate flow: "What if the logging service is unavailable? Does the use case still complete? Is an error returned? Is the main transaction rolled back?"
+**Example:**
+
+- **Postcondition:** "audit event published to logging service."
+- **Hidden alternate flow:** "What if the logging service is unavailable? Does the use case still complete? Is an error returned? Is the main transaction rolled back?"
 
 #### Technique 4: Concurrency Analysis
 

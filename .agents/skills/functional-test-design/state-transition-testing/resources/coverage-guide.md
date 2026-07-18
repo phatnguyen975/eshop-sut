@@ -42,22 +42,20 @@ Based on the selected coverage level, list all items that must be covered:
 
 List every valid transition from the STD:
 
-| Transition ID | From State    | Event [Guard]     | To State      | Action         |
-| ------------- | ------------- | ----------------- | ------------- | -------------- |
-| T1            | S1: Active    | Suspend           | S2: Suspended | Lock account   |
-| T2            | S2: Suspended | Reactivate        | S1: Active    | Unlock account |
-| T3            | S1: Active    | Close [Balance=0] | S3: Closed    | Archive record |
-| T4 (self)     | S1: Active    | Deposit           | S1: Active    | Update balance |
+| Transition ID | From State | Event [Guard] | To State   | Action   |
+| ------------- | ---------- | ------------- | ---------- | -------- |
+| T1            | S1: [Name] | E1            | S2: [Name] | [Action] |
+| T2            | S2: [Name] | E2            | S1: [Name] | [Action] |
+| T3            | S1: [Name] | E3 [Guard]    | S3: [Name] | [Action] |
 
 ### For Invalid Transitions Coverage
 
 List every invalid cell from the STT:
 
-| Invalid Transition ID | From State    | Event      | Expected System Response                            |
-| --------------------- | ------------- | ---------- | --------------------------------------------------- |
-| IT1                   | S2: Suspended | Deposit    | Error: "Account suspended; no transactions allowed" |
-| IT2                   | S3: Closed    | Any event  | Error: "Account is closed"                          |
-| IT3                   | S1: Active    | Reactivate | Error: "Account is not suspended"                   |
+| IT ID | From State  | Event   | Expected System Response    |
+| ----- | ----------- | ------- | --------------------------- |
+| IT1   | S2: [Name]  | [Event] | Error: "[Specific message]" |
+| IT2   | S3: [Final] | [Event] | Error: "[Specific message]" |
 
 ### For 1-Switch Coverage
 
@@ -82,18 +80,18 @@ For each state B, enumerate all incoming→outgoing transition pairs through B:
 
 One test path = one test case. A path may cover multiple transitions. Design paths that:
 
-1. Cover the maximum number of transitions per path
-2. Follow realistic user journeys where possible
-3. Are executable (each step must follow from the previous state)
+1. Cover the maximum number of transitions per path.
+2. Follow realistic user journeys where possible.
+3. Are executable (each step must follow from the previous state).
 
 ### Path Optimization Strategy
 
 **Start from the initial state.** Trace paths that cover the most uncovered transitions before starting a new path. Use a greedy algorithm:
 
-1. Start at the initial state
-2. At each state, choose the outgoing transition that leads to the most uncovered transitions downstream
-3. Continue until no uncovered transitions remain reachable, or the path reaches a final state
-4. Start a new path from a state that can reach remaining uncovered transitions
+1. Start at the initial state.
+2. At each state, choose the outgoing transition that leads to the most uncovered transitions downstream.
+3. Continue until no uncovered transitions remain reachable, or the path reaches a final state.
+4. Start a new path from a state that can reach remaining uncovered transitions.
 
 **Exception: Invalid transitions require individual test cases** (or small batches). An invalid transition test case puts the system in a specific state and fires a specific invalid event — this usually cannot be combined with other tests in a meaningful path.
 
@@ -115,7 +113,7 @@ After designing paths, create a coverage matrix:
 
 | Test Case | Path                                                                   | Transitions Covered | Invalid Transitions Covered |
 | --------- | ---------------------------------------------------------------------- | ------------------- | --------------------------- |
-| TC-01     | Active→deposit→Active→Suspend→Suspended→Reactivate→Active→Close→Closed | T1, T2, T3, T4      | —                           |
+| TC-01     | Active→Deposit→Active→Suspend→Suspended→Reactivate→Active→Close→Closed | T1, T2, T3, T4      | —                           |
 | TC-02     | Invalid: Deposit while Suspended                                       | —                   | IT1                         |
 | TC-03     | Invalid: Close while Closed                                            | —                   | IT2                         |
 | TC-04     | Invalid: Reactivate while Active                                       | —                   | IT3                         |

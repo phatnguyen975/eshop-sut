@@ -13,7 +13,7 @@ description: >
 
 ## Overview
 
-**Domain Testing** is a black-box test design approach that applies Equivalence Partitioning (EP) and Boundary Value Analysis (BVA) to structure large or infinite input domains into manageable partitions. Test cases are then selected from within these partitions, with particular emphasis on boundary values where defects are more likely to occur.
+**Domain Testing** is a black-box test design approach that applies **Equivalence Partitioning (EP)** and **Boundary Value Analysis (BVA)** to structure large or infinite input domains into manageable partitions. Test cases are then selected from within these partitions, with particular emphasis on boundary values where defects are more likely to occur.
 
 - **Equivalence Partitioning (EP):** Divides input/output space into classes where all values are expected to trigger identical behavior. Testing one representative per class is sufficient.
 - **Boundary Value Analysis (BVA):** Targets the edges of equivalence classes, where off-by-one errors and mis-specified conditions most frequently occur.
@@ -40,7 +40,7 @@ The goal is to achieve effective coverage of the input domain while reducing the
 - `--file` mode requires a file-capable environment (e.g., claude.ai with computer tools enabled). If file tools are unavailable, AI will notify the user and fall back to conversation output.
 - The path in `--file` is the desired output location. If the file already exists, AI will ask before overwriting.
 - Both modes produce identical content — only the delivery differs.
-- `--file` can be combined with any input: `/domain-testing --file="tests/login-domain.md"` then paste the requirements.
+- `--file` can be combined with any input: `/domain-testing --file="path/to/output.md"` then paste the requirements.
 
 ## When to Use
 
@@ -126,8 +126,6 @@ Apply test case combination rules:
 
 Before finalizing, verify the test suite against the **Test Case Quality Checklist** in [`resources/quality-checklist.md`](resources/quality-checklist.md).
 
-This step checks: completeness of coverage, correct boundary points, isolation of invalid classes, traceability, and absence of redundant test cases.
-
 ## Design Rules
 
 | Rule                                   | Description                                                               |
@@ -141,7 +139,7 @@ This step checks: completeness of coverage, correct boundary points, isolation o
 
 ## Anti-Patterns
 
-→ Full detail: [`resources/anti-patterns.md`](resources/anti-patterns.md)
+→ **Full detail:** [`resources/anti-patterns.md`](resources/anti-patterns.md)
 
 **Critical anti-patterns:**
 
@@ -156,7 +154,7 @@ This step checks: completeness of coverage, correct boundary points, isolation o
 
 ## Best Practices
 
-→ Full detail: [`resources/best-practices.md`](resources/best-practices.md)
+→ **Full detail:** [`resources/best-practices.md`](resources/best-practices.md)
 
 **Key best practices:**
 
@@ -165,12 +163,12 @@ This step checks: completeness of coverage, correct boundary points, isolation o
 - Use **3-value BVA** (LB-1, LB, LB+1) for high-risk or complex systems; **2-value BVA** for simpler/lower-risk scenarios.
 - Supplement boundary tests with **technical boundary testing** (system min/max values beyond business logic) — but treat these as Error Guessing additions, not standard BVA.
 - Document the rationale for every equivalence class — enables easy update when requirements change.
-- Always validate: does the spec explicitly define behavior for invalid inputs? If not, clarify before designing test cases.
+- Always validate: _Does the spec explicitly define behavior for invalid inputs?_ If not, clarify before designing test cases.
 - For multi-variable inputs, design a **variable inventory table** before jumping to test cases.
 
 ## Process Quality Checklist
 
-_Use this to verify you followed the design process correctly — separate from test case quality._ Full **Process Quality Checklist** in [`resources/quality-checklist.md`](resources/quality-checklist.md) must be verified.
+_Use this to verify you followed the design process correctly — separate from test case quality._
 
 - [ ] All input AND output variables have been identified.
 - [ ] Every variable has at least one valid and one invalid equivalence class (unless it's a truly optional field with no constraints).
@@ -183,6 +181,8 @@ _Use this to verify you followed the design process correctly — separate from 
 - [ ] Every test case traces to a requirement, BR, or constraint.
 - [ ] No two test cases are identical in both input and expected result.
 - [ ] Technical constraints (DB limits, field size limits) were considered beyond business rule constraints.
+
+→ For the full **Process Quality Checklist** should be verified, see [`resources/quality-checklist.md`](resources/quality-checklist.md).
 
 ## Common Rationalizations to Reject
 
@@ -211,13 +211,10 @@ Stop and re-evaluate the design if you observe:
 The design process produces:
 
 1. **Variable Inventory Table** — all input/output variables with type and constraints
-2. **Equivalence Class Table** — per variable, with Valid/Invalid classification and rationale
+2. **Equivalence Class Table** — per variable, with valid/invalid classification and rationale
 3. **Test Case Suite** — using the template in [`resources/output-template.md`](resources/output-template.md)
-
-Each test case must include: ID, description, variable(s) under test, equivalence class(es) covered, input values, expected output, and requirement traceability.
 
 ## Examples
 
-→ [`examples/age-validation.md`](examples/age-validation.md) — Numeric range validation (age field with business rule constraint)  
 → [`examples/product-code.md`](examples/product-code.md) — Multi-condition string validation (format + length + character set rules)  
-→ [`examples/login.md`](examples/login.md) — Multi-variable (username + password), demonstrates `<br>`-separated Input Value(s) format and isolation strategy across two fields
+→ [`examples/login-form.md`](examples/login-form.md) — Multi-variable (username + password), demonstrates Input Value(s) format and isolation strategy across two fields

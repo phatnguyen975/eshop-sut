@@ -27,7 +27,7 @@ An **equivalence class** (also called a partition) is a subset of the input or o
 Every domain must be analyzed through two lenses:
 
 - **Valid equivalence classes:** Values the system is designed to accept and process successfully. Testing these verifies the "happy path".
-- **Invalid equivalence classes:** Values the system should reject — out-of-range values, wrong formats, empty inputs, values violating business rules. Testing these verifies robustness and error handling. Invalid classes are frequently more revealing than valid ones.
+- **Invalid equivalence classes:** Values the system should reject — out-of-range values, wrong formats, empty inputs, values violating business rules. Testing these verifies robustness and error handling.
 
 ### Partition Completeness Rule
 
@@ -37,30 +37,21 @@ The set of all equivalence classes for a variable must satisfy:
 - **No overlap:** A single value cannot belong to two different classes simultaneously.
 - **No gap:** There must be no value that belongs to no class.
 
-### EP and ISTQB
-
-Equivalence Partitioning is defined as a formal black-box test design technique in ISTQB Foundation Level Syllabus (v4.0, Section 4.2). The ISTQB definition is consistent with the above that partitions are groups of values expected to be processed identically, and at least one value per partition must be tested.
-
 ## 4. Boundary Value Analysis (BVA)
 
 ### Why Boundaries Fail
 
 Empirical evidence and decades of defect data show that software failures disproportionately occur at the **edges of equivalence classes** — the exact values where the system transitions from one behavior to another. This happens because:
 
-- Developers frequently make **off-by-one errors** — using `<` instead of `<=`, mistyping `10` as `11`, terminating a loop one iteration early.
+- Developers frequently make **off-by-one** errors — using `<` instead of `<=`, mistyping `10` as `11`, terminating a loop one iteration early.
 - Boundary conditions require explicit, precise coding — any ambiguity in requirements translates directly into a boundary defect.
 - Boundary values are often not exercised by typical user behavior, leaving them undertested in manual and exploratory testing.
 
-### BVA and ISTQB
+### BVA Variants
 
-ISTQB Foundation Level Syllabus (v4.0, Section 4.2) defines two variants of BVA:
+ISTQB Foundation Level Syllabus defines two variants of BVA:
 
 #### 2-Value BVA
-
-For each boundary, test:
-
-- The boundary value itself (the exact limit)
-- The value just outside the boundary (the nearest invalid value)
 
 For a valid range [LB, UB]:
 
@@ -75,12 +66,6 @@ For a valid range [LB, UB]:
 
 #### 3-Value BVA
 
-For each boundary, test:
-
-- The boundary value itself
-- The value just outside the boundary (invalid)
-- The value just inside the boundary (valid, one step inside)
-
 For a valid range [LB, UB]:
 
 | Point  | Description                         |
@@ -94,16 +79,10 @@ For a valid range [LB, UB]:
 
 **Total:** 6 boundary test points per range (plus nominal value).
 
-**Which to use:**
+#### Which to Use
 
-- **2-value BVA** — sufficient for most functional testing; recommended by ISTQB v4.0 as the standard
+- **2-value BVA** — sufficient for most functional testing; recommended by ISTQB as the standard
 - **3-value BVA** — provides higher defect detection for off-by-one errors inside the valid range; appropriate for high-risk or safety-critical systems
-
-### "Absolute System Min/Max" — Clarification
-
-Some testing references describe testing the absolute technical limits of a field (e.g., the maximum value a 32-bit integer can hold, or the maximum length a database column allows), beyond the business rule boundary. This is **not part of standard BVA** as defined by ISTQB.
-
-These test points are better classified as **Technical Boundary Tests** or **Error Guessing** — they target implementation constraints rather than specification boundaries. They are valuable additions to a test suite, but should be explicitly labeled as such and not conflated with BVA.
 
 ### "Increment" Depends on Data Type
 
@@ -148,9 +127,9 @@ When designing test cases for invalid equivalence classes:
 - **Specification-driven:** Forces explicit analysis of requirements, revealing ambiguities before testing begins.
 - **Accessible:** Does not require code access or deep technical knowledge of implementation.
 
-### Known Limitations
+### Limitations
 
-- **The "middle" blind spot:** Domain Testing assumes all values within a class behave identically. A defect that only triggers on a specific value inside a valid partition (e.g., division by zero for the value 42 in a range of 1–100) will not be caught by standard EP/BVA. Error Guessing and exploratory testing complement this weakness.
+- **The "middle" blind spot:** Domain Testing assumes all values within a class behave identically. A defect that only triggers on a specific value inside a valid partition (e.g., division by zero for the value 42 in a range of 1–100) will not be caught by standard EP/BVA. **Error Guessing** and **Exploratory Testing** complement this weakness.
 - **Specification dependence:** If requirements are incomplete or incorrect, partitions will be wrong. Hidden technical constraints (undocumented DB limits, encoding limits) will not be found unless actively investigated.
 - **Single-variable focus:** EP and BVA analyze variables individually. They do not inherently address interactions _between_ variables — **Decision Table Testing** or **Pairwise Testing** is needed for multi-variable combinations.
-- **Black-box by design:** Domain Testing cannot detect internal defects unrelated to input/output behavior: memory leaks, race conditions, database deadlocks, or concurrency issues.
+- **Black-box by design:** Domain Testing cannot detect internal defects unrelated to input/output behavior — memory leaks, race conditions, database deadlocks, or concurrency issues.

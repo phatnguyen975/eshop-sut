@@ -29,6 +29,7 @@ Risk       : H / M / L
 Test Case  : TC-EG-[nn]
 
 [Continue for all hypotheses]
+
 ═══════════════════════════════════════════════════════════════════
 SUMMARY
 Total hypotheses    : [N]
@@ -47,9 +48,9 @@ Acknowledged risks (Low, not tested): [n]
 
 **Column definitions:**
 
-- **TC ID:** Unique identifier prefixed with TC-EG to distinguish from systematic test cases
+- **TC ID:** Unique identifier prefixed with `TC-EG` to distinguish from systematic test cases
 - **Description:** Human-readable summary of what is being tested and why
-- **Fault Hypothesis:** Reference to fault list entry (FH-nn) and brief hypothesis summary
+- **Fault Hypothesis:** Reference to fault list entry (`FH-nn`) and brief hypothesis summary
 - **Category:** Which taxonomy category this test case belongs to
 - **Priority:** Inherited from the fault hypothesis risk priority
 - **Input Value(s):** Fully specified inputs using `field="value"` format; use `<br>` for multiple fields
@@ -67,7 +68,7 @@ For smaller features where the fault list and test cases can be presented togeth
 
 #### High Priority
 
-**FH-01** | Category: [1.2 Special String Values]
+**FH-01 | Category:** [1.2 Special String Values]
 **Hypothesis:** [Suspected defect]
 **Rationale:** [Why suspected]
 
@@ -75,7 +76,7 @@ For smaller features where the fault list and test cases can be presented togeth
 | -------- | ----------------- | ----------------- |
 | TC-EG-01 | `field="[value]"` | [Expected result] |
 
-**FH-02** | Category: [5.3 Third-Party Service Failures]
+**FH-02 | Category:** [5.3 Third-Party Service Failures]
 **Hypothesis:** [Suspected defect]
 **Rationale:** [Why suspected]
 

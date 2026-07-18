@@ -4,6 +4,8 @@
 
 Step-by-step guidance for constructing the full (unoptimized) decision table. Use during **Step 2** of the design process.
 
+→ Use [`output-template.md`](output-template.md) for the recommended format.
+
 ## Notation Standards
 
 ### Condition Entry Notation
@@ -19,7 +21,7 @@ Step-by-step guidance for constructing the full (unoptimized) decision table. Us
 
 | Symbol         | Meaning                                                                           |
 | -------------- | --------------------------------------------------------------------------------- |
-| `X` or `✓`     | This action applies for this rule                                                 |
+| `X`            | This action applies for this rule                                                 |
 | _(blank)_      | This action does NOT apply for this rule                                          |
 | `IMPOSSIBLE`   | This rule is logically impossible (cannot occur)                                  |
 | Specific value | For extended entry: the actual output value (e.g., "15%", "GRANTED", "ERROR-001") |
@@ -31,14 +33,6 @@ Step-by-step guidance for constructing the full (unoptimized) decision table. Us
 ### 1. Determine the Number of Rules
 
 For n binary conditions: **Total rules = 2ⁿ**
-
-| Conditions | Rules |
-| ---------- | ----- |
-| 1          | 2     |
-| 2          | 4     |
-| 3          | 8     |
-| 4          | 16    |
-| 5          | 32    |
 
 ### 2. Fill Condition Rows Using Binary Counting Pattern
 
@@ -63,13 +57,13 @@ For each column (rule), read the combination of condition values and evaluate:
 
 - What actions does this combination trigger according to the requirements?
 - Is this combination logically impossible? (Mark `IMPOSSIBLE`, do not remove yet)
-- Mark each action row with X or leave blank accordingly.
+- Mark each action row with `X` or leave _blank_ accordingly.
 
 ### 4. Verify Completeness
 
 After filling all cells:
 
-- Count total rules that should match 2ⁿ (or product formula for extended entry).
+- Count total rules that should match `2ⁿ`.
 - Every action cell must be consciously marked (no ambiguous blanks).
 - At least one action should be marked for each non-impossible rule.
 
@@ -79,9 +73,9 @@ After filling all cells:
 
 List all possible values for each condition:
 
-- C1: values v₁₁, v₁₂, v₁₃ (k₁ values)
-- C2: values v₂₁, v₂₂ (k₂ values)
-- C3: values v₃₁, v₃₂, v₃₃, v₃₄ (k₃ values)
+- **C1:** values v₁₁, v₁₂, v₁₃ (k₁ values)
+- **C2:** values v₂₁, v₂₂ (k₂ values)
+- **C3:** values v₃₁, v₃₂, v₃₃, v₃₄ (k₃ values)
 
 ### 2. Calculate Total Rules
 
@@ -105,9 +99,21 @@ Use the same rotation principle as binary, adapted for multiple values:
 | Day       | D1  | D1  | D2  | D2  | D3  | D3  | ... | D5  |
 | Year      | Y1  | Y2  | Y1  | Y2  | Y1  | Y2  | ... | Y2  |
 
-### 4. Evaluate and Mark Impossible Rules
+### 4. Evaluate Each Rule Against Requirements
 
-With extended entry tables, impossible rules are often more numerous. Mark them clearly before reduction.
+For each column (rule), read the combination of condition values and evaluate:
+
+- What actions does this combination trigger according to the requirements?
+- Is this combination logically impossible?
+- Mark each action row with the applicable value (for extended entry, use specific output values such as `"APPROVED"`, `"15%"`, `"ERROR-003"`) or leave _blank_ if the action does not apply to this rule.
+
+### 5. Verify Completeness
+
+After filling all cells:
+
+- Count total rules: should match the product formula `k₁ × k₂ × ... × kₙ`.
+- Every action cell must be consciously marked — no ambiguous blanks.
+- At least one action value should be specified for each non-impossible rule.
 
 ## Handling "What Happens When..." Gaps
 
@@ -118,47 +124,3 @@ During construction, you will encounter rules where the requirement does not exp
 3. **Derive from system invariants:** If the system has documented default behavior for undefined cases, apply it and cite the source.
 
 Never silently assume undefined behavior.
-
-## Full Table Template
-
-```
-┌──────────────────────┬─────┬─────┬────┬────┬────┬────┬────┬────┐
-│                      │ R1  │ R2  │ R3 │ R4 │ R5 │ R6 │ R7 │ R8 │
-├──────────────────────┼─────┼─────┼────┼────┼────┼────┼────┼────┤
-│ C1: [description]    │ T   │ T   │ T  │ T  │ F  │ F  │ F  │ F  │
-│ C2: [description]    │ T   │ T   │ F  │ F  │ T  │ T  │ F  │ F  │
-│ C3: [description]    │ T   │ F   │ T  │ F  │ T  │ F  │ T  │ F  │
-├──────────────────────┼─────┼─────┼────┼────┼────┼────┼────┼────┤
-│ A1: [description]    │     │     │ X  │ X  │    │    │    │    │
-│ A2: [description]    │     │     │    │    │ X  │ X  │    │    │
-│ A3: [description]    │     │     │    │    │ X  │    │ X  │    │
-│ A4: [description]    │     │     │    │    │    │    │    │ X  │
-│ IMPOSSIBLE           │ X   │ X   │    │    │    │    │    │    │
-├──────────────────────┼─────┼─────┼────┼────┼────┼────┼────┼────┤
-│ Notes / Rationale    │C1+C2│C1+C2│C3  │    │    │    │    │    │
-│                      │excl.│excl.│ign.│    │    │    │    │    │
-└──────────────────────┴─────┴─────┴────┴────┴────┴────┴────┴────┘
-```
-
-## Reduced Table Template
-
-After reduction (Step 3), use this format:
-
-```
-┌──────────────────────┬────────┬────┬────┬────┬────┐
-│                      │ R3+R4  │ R5 │ R6 │ R7 │ R8 │
-├──────────────────────┼────────┼────┼────┼────┼────┤
-│ C1: [description]    │   T    │ F  │ F  │ F  │ F  │
-│ C2: [description]    │   F    │ T  │ T  │ F  │ F  │
-│ C3: [description]    │   —    │ T  │ F  │ T  │ F  │  ← Don't Care
-├──────────────────────┼────────┼────┼────┼────┼────┤
-│ A1: [description]    │   X    │    │    │    │    │
-│ A2: [description]    │        │ X  │ X  │    │    │
-│ A3: [description]    │        │ X  │    │ X  │    │
-│ A4: [description]    │        │    │    │    │ X  │
-├──────────────────────┼────────┼────┼────┼────┼────┤
-│ Covers rules         │R3, R4  │ R5 │ R6 │ R7 │ R8 │
-│ Don't Care rationale │C3 irrel│    │    │    │    │
-│                      │for new │    │    │    │    │
-└──────────────────────┴────────┴────┴────┴────┴────┘
-```

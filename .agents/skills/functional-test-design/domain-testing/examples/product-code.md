@@ -1,4 +1,4 @@
-# Example 2: Product Code Validation — Multi-Condition String Field
+# Example: Product Code Validation — Multi-Condition String Field
 
 ## Scenario
 
@@ -12,7 +12,7 @@
 - **BR-105:** Characters between the prefix and suffix (positions 3 to length−4) may be alphanumeric (letters or digits); no spaces or special characters are permitted.
 - **BR-106:** Product Code must be unique within the system (no duplicate allowed).
 
-**Example of a valid product code:** `AB123C4567` (2 letters + 3 alphanumeric + 4 digits = 9 chars, all rules satisfied)
+**Example of a valid product code:** `AB123C4567` (2 letters + 3 alphanumeric + 4 digits = 9 chars)
 
 ## Step 1 — Parse Requirements & Identify Variables
 
@@ -44,10 +44,10 @@ Each business rule generates its own set of equivalence classes. Since all rules
 
 ### EC Group 1: Mandatory (BR-101)
 
-| Class ID | Class Type | Description                          | BVA? |
-| -------- | ---------- | ------------------------------------ | ---- |
-| EC-01    | Valid      | product_code is provided (non-empty) | No   |
-| EC-02    | Invalid    | product_code is empty / null         | No   |
+| Class ID | Class Type | Description                  | BVA? |
+| -------- | ---------- | ---------------------------- | ---- |
+| EC-01    | Valid      | product_code is provided     | No   |
+| EC-02    | Invalid    | product_code is empty / null | No   |
 
 ### EC Group 2: Length 6–12 characters (BR-102)
 
@@ -100,28 +100,26 @@ _Splitting Principle applied to "invalid prefix": digits, lowercase, and special
 | EC-16    | Invalid    | Middle section contains a space                                   | No   |
 | EC-17    | Invalid    | Middle section contains a special character (e.g., `-`, `_`, `@`) | No   |
 
-_Note: This class only applies when the code length is > 6 (i.e., there are characters between the 2-letter prefix and 4-digit suffix). A minimum-length code of exactly 6 has no middle characters._
+_This class only applies when the code length is > 6 (i.e., there are characters between the 2-letter prefix and 4-digit suffix). A minimum-length code of exactly 6 has no middle characters._
 
 ### EC Group 6: Uniqueness (BR-106)
 
-| Class ID | Class Type | Description                                           | BVA? |
-| -------- | ---------- | ----------------------------------------------------- | ---- |
-| EC-18    | Valid      | Product code does not exist in the system             | No   |
-| EC-19    | Invalid    | Product code already exists in the system (duplicate) | No   |
+| Class ID | Class Type | Description                               | BVA? |
+| -------- | ---------- | ----------------------------------------- | ---- |
+| EC-18    | Valid      | Product code does not exist in the system | No   |
+| EC-19    | Invalid    | Product code already exists in the system | No   |
 
-_Note: EC-19 requires a prerequisite test data setup — an existing product with the same code must be in the DB._
+_EC-19 requires a prerequisite test data setup — an existing product with the same code must be in the DB._
 
 ## Step 3 — Apply BVA
 
-BVA applies only to EC-03, EC-04, EC-05 (Length rule — ordered range).
-
-BVA points already identified in Step 2 above (3-value BVA).
-
-All other classes (EC-06 through EC-19) are boolean/format conditions — BVA does not apply.
+- BVA applies only to EC-03, EC-04, EC-05 (Length rule — ordered range).
+- BVA points already identified in Step 2 above (3-value BVA).
+- All other classes (EC-06 through EC-19) are boolean/format conditions — BVA does not apply.
 
 ## Step 4 — Build Test Case Suite
 
-### Combination strategy for valid classes:
+### Combination Strategy for Valid Classes
 
 A test case that satisfies ALL valid classes simultaneously:
 
@@ -132,11 +130,11 @@ A test case that satisfies ALL valid classes simultaneously:
 - Middle chars: alphanumeric (EC-15)
 - Unique code (EC-18)
 
-Valid representative: `AB12X4567` (A, B = prefix; 1, 2, X = middle; 4, 5, 6, 7 = suffix; length = 9)
+**Valid representative:** `AB12X4567` (A, B = prefix; 1, 2, X = middle; 4, 5, 6, 7 = suffix; length = 9)
 
 Additional valid test cases are needed for BVA boundary lengths (6, 7, 11, 12) — ensure format rules are still satisfied at each length.
 
-### Isolation strategy for invalid classes:
+### Isolation Strategy for Invalid Classes
 
 Each invalid class gets its own test case. All other rules must be satisfied in that test case.
 
@@ -163,9 +161,8 @@ Each invalid class gets its own test case. All other rules must be satisfied in 
 | TC-17 | Invalid — middle section contains special character | product_code           | EC-17                                    | N/A             | `product_code="AB1-X4567"`                      | Error: "Product Code must be alphanumeric only"       | BR-105 |
 | TC-18 | Invalid — duplicate product code                    | product_code           | EC-19                                    | N/A             | `product_code="AB12X4567"` (pre-existing in DB) | Error: "Product Code already exists"                  | BR-106 |
 
-**Total: 18 test cases** — 5 valid, 13 invalid.
-
-**Prerequisites for TC-18:** A product with code `AB12X4567` must already exist in the system before executing this test case.
+> **Prerequisites for TC-18:** A product with code `AB12X4567` must already exist in the system before executing this test case.  
+> **Total: 18 test cases** (5 valid, 13 invalid).
 
 ## Step 5 — Review Against Quality Checklist
 

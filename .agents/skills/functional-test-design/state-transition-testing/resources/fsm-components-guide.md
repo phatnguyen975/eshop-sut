@@ -146,22 +146,22 @@ An action is an **observable, verifiable output** produced during a transition. 
 | Action ID | Description      | Observable Indicator                                 | Triggered By Transition          | Source (Req/BR) |
 | --------- | ---------------- | ---------------------------------------------------- | -------------------------------- | --------------- |
 | A1        | Account created  | Record appears in accounts table; welcome email sent | Initial → Active                 | BR-001          |
-| A2        | Balance deducted | account.balance decremented by withdrawal amount     | In Credit → In Credit (withdraw) | BR-006          |
+| A2        | Balance deducted | Account's balance decremented by withdrawal amount   | In Credit → In Credit (withdraw) | BR-006          |
 | A3        | Error displayed  | UI shows "Insufficient funds" message                | Guard G2 failure                 | BR-006          |
 
 ## Component 5: Initial Pseudostate and Final States
 
 ### Initial Pseudostate
 
-- **Representation:** Solid filled circle (●) in UML
-- **Rules:** Has exactly one outgoing unconditional transition to the first real state; has no incoming transitions; is NOT a state the system can be in
-- **In the STT:** Do NOT include the initial pseudostate as a row — it is not a state
+- **Representation:** Solid filled circle in UML.
+- **Rules:** Has exactly one outgoing unconditional transition to the first real state; has no incoming transitions; is NOT a state the system can be in.
+- **In the STT:** Do NOT include the initial pseudostate as a row — it is not a state.
 
 ### Final States
 
-- **Representation:** Bullseye (◎) or double-bordered rectangle in UML
-- **Rules:** Have no outgoing valid transitions within the modeled scope; the system cannot leave a final state in the model
-- **In the STT:** Include final states as rows — events can still be applied to them (all will be invalid transitions, since no valid transitions exist from a final state)
+- **Representation:** Bullseye or double-bordered rectangle in UML.
+- **Rules:** Have no outgoing valid transitions within the modeled scope; the system cannot leave a final state in the model.
+- **In the STT:** Include final states as rows — events can still be applied to them (all will be invalid transitions, since no valid transitions exist from a final state).
 
 ### Output Format
 

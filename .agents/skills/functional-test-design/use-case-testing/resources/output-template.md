@@ -1,14 +1,5 @@
 # Use Case Testing — Output Templates
 
-## Overview
-
-The use case testing design process produces four artifacts in sequence:
-
-1. **Flow Inventory** — all flows identified from the spec and discovered through analysis (Step 2)
-2. **Scenario Matrix** — all meaningful path combinations, prioritized (Step 3)
-3. **Test Case Suite** — one or more executable test cases per scenario (Steps 4–6)
-4. _(Recommended)_ **Requirements Traceability Matrix (RTM)** — linking BRs → Use Case → Scenarios → Test Cases
-
 ## Template 1: Flow Inventory
 
 Use at **Step 2** to document all identified flows before constructing the Scenario Matrix.
@@ -22,34 +13,34 @@ Use at **Step 2** to document all identified flows before constructing the Scena
 
 **Column definitions:**
 
-- **Flow ID:** Unique identifier. MF = Main Flow; AF-N = Alternate Flow N; HF-N = Hidden Flow (discovered, not in original spec)
-- **Type:** Main or Alternate
-- **Short Description:** One-line summary of what this flow represents
-- **Branches From:** Which Main Flow step this alternate flow deviates from. Use "—" for MF.
+- **Flow ID:** Unique identifier. MF = Main Flow; AF-N = Alternate Flow N; HF-N = Hidden Flow (discovered, not in original spec).
+- **Type:** Main or Alternate.
+- **Short Description:** One-line summary of what this flow represents.
+- **Branches From:** Which Main Flow step this alternate flow deviates from. Use `—` for MF.
 - **Endpoint:** What happens at the end — does the flow rejoin MF (at which step?), or terminate?
-- **Classification:** For alternate flows: Optional (valid alternative choice) or Exception (error, rule violation, system failure)
+- **Classification:** For alternate flows: Optional (valid alternative choice) or Exception (error, rule violation, system failure).
 
 ## Template 2: Scenario Matrix
 
 Use at **Step 3** to enumerate all meaningful test scenarios before writing any test case.
 
-| Scenario ID | Path Composition | Alternate Flows Included | Priority | Endpoint   | Status                                                 |
-| ----------- | ---------------- | ------------------------ | -------- | ---------- | ------------------------------------------------------ |
-| S1          | Main Flow only   | None                     | Critical | Success    | Test                                                   |
-| S2          | MF + AF-1        | AF-1                     | High     | [endpoint] | Test                                                   |
-| S3          | MF + AF-2        | AF-2                     | High     | [endpoint] | Test                                                   |
-| S4          | MF + AF-1 + AF-3 | AF-1, AF-3               | Medium   | [endpoint] | Test                                                   |
-| —           | MF + AF-1 + AF-2 | AF-1, AF-2               | —        | —          | IMPOSSIBLE: [reason why this combination cannot occur] |
-| S5          | MF + AF-4        | AF-4                     | Low      | [endpoint] | Acknowledged; not tested this cycle                    |
+| Scenario ID | Path Composition | Alternate Flows | Priority | Endpoint   | Status                                                 |
+| ----------- | ---------------- | --------------- | -------- | ---------- | ------------------------------------------------------ |
+| S1          | Main Flow only   | None            | Critical | Success    | To test                                                |
+| S2          | MF + AF-1        | AF-1            | High     | [endpoint] | To test                                                |
+| S3          | MF + AF-2        | AF-2            | High     | [endpoint] | To test                                                |
+| S4          | MF + AF-1 + AF-3 | AF-1, AF-3      | Medium   | [endpoint] | To test                                                |
+| —           | MF + AF-1 + AF-2 | AF-1, AF-2      | —        | —          | IMPOSSIBLE: [reason why this combination cannot occur] |
+| S5          | MF + AF-4        | AF-4            | Low      | [endpoint] | Acknowledged; not tested this cycle                    |
 
 **Column definitions:**
 
 - **Scenario ID:** Unique identifier. S1 is always the happy path.
-- **Path Composition:** Which flows are combined in this scenario, in order
-- **Alternate Flows Included:** Explicit list of AF IDs exercised in this scenario
-- **Priority:** Critical / High / Medium / Low — based on risk assessment
-- **Endpoint:** The terminal point of this scenario (success, error page, redirect, etc.)
-- **Status:** Test (will be tested) / Acknowledged (not tested; risk accepted) / IMPOSSIBLE (cannot logically occur)
+- **Path Composition:** Which flows are combined in this scenario, in order.
+- **Alternate Flows:** Explicit list of AF IDs exercised in this scenario.
+- **Priority:** Critical / High / Medium / Low — based on risk assessment.
+- **Endpoint:** The terminal point of this scenario (success, error page, redirect, etc.).
+- **Status:** Test (will be tested) / Acknowledged (not tested; risk accepted) / IMPOSSIBLE (cannot logically occur).
 
 ## Template 3: Test Case
 

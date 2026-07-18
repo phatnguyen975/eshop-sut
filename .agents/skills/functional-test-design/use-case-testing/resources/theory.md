@@ -2,8 +2,6 @@
 
 ## 1. Definition and ISTQB Classification
 
-**Use Case Testing** is a **black-box test design technique** formally defined in ISTQB Foundation Level Syllabus (v3.1, Section 4.6). In ISTQB FL v4.0, the technique was replaced by "Collaboration-Based Test Approaches" (BDD/acceptance criteria focused), but Use Case Testing remains widely used in industry and is covered in ISTQB Agile Tester and Advanced Level syllabi.
-
 **ISTQB FL definition:**
 
 > "Test cases can be designed from use cases. A use case describes interactions between actors (users or systems) that produce a result of value to a system user or stakeholder. Use cases can be described at the abstract (business) level (business use case) or at the system level (system use case)."
@@ -60,7 +58,7 @@ The standard use case specification format (based on Cockburn's Writing Effectiv
 
 ### 4.1 Main Flow (Basic Flow / Happy Path)
 
-The main flow describes the ideal case: the actor provides correct input, all system components function correctly, no business rules are violated, and the goal is successfully achieved.
+**The main flow describes the ideal case:** the actor provides correct input, all system components function correctly, no business rules are violated, and the goal is successfully achieved.
 
 **Characteristics:**
 
@@ -85,17 +83,8 @@ Alternate flows represent deviations from the main flow. They branch from a spec
 | **Optional flows**  | The actor makes a valid choice that differs from the default path | "User chooses to pay with a different card"; "User selects express shipping instead of standard" |
 | **Exception flows** | An error occurs or a business rule is violated                    | "Invalid password entered"; "Payment gateway timeout"; "Insufficient stock"                      |
 
-**Branching notation:** Each alternate flow must reference the main flow step where it branches. Standard notation: "2a: If the password is incorrect at Step 2, the system displays an error message and returns to Step 1."
-
-### 4.3 Naming Conventions (ISTQB)
-
-ISTQB uses interchangeable terminology — both are correct:
-
-- "Alternate flow" and "alternative flow" — same concept
-- "Exception flow" — a sub-type of alternate flow (the error/failure case)
-- Some sources use "extension" (UML `<<extend>>` notation) and "inclusion" (UML `<<include>>`)
-
-For practical Use Case Testing purposes, the key distinction is: **optional flows** (valid alternative paths) vs. **exception flows** (error/rejection paths). Both require test scenarios.
+**Branching notation:** Each alternate flow must reference the main flow step where it branches.  
+**Standard notation:** "2a: If the password is incorrect at Step 2, the system displays an error message and returns to Step 1."
 
 ## 5. Use Case Scenarios
 
@@ -121,18 +110,11 @@ The scenario matrix systematically enumerates all meaningful path combinations:
 
 For a use case with N alternate flows, the theoretical maximum number of scenarios is 2ᴺ (each flow either present or absent). This grows quickly:
 
-| Alternate Flows | Theoretical Maximum Scenarios |
-| --------------- | ----------------------------- |
-| 3               | 8                             |
-| 5               | 32                            |
-| 7               | 128                           |
-| 10              | 1,024                         |
-
 **Mitigation strategies:**
 
-1. **Risk-based path selection:** Prioritize by probability of defect × business impact; test high-risk paths first; document low-risk paths as acknowledged
-2. **Pairwise coverage:** Ensure every pair of alternate flows is exercised together in at least one scenario — mathematical reduction while maintaining high defect detection
-3. **Impossibility pruning:** Remove logically impossible combinations (AF-1 terminates before AF-2 can occur)
+1. **Risk-based path selection:** Prioritize by probability of defect × business impact; test high-risk paths first; document low-risk paths as acknowledged.
+2. **Pairwise coverage:** Ensure every pair of alternate flows is exercised together in at least one scenario — mathematical reduction while maintaining high defect detection.
+3. **Impossibility pruning:** Remove logically impossible combinations (AF-1 terminates before AF-2 can occur).
 
 ## 6. Test Data Selection: Role of Other Techniques
 

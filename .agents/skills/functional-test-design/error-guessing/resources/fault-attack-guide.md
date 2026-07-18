@@ -48,8 +48,8 @@ Collect available information before generating hypotheses:
 
 Work through each category in [`error-taxonomy.md`](error-taxonomy.md). For each category:
 
-1. Ask: "Does this category apply to the feature under test?"
-2. If yes: "What specific defect could exist here? What input or condition would trigger it?"
+1. **Ask:** "Does this category apply to the feature under test?"
+2. **If yes:** "What specific defect could exist here? What input or condition would trigger it?"
 3. Write one fault list entry per specific hypothesis
 
 **Fault list entry format:**
@@ -61,16 +61,6 @@ Work through each category in [`error-taxonomy.md`](error-taxonomy.md). For each
 | **Hypothesis** | Specific suspected defect — what might go wrong and where                     |
 | **Rationale**  | Why this defect is suspected: experience, historical data, taxonomy reasoning |
 | **Risk**       | H / M / L — based on probability × impact                                     |
-
-**Example fault list entries:**
-
-| ID    | Category                 | Hypothesis                                                                                              | Rationale                                                                            | Risk |
-| ----- | ------------------------ | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---- |
-| FH-01 | 1.2 Special Strings      | Username field may not sanitize leading/trailing spaces — "john " and "john" treated as different users | Common developer assumption that input is pre-trimmed; seen in 2 prior projects      | H    |
-| FH-02 | 1.1 Special Numerics     | Price calculation with 0 quantity may produce division error or nonsensical result                      | Division by zero risk in unit price derivation; qty=0 not addressed in BR            | H    |
-| FH-03 | 5.3 Third-party Failures | If payment gateway times out, order may be created without payment confirmation                         | Partial completion risk; timeout handling not specified in BR-008                    | H    |
-| FH-04 | 4.3 Concurrency          | Two concurrent registration requests with same email may both succeed, creating duplicate accounts      | Race condition between uniqueness check and insert; no database constraint confirmed | M    |
-| FH-05 | 1.4 Special Dates        | Subscription expiry check on Feb 29 may fail in non-leap years                                          | Date arithmetic on leap day boundary; rare but complete failure when triggered       | M    |
 
 ### Step 4: Prioritize the Fault List
 

@@ -14,7 +14,7 @@
 
 **Consequence:** Produces logically incorrect transitions. "What happens if event X fires in the Start state?" is a question with no real-world answer — the system is never actually "in" the initial pseudostate during normal operation. Test cases derived from these false transitions are unexecutable.
 
-**Correct approach:** The initial pseudostate (●) is not a state. It has exactly one outgoing unconditional transition to the first real state. It has no incoming transitions. It does not appear as a row in the STT. The first real state is whatever the system enters immediately upon instantiation.
+**Correct approach:** The initial pseudostate is not a state. It has exactly one outgoing unconditional transition to the first real state. It has no incoming transitions. It does not appear as a row in the STT. The first real state is whatever the system enters immediately upon instantiation.
 
 ## AP-03: Missing the Precondition in Test Cases
 
