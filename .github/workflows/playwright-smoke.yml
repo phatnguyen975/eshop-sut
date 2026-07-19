@@ -1,10 +1,13 @@
 name: Smoke Tests (Monorepo)
 
 on:
-  push:
-    branches: [web-automation-testing]
   pull_request:
     branches: [web-automation-testing]
+    paths:
+      - 'frontend-web/**'
+      - 'frontend-admin/**'
+      - 'backend/**'
+      - 'e2e/**'
 
 concurrency:
   group: smoke-${{ github.ref }}
