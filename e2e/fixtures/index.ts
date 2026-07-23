@@ -36,6 +36,7 @@ type EShopFixtures = {
   adminApiRequest: APIRequestContext;
   seededProduct: { id: number; name: string; price: number };
   seededOrder: { id: number };
+  emptyCart: void;
   cleanup: { add: (fn: () => Promise<void>) => void };
 };
 
@@ -189,6 +190,34 @@ export const test = base.extend<EShopFixtures>({
 
     // Teardown — cancel order; silently skip if already in terminal state
     await userCtx.put(`/api/orders/${orderId}/cancel`).catch(() => {});
+    await userCtx.dispose();
+  },
+
+  // ---------------------------------------------------------------------------
+  // emptyCart — ensures the user's cart is empty before and after the test via API
+  // Scope: 'test' (default)
+  // ---------------------------------------------------------------------------
+  emptyCart: async ({}, use) => {
+    const userCtx = await getAuthenticatedContext(
+      process.env.USER_EMAIL ?? "test@eshop.com",
+      process.env.USER_PASSWORD ?? "Test1234!",
+    );
+
+    // Setup: clear cart before test
+    await userCtx.delete("/api/cart").catch(() => {
+      console.warn(
+        "emptyCart setup: could not clear cart (endpoint might not exist)",
+      );
+    });
+
+    await use();
+
+    // Teardown: clear cart after test
+    await userCtx.delete("/api/cart").catch(() => {
+      console.warn(
+        "emptyCart teardown: could not clear cart (endpoint might not exist)",
+      );
+    });
     await userCtx.dispose();
   },
 

@@ -234,6 +234,8 @@ Static test input files committed to `e2e/test-data/`. Created when first needed
 
 **Phase 2 — Test Data Design (`functional-test-design` techniques):**
 
+_Note: Phase 1 designs the main E2E flow, which must always use fully valid data. Phase 2 applies test design techniques to generate isolated, data-driven validation tests (UI) and API tests for each feature boundary._
+
 6. For each step that involves user input, business rule evaluation, or state transition, invoke `functional-test-design` to determine which technique applies:
    - Input fields with valid/invalid ranges → **Domain Testing (EP + BVA)**
    - Steps with multiple independent conditions affecting outcome → **Decision Table Testing**

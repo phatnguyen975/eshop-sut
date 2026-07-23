@@ -1,36 +1,38 @@
 # AI Audit Log — July 2026
 
-> **Last updated:** 2026-07-15T20:53:00+07:00
+> **Last updated:** 2026-07-24T03:35:00+07:00
 
 ## Monthly Statistics
 
-- **Period:** 2026-07-01 → 2026-07-15
-- **Total Interactions:** 11
-- **Models Used:** Gemini 3.1 Pro (High) (6), Claude Sonnet 4.6 (Thinking) (5)
+- **Period:** 2026-07-01 → 2026-07-24
+- **Total Interactions:** 13
+- **Models Used:** Gemini 3.1 Pro (High) (8), Claude Sonnet 4.6 (Thinking) (5)
 
 ### Status Breakdown
 
 | Status        | Count  | %   |
 | ------------- | ------ | --- |
-| ✅ VALID      | 10     | 91% |
-| ⚠️ PARTIAL    | 1      | 9%  |
+| ✅ VALID      | 11     | 85% |
+| ⚠️ PARTIAL    | 2      | 15% |
 | 🔄 REVISED    | 0      | 0%  |
 | ❌ INVALID    | 0      | 0%  |
 | 🔲 INCOMPLETE | 0      | 0%  |
 | ⏳ PENDING    | 0      | 0%  |
-| **Total**     | **11** |     |
+| **Total**     | **13** |     |
 
 ### Tag Breakdown
 
 | Tag             | Count |
 | --------------- | ----- |
-| `file-output`   | 8     |
+| `file-output`   | 10    |
 | `documentation` | 7     |
 | `devops`        | 5     |
 | `design`        | 4     |
+| `testing`       | 4     |
 | `planning`      | 3     |
-| `testing`       | 2     |
 | `analysis`      | 1     |
+| `code-gen`      | 1     |
+| `refactor`      | 1     |
 
 ### Quality Metrics
 
@@ -346,3 +348,58 @@ Hãy update status và đợi tôi đưa ra yêu cầu tiếp theo
 | Reason   | AI successfully updated the scenario specification status to APPROVED and awaited further instructions |
 | Revised  | No                                                                                                     |
 | Revision | N/A                                                                                                    |
+
+## [AI-AUDIT-012] 2026-07-24T03:22:29+07:00
+
+### Metadata
+
+- **Model:** Gemini 3.1 Pro (High)
+- **Tags:** `code-gen` · `testing` · `file-output`
+- **Status:** ✅ VALID
+
+### Prompt
+
+```prompt
+wat-build SC-02
+```
+
+### Output
+
+- `e2e/pages/web/cart.page.ts` — Created Page Object Model (POM) for the Cart page including breadcrumbs, table elements, summary, and dialog locators.
+
+### Evaluation
+
+| Field    | Detail                                                                                                     |
+| -------- | ---------------------------------------------------------------------------------------------------------- |
+| Status   | ✅ VALID                                                                                                   |
+| Reason   | AI successfully generated the POM for the Cart page according to the approved spec and Playwright patterns |
+| Revised  | No                                                                                                         |
+| Revision | N/A                                                                                                        |
+
+## [AI-AUDIT-013] 2026-07-24T03:28:29+07:00
+
+### Metadata
+
+- **Model:** Gemini 3.1 Pro (High)
+- **Tags:** `refactor` · `testing` · `file-output`
+- **Status:** ⚠️ PARTIAL
+
+### Prompt
+
+```prompt
+FAILED
+Có vẻ như bạn quên là khi giỏ hàng trống phải có Tiếp tục mua sắm để quay về trang chủ
+```
+
+### Output
+
+- `e2e/pages/web/cart.page.ts` — Added `continueShoppingButton` locator and `continueShopping()` action method.
+
+### Evaluation
+
+| Field    | Detail                                                                                                                     |
+| -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Status   | ⚠️ PARTIAL                                                                                                                 |
+| Reason   | AI missed the "Tiếp tục mua sắm" button for the empty cart state initially, but successfully added it after human feedback |
+| Revised  | Yes                                                                                                                        |
+| Revision | Added missing locator and method for the empty cart's continue shopping button                                             |

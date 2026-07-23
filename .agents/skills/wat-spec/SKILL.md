@@ -157,14 +157,19 @@ Multiple techniques may apply to a single step. Apply all that are relevant.
 
 #### Input Value Set Selection Rules
 
-These rules define the **minimum sufficient set** of input values per technique. The goal is maximum defect detection with minimum redundancy.
+These rules define the **minimum sufficient set** of input values per technique. The goal is **exhaustive coverage of all distinct error/validation conditions** with minimum redundant data.
+
+**Core Principle: Separation of E2E Flow vs Validation/API Tests**
+
+1. **Phase 1 (E2E Flow):** The main scenario flow _always_ uses fully valid data (Happy Path) for every step to ensure the business journey can be completed end-to-end. Do NOT inject invalid/boundary variants into the main E2E flow.
+2. **Phase 2 (Validation & API Tests):** The techniques below are used strictly to generate isolated, independent test cases for validation checks (UI) and API security/boundaries. These are implemented separately from the E2E flow.
 
 **Domain Testing (EP + BVA):**
 
-First, identify all equivalence classes:
+First, identify all equivalence classes (you must exhaustively cover every constraint in the SRS):
 
-- **Valid class:** inputs the system should accept
-- **Invalid class(es):** inputs the system should reject — one class per distinct rejection reason (wrong format, too short, missing required, duplicate, etc.)
+- **Valid class:** inputs the system should accept.
+- **Invalid class(es):** inputs the system should reject. You must identify **one distinct class for EVERY rejection reason** documented in the SRS (e.g., wrong format, too short, too long, missing required field, duplicate value, forbidden characters).
 
 Then select values:
 
@@ -200,12 +205,12 @@ Select input triggers:
 
 **Error Guessing:**
 
-Apply after all systematic techniques. Focus on:
+Apply after all systematic techniques to catch edge cases that structural techniques miss. Focus heavily on API-level coverage:
 
-- Integration boundaries: data sent by one component that the receiving component should not trust (e.g., `total_amount` in checkout — backend must recompute)
-- Authentication boundaries: requests to authenticated endpoints without a token, or with a token of the wrong role
-- Client-side bypass attempts: values that pass UI validation but should be caught server-side (negative prices, manipulated IDs, script injection in text fields)
-- Known common defect patterns for this type of feature (off-by-one in counters, race conditions in concurrent requests, case sensitivity in email matching)
+- **Authentication/Authorization boundaries:** requests to authenticated endpoints without a token, with an expired token, or with a token of the wrong role.
+- **Integration boundaries & API Validation:** data sent by the client that the backend must independently validate or recompute (e.g., `total_amount` in checkout, missing required fields in JSON payload, invalid data types, array out-of-bounds).
+- **Client-side bypass attempts:** values that pass UI validation but should be caught server-side (negative prices, manipulated IDs, script injection in text fields).
+- **Business rule edge cases:** Known common defect patterns for this type of feature (off-by-one in counters, race conditions in concurrent requests, case sensitivity in email matching).
 
 #### Test Case Payload Completeness
 
